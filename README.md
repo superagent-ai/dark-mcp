@@ -1,8 +1,10 @@
 # dark-mcp
 
-Standalone MCP server for investigating company mentions on onion pages and Telegram channels after a cyber incident.
+Standalone MCP server for proactive company exposure research on onion pages and Telegram channels.
 
-Search existing indexes for company names, domains, and aliases; inspect matching onion pages through Tor; retrieve relevant Telegram posts with source links and timestamps. The same tools can be called repeatedly by a monitoring agent or scheduled workflow.
+Search existing indexes for company names, domains, and aliases; inspect matching onion pages through Tor; retrieve relevant Telegram posts with source links and timestamps. Investigate early warning signals such as company targeting, exposed information, alleged data sales, and threat activity before an incident is known. The same tools can be called repeatedly by a monitoring agent or scheduled workflow.
+
+Probing here means investigating sources and exposure signals. Findings should retain their evidence and uncertainty: a source's claim does not establish that an intrusion occurred.
 
 ## Data sources
 
@@ -84,13 +86,13 @@ Dates must include a timezone, for example `2026-10-18T00:00:00Z`. Telegram mess
 
 Tools return structured `ok`, `results`/`page`, coverage information, and errors with stable codes. Rate limit errors include a retry delay when Telegram provides one. Missing configuration and source failures are explicit errors, never empty results disguised as successful searches.
 
-## Example incident investigation
+## Example proactive company investigation
 
 For a fictional company called Acme with domain `acme.example`:
 
 1. Call `search_onion` separately for `"Acme"`, `acme.example`, and relevant brand aliases. These are search strings; matching behavior is controlled by the provider.
 2. Inspect relevant results with `fetch_onion`. Record the exact excerpt, URL, and collection time. The search API does not guarantee publication dates; an old indexed page is not necessarily a new disclosure.
-3. Search selected Telegram channels for the same identifiers using `search_telegram_messages`, with the incident date in `since`. Where separately permitted, use public post search to discover additional sources.
+3. Search selected Telegram channels for the same identifiers using `search_telegram_messages`, with the start of the research window in `since`. Where separately permitted, use public post search to discover additional sources.
 4. Assess whether the text actually refers to the company. A mention or an alleged leak is not a confirmed compromise. Cite the evidence and retain uncertainty.
 5. For repeated monitoring, the calling workflow should persist seen source URLs, Telegram channel/message IDs, and content hashes; compare each run and notify on new or changed evidence. The server supplies data access, not a built-in scheduler or alert delivery service.
 
