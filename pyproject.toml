@@ -1,0 +1,49 @@
+[project]
+name = "dark-mcp"
+version = "0.1.0"
+description = "Standalone MCP server for onion sources and Telegram channel research"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Superagent" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.15.0",
+    "httpx[socks]>=0.28.1",
+    "mcp>=2.3.0,<3",
+    "pydantic-settings>=2.16.0",
+    "telethon>=1.45.0,<2",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+dark-mcp = "dark_mcp.cli:app"
+
+[project.urls]
+Repository = "https://github.com/superagent-ai/dark-mcp"
+Issues = "https://github.com/superagent-ai/dark-mcp/issues"
+
+[build-system]
+requires = ["uv_build>=0.11.23,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "respx>=0.23.1",
+    "ruff>=0.17.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]

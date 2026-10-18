@@ -1,0 +1,32 @@
+services:
+  tor:
+    build:
+      context: .
+      dockerfile: Dockerfile.tor
+    volumes:
+      - tor-data:/var/lib/tor
+    ports:
+      - "127.0.0.1:9050:9050"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9050"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+  mcp:
+    build: .
+    stdin_open: true
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DARK_MCP_DATA_DIR: /data
+      DARK_MCP_TOR_PROXY: socks5h://tor:9050
+    volumes:
+      - mcp-data:/data
+    depends_on:
+      tor:
+        condition: service_healthy
+volumes:
+  tor-data:
+  mcp-data:
