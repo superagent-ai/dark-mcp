@@ -97,7 +97,7 @@ async def test_public_search_does_not_spend_stars(settings, monkeypatch):
     class FakeClient:
         async def __call__(self, request):
             requests.append(request)
-            return SimpleNamespace(query_is_free=False)
+            return SimpleNamespace(query_is_free=False, remains=0)
 
     @asynccontextmanager
     async def session(**kwargs):
@@ -139,6 +139,33 @@ async def test_public_search_uses_numeric_cursor_and_returns_provenance(settings
     result = await connector.posts("Acme", cursor={"channel": "-100123", "offset_id": 90, "offset_rate": 100})
     assert result["results"][0]["url"] == "https://t.me/research/20"
     assert result["next_cursor"] == {"offset_rate": 200, "offset_id": 20, "channel": "-100123"}
+    assert len(requests) == 1
+
+
+@pytest.mark.parametrize(("query_is_free", "remains"), [(False, 1), (True, 0)])
+async def test_public_search_uses_available_daily_slot_or_cached_query(
+    settings,
+    monkeypatch,
+    query_is_free,
+    remains,
+):
+    connector = TelegramConnector(settings)
+
+    class FakeClient:
+        async def __call__(self, request):
+            if isinstance(request, functions.channels.CheckSearchPostsFloodRequest):
+                return SimpleNamespace(query_is_free=query_is_free, remains=remains)
+            assert request.allow_paid_stars is None
+            return SimpleNamespace(chats=[], messages=[])
+
+    @asynccontextmanager
+    async def session(**kwargs):
+        yield FakeClient()
+
+    monkeypatch.setattr(connector, "session", session)
+    result = await connector.posts("Acme")
+    assert result["results"] == []
+    assert result["next_cursor"] is None
 
 
 async def test_flood_wait_returns_retry_and_disconnects(settings, monkeypatch):

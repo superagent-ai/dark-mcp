@@ -182,13 +182,18 @@ class TelegramConnector:
         offset_rate, offset_id = int(cursor.get("offset_rate", 0)), int(cursor.get("offset_id", 0))
         if offset_rate < 0 or offset_id < 0:
             raise ValueError("Cursor offsets must be nonnegative")
+        if cursor and not (offset_rate > 0 and offset_id > 0 and cursor.get("channel")):
+            raise ValueError("Use the complete next_cursor returned by a previous search")
         async with self.session(global_search=True) as client:
-            check = await client(functions.channels.CheckSearchPostsFloodRequest(query=query))
-            if not check.query_is_free:
-                raise DataAccessError(
-                    "telegram_search_quota",
-                    "No free public post search is available; dark-mcp never spends Stars",
-                )
+            # A new query may use a daily free slot or a server-cached free search.
+            # Subsequent pages are free and do not need another quota preflight.
+            if not cursor:
+                check = await client(functions.channels.CheckSearchPostsFloodRequest(query=query))
+                if not check.query_is_free and check.remains <= 0:
+                    raise DataAccessError(
+                        "telegram_search_quota",
+                        "No free public post search is available; dark-mcp never spends Stars",
+                    )
             peer = types.InputPeerEmpty()
             if cursor.get("channel"):
                 key = channel_key(cursor["channel"])
