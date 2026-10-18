@@ -17,6 +17,47 @@ Probing here means investigating sources and exposure signals. Findings should r
 
 **Discovery uses an existing search engine. You do not need to build your own onion index.** The local index is optional and only covers pages this installation has collected. Search provider coverage and freshness are not independently verified.
 
+### Telegram source research
+
+The [18 October 2026 source catalog](sources/telegram-research-2026-10-18.json) records live checks of 108 public handles, including access failures, stale feeds, evidence links and source assessments. Only 18 had any visible post within 30 days; recent activity can still be a promotion or migration notice.
+
+[telegram-starter.json](sources/telegram-starter.json) contains seven selected public handles for a local `DARK_MCP_TELEGRAM_CHANNELS` allowlist. Four cover underground claims or forum listings; three provide researcher/community context. The catalog separates these roles, conditional guest previews and marketing-only watchlists. It does not authenticate operators or alleged breaches. Review source IDs, current content and applicable access permissions before using a dated snapshot.
+
+### Onion source research
+
+The [18 October 2026 onion catalog](sources/onion-research-2026-10-18.json) records tests of 30 addresses across 27 source families. Twelve responded, but only six exposed public indexes; the others returned login gates, challenges, an empty document or a catalog shell. Follow-up checks confirmed deeper public reads on two forums. Timeouts are collection failures at the time of testing, not proof of permanent downtime.
+
+[onion-starter.json](sources/onion-starter.json) contains five public seed pages across PwnForums, Spear and Exilio404. Fetch selected URLs with `fetch_onion` to populate the local index. PwnForums was limited to its public homepage; tested deeper sections returned HTTP 403. [onion-disclosure-context.json](sources/onion-disclosure-context.json) separately lists a readable ransomware victim-claim page. These snapshots establish limited access, not complete forum coverage, authenticated identities or evidence that a particular incident could have been detected early.
+
+### Full source registry for agents
+
+The server bundles **155 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles and 17 invite-derived leads. Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
+
+`list_sources` exposes the complete registry with stable source IDs, filtering and pagination. `get_source` returns assessments, discovery references, evidence links, historical access checks and known forum section URLs. The catalog is packaged with the server, so an installed wheel or Docker image does not depend on this checkout's `sources/` directory.
+
+`collect_source` reads one onion page or a bounded page of Telegram posts. For onion sources, provide a known section or discovered same-host URL to explore deeper. For Telegram, use `query`, `since` and `next_before_id` to search and paginate. Metadata-only invite records return `source_access_required`; numeric IDs can only be read if the account can resolve and access them. Collection does not join channels, renew invite previews or solve login/browser challenges. Obvious onion gates are flagged; other returned text remains unverified.
+
+To permit Telegram reads across all locatable catalog records, enable the following alongside your authenticated Telegram configuration:
+
+```dotenv
+DARK_MCP_TELEGRAM_CATALOG_SOURCES=true
+```
+
+This adds known catalog locators to the explicit `DARK_MCP_TELEGRAM_CHANNELS` allowlist; arbitrary new channels still require configuration. It does not make inaccessible sources readable. This switch defaults to `false` for fresh installations.
+
+An investigating agent should:
+
+1. Call `get_status`, then page through `list_sources`. Use source assessments to prioritize relevant primary sources and keep mirrors/reposts in the same evidence cluster.
+2. Inspect `get_source` before collection. Historical access states and research priorities are leads, not current availability or authenticity guarantees.
+3. Use `collect_source` with company names, domains and aliases for Telegram; inspect onion pages and follow relevant same-host section/thread links. `search_onion_cache` searches only pages actually collected. `search_onion` can discover additional candidates outside the registry.
+4. Follow returned pagination until the chosen investigation bounds are met. Stop on rate limits and honor `retry_after_seconds`; record inaccessible sources as coverage gaps.
+5. Derive signals from original evidence: company targeting, alleged access/data offers, credential exposure claims and supplier exposure. Cite the original URL and post ID, observed entity ID, publication time if available, collection time, matching identifiers and uncertainty. Do not equate an advertisement or allegation with a verified compromise.
+6. Separate duplicate/reposted claims, original posts and later replies. Report sources checked, collection bounds, access failures and unresolved attribution alongside any findings. No matches means no matches within that collected coverage.
+
+The MCP supplies discovery and collection; the calling agent derives signals and controls further collection. There is no built-in schedule or alert service. Telegram content is returned on demand; onion fetches update the local cache.
+
+Maintainers can update the dated research snapshots and run `uv run python scripts/build_source_catalog.py` to regenerate the distributable registry. Tests check that the packaged registry matches the research files.
+
 ## Quick start
 
 Requires Python 3.12+, [uv](https://docs.astral.sh/uv/), and Tor or Docker.
@@ -73,6 +114,9 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | Tool | Purpose |
 | --- | --- |
 | `get_status()` | Configuration and local index count; does not test connectivity |
+| `list_sources(kind=null, access_state=null, query=null, offset=0, limit=20)` | Full candidate inventory; paginate with `next_offset` |
+| `get_source(source_id)` | Provenance, evidence links, historical checks and known section URLs |
+| `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion page or page of Telegram posts; report current result and historical access state |
 | `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
 | `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
 | `crawl_onion(seeds, max_pages=5)` | Collect at most 10 pages from seed onions and same-host links |

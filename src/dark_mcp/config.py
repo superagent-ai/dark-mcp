@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     telegram_api_hash: SecretStr | None = None
     telegram_enabled: bool = False
     telegram_channels: list[str] = []
+    telegram_catalog_sources: bool = False
     telegram_global_search: bool = False
 
     def prepare_data_dir(self) -> Path:

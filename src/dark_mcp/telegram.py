@@ -7,6 +7,7 @@ from telethon import TelegramClient, errors, functions, types
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
+from dark_mcp.sources import SourceCatalog
 
 
 def channel_key(value: str) -> str:
@@ -24,9 +25,10 @@ def query_value(query: str) -> str:
 
 
 class TelegramConnector:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, catalog: SourceCatalog | None = None):
         self.settings = settings
         self.lock = asyncio.Lock()
+        self.catalog = catalog
 
     def configured(self) -> bool:
         return bool(
@@ -93,9 +95,12 @@ class TelegramConnector:
     def _allowed_channel(self, channel: str) -> str | int:
         key = channel_key(channel)
         allowed = {channel_key(item) for item in self.settings.telegram_channels}
+        if self.settings.telegram_catalog_sources:
+            allowed.update((self.catalog or SourceCatalog()).telegram_targets())
         if key not in allowed:
             raise DataAccessError(
-                "channel_not_allowed", "Add this permitted channel to DARK_MCP_TELEGRAM_CHANNELS first"
+                "channel_not_allowed",
+                "Add this channel to DARK_MCP_TELEGRAM_CHANNELS or enable DARK_MCP_TELEGRAM_CATALOG_SOURCES",
             )
         return int(key) if key.startswith("-100") else key
 
@@ -110,18 +115,25 @@ class TelegramConnector:
         return entity
 
     @staticmethod
+    def _username(entity) -> str | None:
+        return entity.username or next(
+            (item.username for item in (getattr(entity, "usernames", None) or []) if item.active), None
+        )
+
+    @staticmethod
     def _channel(entity) -> dict:
+        username = TelegramConnector._username(entity)
         return {
             "id": f"-100{entity.id}",
             "title": entity.title,
-            "username": entity.username,
-            "url": f"https://t.me/{entity.username}" if entity.username else None,
+            "username": username,
+            "url": f"https://t.me/{username}" if username else None,
         }
 
     @staticmethod
     def _message(message, entity) -> dict:
         text = message.message or ""
-        path = entity.username or f"c/{entity.id}"
+        path = TelegramConnector._username(entity) or f"c/{entity.id}"
         return {
             "id": message.id,
             "channel": TelegramConnector._channel(entity),

@@ -178,3 +178,12 @@ async def test_flood_wait_returns_retry_and_disconnects(settings, monkeypatch):
     assert exc.value.code == "telegram_rate_limited"
     assert exc.value.retry_after == 42
     client.disconnect.assert_awaited_once()
+
+
+def test_collectible_public_alias_is_used_for_evidence_links():
+    channel = entity()
+    channel.username = None
+    channel.usernames = [types.Username(username="breaches", active=True)]
+    result = TelegramConnector._message(message(20, datetime(2026, 10, 18, tzinfo=UTC)), channel)
+    assert result["url"] == "https://t.me/breaches/20"
+    assert result["channel"]["url"] == "https://t.me/breaches"
