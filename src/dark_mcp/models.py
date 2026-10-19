@@ -24,6 +24,9 @@ class ForumPost(BaseModel):
     id: str
     url: str
     author: str | None = None
+    author_id: str | None = None
+    author_url: str | None = None
+    author_identity: dict = Field(default_factory=dict)
     text: str
     published_at: str | None = None
     published_at_raw: str | None = None

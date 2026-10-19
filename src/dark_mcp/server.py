@@ -4,6 +4,7 @@ from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
 
 from dark_mcp import __version__
+from dark_mcp.authors import AuthorPosts
 from dark_mcp.collection import CollectionService
 from dark_mcp.config import Settings
 from dark_mcp.coverage import CorpusCoverage
@@ -64,6 +65,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Telegram forward headers are unverified leads; keep their reported origin date separate from the "
             "observed copy and local recording time. Missing legacy entity/header fields mean unrecorded metadata. "
             "A reference match is unverified context, not a verified exposure or an endorsement to follow the link. "
+            "Use get_collected_author_posts for source-local author context; same-name accounts are not merged. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
         ),
     )
@@ -210,6 +212,30 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             kind=kind,
             source_id=source_id,
             include_history=include_history,
+            offset=offset,
+            limit=limit,
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_collected_author_posts(
+        source_id: str,
+        author_id: str | None = None,
+        author: str | None = None,
+        as_of: str | None = None,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """Retrieve saved forum posts by one source-local numeric account ID or exact casefolded handle.
+
+        No profile fetches. Handles can be reused; account IDs do not authenticate people or link across sources.
+        as_of filters by local observation recording time, not a source's displayed publication time.
+        """
+        return local(
+            AuthorPosts(evidence, settings.max_text_chars).get,
+            source_id=source_id,
+            author_id=author_id,
+            author=author,
+            as_of=as_of,
             offset=offset,
             limit=limit,
         )

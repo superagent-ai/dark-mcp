@@ -12,6 +12,7 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from bs4 import BeautifulSoup
 
+from dark_mcp.authors import author_fields
 from dark_mcp.errors import DataAccessError
 from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
@@ -358,10 +359,11 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         pid = node.get("data-content", "").removeprefix("post-") or node.get("id", "").removeprefix("post_")
         if not pid.isdigit():
             continue
-        author_node = node.select_one(
+        author_nodes = node.select(
             ".message-name .username, .post-username a, a[data-class=profile_url], "
             ".post_author .post_user-profile a, .post__author .post__user-profile a[href]"
         )
+        author_node = next((a for a in author_nodes if not any(parent is body for parent in a.parents)), None)
         author = node.get("data-author") or (author_node.get_text(" ", strip=True) if author_node else None)
         date_node = node.select_one(".message-attribution-main time") or node.select_one(".post_date")
         if date_node and source["forum_engine"] == "mybb" and date_node.select_one(".post_edit"):
@@ -456,6 +458,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 id=pid,
                 url=post_url,
                 author=author,
+                **author_fields(source, url, author, author_node),
                 text=text[:cap],
                 published_at=published,
                 published_at_raw=raw_date,

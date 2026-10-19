@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from dark_mcp.authors import index_author_revision
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
 from dark_mcp.references import index_reference_revision
@@ -91,6 +92,12 @@ class EvidenceStore:
                     thread_key TEXT NOT NULL, post_id TEXT NOT NULL, post_number INTEGER, is_thread_root INTEGER
                 );
                 CREATE INDEX IF NOT EXISTS forum_thread_lookup ON forum_thread_members(source_id,thread_key);
+                CREATE TABLE IF NOT EXISTS forum_author_members (
+                    revision_id INTEGER PRIMARY KEY REFERENCES revisions(id),source_id TEXT NOT NULL,
+                    author_id TEXT,handle TEXT,handle_folded TEXT
+                );
+                CREATE INDEX IF NOT EXISTS forum_author_id ON forum_author_members(source_id,author_id);
+                CREATE INDEX IF NOT EXISTS forum_author_handle ON forum_author_members(source_id,handle_folded);
                 CREATE TABLE IF NOT EXISTS observations (
                     seq INTEGER PRIMARY KEY AUTOINCREMENT, evidence_id TEXT NOT NULL REFERENCES items(id),
                     revision_id INTEGER NOT NULL REFERENCES revisions(id), observed_at TEXT NOT NULL,
@@ -151,6 +158,15 @@ class EvidenceStore:
                     for row in rows:
                         index_reference_revision(db, row["id"], "telegram", json.loads(row["snapshot"]))
                 db.execute("INSERT INTO migrations VALUES('telegram-reference-index-v1',?)", (now(),))
+            if not db.execute("SELECT 1 FROM migrations WHERE name='forum-author-index-v1'").fetchone():
+                cursor = db.execute(
+                    "SELECT r.id,i.source_id,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id "
+                    "WHERE i.kind='forum'"
+                )
+                while rows := cursor.fetchmany(100):
+                    for row in rows:
+                        index_author_revision(db, row["id"], row["source_id"], "forum", json.loads(row["snapshot"]))
+                db.execute("INSERT INTO migrations VALUES('forum-author-index-v1',?)", (now(),))
         self.path.chmod(0o600)
 
     @contextmanager
@@ -255,6 +271,7 @@ class EvidenceStore:
                 )
                 revision_id = cursor.lastrowid
                 index_forum_revision(db, revision_id, source_id, kind, snapshot)
+                index_author_revision(db, revision_id, source_id, kind, snapshot)
                 index_reference_revision(db, revision_id, kind, snapshot)
             else:
                 revision_id = previous["id"]

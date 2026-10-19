@@ -5,6 +5,7 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 
+from dark_mcp.authors import author_fields
 from dark_mcp.errors import DataAccessError
 from dark_mcp.forums import reference_links, source_url, thread_identity, timestamp
 from dark_mcp.models import ForumPage, ForumPost, classify_page
@@ -108,6 +109,7 @@ def parse_q2a(source, url, document, max_chars, limit):
                 id=pid,
                 url=post_url,
                 author=author.get_text(" ", strip=True) if author else None,
+                **author_fields(source, url, author.get_text(" ", strip=True) if author else None, author),
                 text=text[:cap],
                 published_at=published,
                 published_at_raw=raw,

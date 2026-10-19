@@ -26,6 +26,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "search_references",
             "get_evidence",
             "get_collected_thread",
+            "get_collected_author_posts",
             "get_evidence_history",
             "list_evidence_changes",
             "get_exact_duplicates",

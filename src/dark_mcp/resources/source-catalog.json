@@ -4038,7 +4038,37 @@
             "role": "public_section_check"
           }
         ],
-        "access_error": null
+        "access_error": null,
+        "additional_access_checks": [
+          {
+            "source_id": "onion:b333e6836938",
+            "url": "http://pwnfrm7rbf6kyerigxi677lcz5ifmoagdbqqknwdu2by27wfdst5qmqd.onion/",
+            "checked_at": "2026-10-19T16:24:40.155841+00:00",
+            "transport": "tor",
+            "scope": "catalog root only; index text is not thread-body access",
+            "access_state": "content_returned_unverified",
+            "observed_title": "PwnForums",
+            "text_chars": 15484,
+            "error_code": null,
+            "identity_authenticated": false,
+            "timestamp_basis": "native_page_collection_time",
+            "assessment": "Dated native MCP check. CryptBB requires login; PwnForums exposes homepage discovery but its access-market section returns HTTP 403. No new original-thread coverage or collector established."
+          },
+          {
+            "source_id": "onion:b333e6836938",
+            "url": "http://pwnfrm7rbf6kyerigxi677lcz5ifmoagdbqqknwdu2by27wfdst5qmqd.onion/Forum-Access-Market",
+            "checked_at": "2026-10-19T16:25:19.962033+00:00",
+            "transport": "tor",
+            "scope": "published access-market section; no original posts",
+            "access_state": "http_403",
+            "observed_title": null,
+            "text_chars": 0,
+            "error_code": "http_403",
+            "identity_authenticated": false,
+            "timestamp_basis": "local_response_receipt_time",
+            "assessment": "Dated native MCP check. CryptBB requires login; PwnForums exposes homepage discovery but its access-market section returns HTTP 403. No new original-thread coverage or collector established."
+          }
+        ]
       }
     },
     {
@@ -4229,7 +4259,23 @@
           "https://github.com/fastfire/deepdarkCTI/blob/1410103718d49a4542ca790b99abfad307849066/forum.md"
         ],
         "depth_checks": [],
-        "access_error": null
+        "access_error": null,
+        "additional_access_checks": [
+          {
+            "source_id": "onion:c0b5e59a2bfb",
+            "url": "http://cryptbbtg65gibadeeo2awe3j7s6evg7eklserehqr4w4e2bis5tebid.onion/",
+            "checked_at": "2026-10-19T16:24:50.009709+00:00",
+            "transport": "tor",
+            "scope": "catalog root; no original posts",
+            "access_state": "login_gate_suspected",
+            "observed_title": "CryptBB",
+            "text_chars": 584,
+            "error_code": null,
+            "identity_authenticated": false,
+            "timestamp_basis": "native_page_collection_time",
+            "assessment": "Dated native MCP check. CryptBB requires login; PwnForums exposes homepage discovery but its access-market section returns HTTP 403. No new original-thread coverage or collector established."
+          }
+        ]
       }
     },
     {
