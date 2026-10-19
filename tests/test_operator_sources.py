@@ -44,8 +44,8 @@ def test_registry_is_private_idempotent_scoped_and_separate_from_packaged_resear
     assert registry.path.parent.stat().st_mode & 0o777 == 0o700
     catalog = SourceCatalog(settings)
     assert catalog.summary()["operator_configured_sources"] == 1
-    assert catalog.summary()["packaged_sources"] == 173
-    assert len(SourceCatalog().sources) == 173  # The packaged snapshot is unchanged.
+    assert catalog.summary()["packaged_sources"] == 174
+    assert len(SourceCatalog().sources) == 174  # The packaged snapshot is unchanged.
     detail = catalog.detail(SID)
     assert detail["source"]["configuration_origin"] == "local_operator"
     assert detail["research_references"] == [] and detail["provider_research"] == []

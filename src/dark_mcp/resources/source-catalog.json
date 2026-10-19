@@ -86,6 +86,292 @@
       }
     },
     {
+      "id": "forum:bf-st",
+      "kind": "forum",
+      "source_class": "forum",
+      "research": {
+        "forum_access": {
+          "id": "forum:bf-st",
+          "name": "bf.st (BreachForums-branded, lineage unverified)",
+          "family": "bf-st-observed",
+          "locator": "https://bf.st/",
+          "allowed_hosts": [
+            "bf.st"
+          ],
+          "transport": "direct_https",
+          "forum_engine": "mybb",
+          "collection_urls": [
+            "https://bf.st/Forum-Access-Market",
+            "https://bf.st/Forum-Buyers-Place"
+          ],
+          "checked_at": "2026-10-19T15:39:05.985423+00:00",
+          "access_state": "public_threads_unverified_identity",
+          "assessment": "Public buyer/access-market indexes and original posts are readable on this exact HTTPS host. Site branding does not authenticate operators or historical BreachForums continuity. Replies, source dates and claims remain unverified; unvisited pagination is explicit.",
+          "identity_notes": [
+            "This observed service uses BreachForums branding; it is not authenticated as a continuation of any earlier forum.",
+            "Keep forum:breachforums and its historical candidate checks separate. No shared operator identity or independent-claim count is established.",
+            "The homepage advertises an onion service; it is an unverified reference outside the HTTPS collector allowlist."
+          ],
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md",
+            "https://bf.st/"
+          ],
+          "advertised_mirrors": [
+            {
+              "url": "http://breached4wtyw5fb45zj7sggnoazgv3aohme2zftkrndhvo76d5q5uad.onion/",
+              "identity_verified": false,
+              "collection_verified": false
+            }
+          ],
+          "verification": {
+            "unique_visible_posts": 17,
+            "thread_pages": 4,
+            "explicit_roots": 3,
+            "samples": [
+              {
+                "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform",
+                "checked_at": "2026-10-19T15:38:38.340715+00:00",
+                "posts": 10,
+                "posts_with_author": 10,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 10,
+                "posts_with_explicit_number": 10,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 1153,
+                "next_page_urls": [
+                  "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2"
+                ]
+              },
+              {
+                "url": "https://bf.st/Thread-I-want-buy-Claude-Pro-or-Max-Subscribe-account-cookie",
+                "checked_at": "2026-10-19T15:38:50.716133+00:00",
+                "posts": 3,
+                "posts_with_author": 3,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 3,
+                "posts_with_explicit_number": 3,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 359,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2",
+                "checked_at": "2026-10-19T15:38:58.117048+00:00",
+                "posts": 3,
+                "posts_with_author": 3,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 3,
+                "posts_with_explicit_number": 3,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 142,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://bf.st/Thread-BUYING-HIRING-Bank-Telco-Gov-Staff",
+                "checked_at": "2026-10-19T15:39:05.985423+00:00",
+                "posts": 1,
+                "posts_with_author": 1,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 1,
+                "posts_with_explicit_number": 1,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 887,
+                "next_page_urls": []
+              }
+            ],
+            "authentication_verified": false,
+            "source_identity_verified": false,
+            "early_warning_verified": false,
+            "initial_native_samples": [
+              {
+                "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform",
+                "checked_at": "2026-10-19T15:35:16.288522+00:00",
+                "posts": 10,
+                "posts_with_author": 10,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 10,
+                "posts_with_explicit_number": 10,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 1153,
+                "next_page_urls": [
+                  "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2"
+                ]
+              },
+              {
+                "url": "https://bf.st/Thread-BUYING-HIRING-Bank-Telco-Gov-Staff",
+                "checked_at": "2026-10-19T15:35:24.045617+00:00",
+                "posts": 1,
+                "posts_with_author": 1,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 1,
+                "posts_with_explicit_number": 1,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 887,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://bf.st/Thread-I-want-buy-Claude-Pro-or-Max-Subscribe-account-cookie",
+                "checked_at": "2026-10-19T15:35:33.279852+00:00",
+                "posts": 3,
+                "posts_with_author": 3,
+                "posts_with_publication_time": 0,
+                "posts_with_raw_dates": 3,
+                "posts_with_explicit_number": 3,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 359,
+                "next_page_urls": []
+              }
+            ],
+            "section_resume_after_restart_verified": true,
+            "thread_pagination_after_restart_verified": true,
+            "exact_replay_verified": true,
+            "direct_refresh_verified": true,
+            "positive_and_negative_local_search_verified": true,
+            "coverage": "Two original indexes checked, one bounded buyer section job and a two-page selected access discussion; unvisited sections and index pagination remain outside the sample."
+          }
+        }
+      },
+      "name": "bf.st (BreachForums-branded, lineage unverified)",
+      "family": "bf-st-observed",
+      "locator": "https://bf.st/",
+      "allowed_hosts": [
+        "bf.st"
+      ],
+      "transport": "direct_https",
+      "forum_engine": "mybb",
+      "collection_urls": [
+        "https://bf.st/Forum-Access-Market",
+        "https://bf.st/Forum-Buyers-Place"
+      ],
+      "checked_at": "2026-10-19T15:39:05.985423+00:00",
+      "access_state": "public_threads_unverified_identity",
+      "assessment": "Public buyer/access-market indexes and original posts are readable on this exact HTTPS host. Site branding does not authenticate operators or historical BreachForums continuity. Replies, source dates and claims remain unverified; unvisited pagination is explicit.",
+      "identity_notes": [
+        "This observed service uses BreachForums branding; it is not authenticated as a continuation of any earlier forum.",
+        "Keep forum:breachforums and its historical candidate checks separate. No shared operator identity or independent-claim count is established.",
+        "The homepage advertises an onion service; it is an unverified reference outside the HTTPS collector allowlist."
+      ],
+      "discovery_references": [
+        "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md",
+        "https://bf.st/"
+      ],
+      "advertised_mirrors": [
+        {
+          "url": "http://breached4wtyw5fb45zj7sggnoazgv3aohme2zftkrndhvo76d5q5uad.onion/",
+          "identity_verified": false,
+          "collection_verified": false
+        }
+      ],
+      "verification": {
+        "unique_visible_posts": 17,
+        "thread_pages": 4,
+        "explicit_roots": 3,
+        "samples": [
+          {
+            "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform",
+            "checked_at": "2026-10-19T15:38:38.340715+00:00",
+            "posts": 10,
+            "posts_with_author": 10,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 10,
+            "posts_with_explicit_number": 10,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1153,
+            "next_page_urls": [
+              "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2"
+            ]
+          },
+          {
+            "url": "https://bf.st/Thread-I-want-buy-Claude-Pro-or-Max-Subscribe-account-cookie",
+            "checked_at": "2026-10-19T15:38:50.716133+00:00",
+            "posts": 3,
+            "posts_with_author": 3,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 3,
+            "posts_with_explicit_number": 3,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 359,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2",
+            "checked_at": "2026-10-19T15:38:58.117048+00:00",
+            "posts": 3,
+            "posts_with_author": 3,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 3,
+            "posts_with_explicit_number": 3,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 142,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://bf.st/Thread-BUYING-HIRING-Bank-Telco-Gov-Staff",
+            "checked_at": "2026-10-19T15:39:05.985423+00:00",
+            "posts": 1,
+            "posts_with_author": 1,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 1,
+            "posts_with_explicit_number": 1,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 887,
+            "next_page_urls": []
+          }
+        ],
+        "authentication_verified": false,
+        "source_identity_verified": false,
+        "early_warning_verified": false,
+        "initial_native_samples": [
+          {
+            "url": "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform",
+            "checked_at": "2026-10-19T15:35:16.288522+00:00",
+            "posts": 10,
+            "posts_with_author": 10,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 10,
+            "posts_with_explicit_number": 10,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1153,
+            "next_page_urls": [
+              "https://bf.st/Thread-For-sale-Admin-access-to-a-major-international-sportsbook-platform?page=2"
+            ]
+          },
+          {
+            "url": "https://bf.st/Thread-BUYING-HIRING-Bank-Telco-Gov-Staff",
+            "checked_at": "2026-10-19T15:35:24.045617+00:00",
+            "posts": 1,
+            "posts_with_author": 1,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 1,
+            "posts_with_explicit_number": 1,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 887,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://bf.st/Thread-I-want-buy-Claude-Pro-or-Max-Subscribe-account-cookie",
+            "checked_at": "2026-10-19T15:35:33.279852+00:00",
+            "posts": 3,
+            "posts_with_author": 3,
+            "posts_with_publication_time": 0,
+            "posts_with_raw_dates": 3,
+            "posts_with_explicit_number": 3,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 359,
+            "next_page_urls": []
+          }
+        ],
+        "section_resume_after_restart_verified": true,
+        "thread_pagination_after_restart_verified": true,
+        "exact_replay_verified": true,
+        "direct_refresh_verified": true,
+        "positive_and_negative_local_search_verified": true,
+        "coverage": "Two original indexes checked, one bounded buyer section job and a two-page selected access discussion; unvisited sections and index pagination remain outside the sample."
+      },
+      "url": "https://bf.st/",
+      "collection_method": "forum_page"
+    },
+    {
       "id": "forum:bhf",
       "kind": "forum",
       "name": "BHF (Best Hack Forum)",
@@ -311,6 +597,18 @@
               "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
             ],
             "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+          },
+          {
+            "url": "https://breachforums.rs/",
+            "checked_at": "2026-10-19T15:30:39.180152+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through bounded native HTTPS transport, including robots and redirect guards",
+            "access_state": "connection_failed",
+            "error_code": "gaierror",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+            ],
+            "assessment": "No original thread access established. Directory status does not verify current availability or operators. No collector activated for this candidate."
           }
         ],
         "additional_access_checks": [
@@ -1514,7 +1812,22 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
-        ]
+        ],
+        "source_native_api_research": {
+          "reviewed_on": "2026-10-19",
+          "documentation": [
+            "https://lolzteam.readme.io/reference/information",
+            "https://lolzteam.readme.io/reference/forumslist",
+            "https://lolzteam.readme.io/reference/threadsget"
+          ],
+          "api_origin": "https://api.lolz.team",
+          "required_scope": "read",
+          "authentication": "Bearer token from source-owned OAuth authorization",
+          "runtime_collection_implemented": false,
+          "authenticated_access_verified": false,
+          "pricing_verified": false,
+          "assessment": "The source documents its own forum read API, distinct from a competitor intelligence aggregator. No operator account or token is available. Read scope and permission are prerequisites; no API corpus access or free pricing is established."
+        }
       }
     },
     {
@@ -1901,6 +2214,20 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
+        ],
+        "candidate_access_checks": [
+          {
+            "url": "https://xforums.st/",
+            "checked_at": "2026-10-19T15:29:36.022754+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through bounded native HTTPS transport, including robots and redirect guards",
+            "access_state": "invalid_redirect",
+            "error_code": "invalid_redirect",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+            ],
+            "assessment": "No original thread access established. Directory status does not verify current availability or operators. No collector activated for this candidate."
+          }
         ]
       }
     },
@@ -2319,6 +2646,21 @@
             "Verify current source-owned locator and incarnation.",
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
+          ],
+          "candidate_access_checks": [
+            {
+              "url": "https://xss.ac/",
+              "checked_on": "2026-10-19",
+              "transport": "normal_browser",
+              "scope": "One candidate homepage navigation",
+              "access_state": "dns_resolution_failed",
+              "error_code": "ERR_NAME_NOT_RESOLVED",
+              "discovery_references": [
+                "https://socradar.io/blog/top-10-deep-web-and-dark-web-forums/",
+                "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+              ],
+              "assessment": "No page or original thread established. The candidate is not an authenticated current mirror of the cataloged onion sources."
+            }
           ]
         }
       },
@@ -2580,6 +2922,21 @@
             "Verify current source-owned locator and incarnation.",
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
+          ],
+          "candidate_access_checks": [
+            {
+              "url": "https://xss.ac/",
+              "checked_on": "2026-10-19",
+              "transport": "normal_browser",
+              "scope": "One candidate homepage navigation",
+              "access_state": "dns_resolution_failed",
+              "error_code": "ERR_NAME_NOT_RESOLVED",
+              "discovery_references": [
+                "https://socradar.io/blog/top-10-deep-web-and-dark-web-forums/",
+                "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+              ],
+              "assessment": "No page or original thread established. The candidate is not an authenticated current mirror of the cataloged onion sources."
+            }
           ]
         },
         "latest_priority_access_check": {
@@ -4007,6 +4364,21 @@
             "Verify current source-owned locator and incarnation.",
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
+          ],
+          "candidate_access_checks": [
+            {
+              "url": "https://xss.ac/",
+              "checked_on": "2026-10-19",
+              "transport": "normal_browser",
+              "scope": "One candidate homepage navigation",
+              "access_state": "dns_resolution_failed",
+              "error_code": "ERR_NAME_NOT_RESOLVED",
+              "discovery_references": [
+                "https://socradar.io/blog/top-10-deep-web-and-dark-web-forums/",
+                "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+              ],
+              "assessment": "No page or original thread established. The candidate is not an authenticated current mirror of the cataloged onion sources."
+            }
           ]
         }
       },

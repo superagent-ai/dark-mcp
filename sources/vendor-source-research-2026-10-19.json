@@ -311,6 +311,21 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://xss.ac/",
+          "checked_on": "2026-10-19",
+          "transport": "normal_browser",
+          "scope": "One candidate homepage navigation",
+          "access_state": "dns_resolution_failed",
+          "error_code": "ERR_NAME_NOT_RESOLVED",
+          "discovery_references": [
+            "https://socradar.io/blog/top-10-deep-web-and-dark-web-forums/",
+            "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+          ],
+          "assessment": "No page or original thread established. The candidate is not an authenticated current mirror of the cataloged onion sources."
+        }
       ]
     },
     {
@@ -890,7 +905,22 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
-      ]
+      ],
+      "source_native_api_research": {
+        "reviewed_on": "2026-10-19",
+        "documentation": [
+          "https://lolzteam.readme.io/reference/information",
+          "https://lolzteam.readme.io/reference/forumslist",
+          "https://lolzteam.readme.io/reference/threadsget"
+        ],
+        "api_origin": "https://api.lolz.team",
+        "required_scope": "read",
+        "authentication": "Bearer token from source-owned OAuth authorization",
+        "runtime_collection_implemented": false,
+        "authenticated_access_verified": false,
+        "pricing_verified": false,
+        "assessment": "The source documents its own forum read API, distinct from a competitor intelligence aggregator. No operator account or token is available. Read scope and permission are prerequisites; no API corpus access or free pricing is established."
+      }
     },
     {
       "slug": "altenen",
@@ -1204,6 +1234,20 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://xforums.st/",
+          "checked_at": "2026-10-19T15:29:36.022754+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through bounded native HTTPS transport, including robots and redirect guards",
+          "access_state": "invalid_redirect",
+          "error_code": "invalid_redirect",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+          ],
+          "assessment": "No original thread access established. Directory status does not verify current availability or operators. No collector activated for this candidate."
+        }
       ]
     },
     {
@@ -1403,6 +1447,18 @@
             "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
           ],
           "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+        },
+        {
+          "url": "https://breachforums.rs/",
+          "checked_at": "2026-10-19T15:30:39.180152+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through bounded native HTTPS transport, including robots and redirect guards",
+          "access_state": "connection_failed",
+          "error_code": "gaierror",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/b20a18cb0d649049e8bc508d9d9b44cab258c008/forum.md"
+          ],
+          "assessment": "No original thread access established. Directory status does not verify current availability or operators. No collector activated for this candidate."
         }
       ]
     }

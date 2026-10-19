@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.13 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.14 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(
@@ -359,15 +359,26 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         if not pid.isdigit():
             continue
         author_node = node.select_one(
-            ".message-name .username, .post-username a, a[data-class=profile_url], .post_author .post_user-profile a"
+            ".message-name .username, .post-username a, a[data-class=profile_url], "
+            ".post_author .post_user-profile a, .post__author .post__user-profile a[href]"
         )
         author = node.get("data-author") or (author_node.get_text(" ", strip=True) if author_node else None)
         date_node = node.select_one(".message-attribution-main time") or node.select_one(".post_date")
+        if date_node and source["forum_engine"] == "mybb" and date_node.select_one(".post_edit"):
+            # Some themes nest the edit notice inside the publication date. Keep the
+            # original displayed date and its tooltip separate from that later event.
+            date_node = BeautifulSoup(str(date_node), "html.parser").find()
+            for edit in date_node.select(".post_edit"):
+                edit.decompose()
         published, raw_date = timestamp(date_node)
         basis = "source_datetime" if published else "unresolved_source_text" if raw_date else None
         hint_node = date_node.select_one("[title]") if date_node else None
         hint = hint_node.get("title", "")[:200] if hint_node else None
         edited, raw_edit = timestamp(node.select_one(".message-lastEdit time, .post_edit time"))
+        if source["forum_engine"] == "mybb" and not raw_edit:
+            notice = node.select_one(".post_head .post_edit, .post_date .post_edit")
+            if notice:
+                raw_edit = notice.get_text(" ", strip=True)[:200] or None
         # MyBB exposes a post-specific Unix timestamp in its quote UI metadata. Parse data; never execute scripts.
         if not published and source["forum_engine"] == "mybb":
             epoch = re.search(r"quick_quote\(" + pid + r",\s*'[^']*',\s*([0-9]{10})\)", str(node))
@@ -404,11 +415,11 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         cap = min(16000, remaining)
         permalink = node.select_one(
             ".message-attribution-main a[href], .posturl a[href], .postbit-number a[href], "
-            ".post_head > .float_right > strong > a[href], .pagnum a[href]"
+            ".post_head > .float_right > strong > a[href], .post_head .float_right a[href], .pagnum a[href]"
         )
         counters = node.select(
             ".postbit-number a, .posturl a, .message-attribution-opposite a, "
-            ".post_head > .float_right > strong > a[href], .pagnum a[href]"
+            ".post_head > .float_right > strong > a[href], .post_head .float_right a[href], .pagnum a[href]"
         )
         position = node.get("data-position")
         number = int(position) + 1 if position and re.fullmatch(r"[0-9]{1,9}", position) else None

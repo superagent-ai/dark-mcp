@@ -89,6 +89,26 @@ Live stdio MCP validation on 19 October 2026 collected 35 unique post items acro
 
 The requested cloud accounts and advertised services provide investigative leads. They do not verify stolen access, identify a targeted company or establish detection before compromise/disclosure. No keys, advertised services, attachments or third-party endpoints were tested. Current public access is not a guarantee of other sections or authenticated content. `leakforum.io` is the only configured host. Its homepage advertises `leakforum.st` as a mirror, but that host remains unvalidated and outside this collector. This source is distinct from LeakBase and is not authenticated as a BreachForums successor.
 
+## bf.st public buyer and access discussions (0.14)
+
+`forum:bf-st` is a separately observed HTTPS source using BreachForums branding. Native reads established public original posts on the exact host `bf.st`; they do not authenticate historical operators or successor status. The metadata-only `forum:breachforums` record and its older candidate checks remain separate. The homepage-advertised onion reference is not a verified mirror or an allowed collector host.
+
+```text
+list_forum_threads
+{"source_id":"forum:bf-st","url":"https://bf.st/Forum-Buyers-Place","query":"Claude","limit":100}
+
+start_collection
+{"source_id":"forum:bf-st","url":"https://bf.st/Forum-Buyers-Place","mode":"section","query":"Claude Pro","max_threads":1,"max_index_pages":1,"max_thread_pages":2}
+```
+
+Read a returned original URL, or advance the job with `collect_next`. The two configured sections are `Forum-Buyers-Place` and `Forum-Access-Market`. Source read-route restrictions, public-DNS pinning, TLS verification, robots, pacing and body/pagination bounds remain in force. No registration, source search/action routes or attachments are enabled.
+
+This MyBB theme puts author handles in `.post__author .post__user-profile` and numbered permalinks inside nested `.post_head .float_right` elements. Native reads now retain those fields. Counters inside post bodies/quotes cannot identify a root; conflicting header numbers remain unknown. Publication text excludes a nested edit notice, whose separate `edited_at_raw` is retained. Offset-free month-name dates and relative labels stay unresolved; a source tooltip does not supply a missing timezone.
+
+The first three original-page checks collected 14 post items, with all author handles, explicit numbers and three roots. An account-cookie request, a recruitment request and an anonymous access advertisement are source claims, not verified stolen access or an impending provider attack. The access advertisement was created months before its recent activity; pagination and later replies must be inspected before calling it new or open. A recruitment post closely resembles previously captured DarkForums advertising, which does not establish common ownership or independent corroboration. Raw bodies, contact labels and proof references remain private; references are never automatically fetched.
+
+The packaged source then passed a separate real stdio MCP acceptance run: a bounded buyer section and a two-page access discussion resumed across server processes, collecting 17 distinct post items across the three selected threads. All 17 retained authors and explicit numbers; three roots were recognized. Exact revision replay, direct refresh, positive local search and a negative control passed. A caller-asserted possible-repost relation links the similar recruitment text without authenticating actors. The buyer job read one index and one selected thread; other listings and index pagination remain deferred. No source dates had usable offsets/epochs, so no pre-compromise/disclosure lead time is established.
+
 ## Resume multiple pages
 
 ```text
