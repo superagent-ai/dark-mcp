@@ -14,21 +14,24 @@ from bs4 import BeautifulSoup
 
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
+from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.3 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.4 (+https://github.com/superagent-ai/dark-mcp)"
 
 
-def forum_url(value: str, hosts: list[str], *, robots: bool = False) -> str:
+def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: str = "direct_https") -> str:
     try:
+        if transport == "tor":
+            value = onion_url(value)
         parts = urlsplit(value)
         host = parts.hostname or ""
         path = parts.path or "/"
         query = parse_qsl(parts.query, keep_blank_values=True)
         if (
-            parts.scheme != "https"
+            (parts.scheme not in {"http", "https"} if transport == "tor" else parts.scheme != "https")
             or len(value) > 4000
             or host not in hosts
-            or parts.port not in {None, 443}
+            or parts.port not in ({None, 80, 443} if transport == "tor" else {None, 443})
             or parts.username is not None
             or parts.password is not None
             or any(ord(c) < 33 or ord(c) == 127 for c in value)
@@ -49,9 +52,42 @@ def forum_url(value: str, hosts: list[str], *, robots: bool = False) -> str:
             raise ValueError
     except (ValueError, TypeError) as exc:
         raise DataAccessError(
-            "invalid_forum_url", "Use a public HTTPS forum page on this source's catalog hosts; actions are unsupported"
+            "invalid_forum_url",
+            "Use a public forum page on this source's catalog hosts and transport; actions are unsupported",
         ) from exc
-    return urlunsplit(("https", host, path, urlencode(query), ""))
+    return urlunsplit((parts.scheme, parts.netloc.lower(), path, urlencode(query), ""))
+
+
+def source_url(source: dict, value: str, *, robots: bool = False) -> str:
+    return forum_url(value, source["allowed_hosts"], robots=robots, transport=source.get("transport", "direct_https"))
+
+
+def reference_links(body, base_url: str) -> list[dict]:
+    """Preserve body references as untrusted metadata; never follow or download them."""
+    links = []
+    for anchor in body.select("a[href]"):
+        try:
+            target = urljoin(base_url, anchor["href"])
+            parts = urlsplit(target)
+            if (
+                parts.scheme not in {"http", "https"}
+                or not parts.hostname
+                or parts.username is not None
+                or parts.password is not None
+                or len(target) > 4000
+                or any(ord(c) < 33 or ord(c) == 127 for c in target)
+                or "\\" in target
+            ):
+                continue
+            if parts.hostname.endswith(".onion"):
+                target = onion_url(target)
+            if target not in {link["url"] for link in links}:
+                links.append({"url": target, "label": anchor.get_text(" ", strip=True)[:500]})
+        except (ValueError, DataAccessError):
+            continue
+        if len(links) >= 50:
+            break
+    return links
 
 
 async def public_addresses(host: str) -> list[str]:
@@ -98,15 +134,14 @@ def timestamp(node) -> tuple[str | None, str | None]:
 def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: int) -> ForumPage:
     soup = BeautifulSoup(document, "html.parser")
     title = soup.title.get_text(" ", strip=True)[:500] if soup.title else ""
-    hosts = source["allowed_hosts"]
     identity = thread_identity(url)
     full_text = soup.get_text(" ", strip=True)
     access = classify_page(title, full_text)
     is_thread = identity is not None
-    next_pages, threads = [], []
+    next_pages, threads, sections = [], [], []
     for a in soup.select("a[rel~=next], a.pageNav-jump--next, a.pagination_next"):
         try:
-            target = forum_url(urljoin(url, a.get("href", "")), hosts)
+            target = source_url(source, urljoin(url, a.get("href", "")))
         except DataAccessError:
             continue
         # Ignore unrelated breadcrumb pagination and only advance the current thread or section.
@@ -125,11 +160,14 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             next_pages.append(target)
     for a in soup.select("a[href]"):
         try:
-            target = forum_url(urljoin(url, a["href"]), hosts)
+            target = source_url(source, urljoin(url, a["href"]))
         except DataAccessError:
             continue
         key = thread_identity(target)
         label = a.get_text(" ", strip=True)
+        if not key and label and target != url and len(sections) < 100:
+            if target not in {row["url"] for row in sections}:
+                sections.append({"title": label[:500], "url": target})
         if (
             key
             and label
@@ -160,18 +198,18 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             continue
         author_node = node.select_one(".message-name .username, .post-username a, a[data-class=profile_url]")
         author = node.get("data-author") or (author_node.get_text(" ", strip=True) if author_node else None)
-        date_node = (
-            node.select_one(".message-attribution-main time")
-            or node.select_one(".post_date span[title]")
-            or node.select_one(".post_date")
-        )
+        date_node = node.select_one(".message-attribution-main time") or node.select_one(".post_date")
         published, raw_date = timestamp(date_node)
+        basis = "source_datetime" if published else "unresolved_source_text" if raw_date else None
+        hint_node = date_node.select_one("[title]") if date_node else None
+        hint = hint_node.get("title", "")[:200] if hint_node else None
         edited, raw_edit = timestamp(node.select_one(".message-lastEdit time, .post_edit time"))
         # MyBB exposes a post-specific Unix timestamp in its quote UI metadata. Parse data; never execute scripts.
         if not published and source["forum_engine"] == "mybb":
             epoch = re.search(r"quick_quote\(" + pid + r",\s*'[^']*',\s*([0-9]{10})\)", str(node))
             if epoch:
                 published = datetime.fromtimestamp(int(epoch[1]), UTC).isoformat()
+                basis = "source_unix_timestamp"
         hidden = bool(body.select(".hidden-content, .bbCodeBlock--hide, .hideContent, [data-hide]"))
         hidden = hidden or bool(
             re.search(
@@ -196,16 +234,22 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             "[style*='display: none'], [style*='display:none']"
         ):
             tag.decompose()
+        links = reference_links(body, url)
         text = body.get_text("\n", strip=True)
         cap = min(16000, remaining)
-        permalink = node.select_one(".message-attribution-main a[href], .posturl a[href]")
-        fallback = urlunsplit(("https", urlsplit(url).hostname, identity + f"/post-{pid}", "", ""))
+        permalink = node.select_one(".message-attribution-main a[href], .posturl a[href], .postbit-number a[href]")
+        counter = node.select_one(".postbit-number a, .posturl a, .message-attribution-opposite a")
+        position = node.get("data-position")
+        root = (position == "0") if position is not None else None
+        if counter and re.fullmatch(r"#[0-9]+", counter.get_text(strip=True)):
+            root = counter.get_text(strip=True) == "#1"
+        fallback = urlunsplit((urlsplit(url).scheme, urlsplit(url).netloc, identity + f"/post-{pid}", "", ""))
         if source["forum_engine"] == "mybb":
             params = {k: v for k, v in parse_qsl(urlsplit(url).query) if k == "tid"}
             params["pid"] = pid
             fallback = urlunsplit((*urlsplit(url)[:3], urlencode(params), ""))
         try:
-            post_url = forum_url(urljoin(url, permalink["href"]) if permalink else fallback, hosts)
+            post_url = source_url(source, urljoin(url, permalink["href"]) if permalink else fallback)
         except DataAccessError:
             post_url = fallback
         posts.append(
@@ -216,6 +260,10 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 text=text[:cap],
                 published_at=published,
                 published_at_raw=raw_date,
+                published_at_hint=hint,
+                timestamp_basis=basis,
+                is_thread_root=root,
+                links=links,
                 edited_at=edited,
                 edited_at_raw=raw_edit,
                 hidden_content=hidden,
@@ -240,11 +288,13 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         thread_key=identity,
         posts=posts,
         threads=threads if not is_thread else [],
+        sections=sections if not is_thread else [],
         next_page_urls=next_pages[:1],
         access_state=access,
         truncated=bool(omitted or any(p.truncated for p in posts) or len(text) > max_chars),
         omitted_posts=omitted,
-        published_at=None,  # The first visible reply is not a thread creation date.
+        published_at=next((p.published_at for p in posts if p.is_thread_root is True), None),
+        transport=source.get("transport", "direct_https"),
         coverage=(
             "One public page. Hidden content and unvisited pages are not collected. "
             "Author names and source claims are unverified."
@@ -253,8 +303,8 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
 
 
 class ForumConnector:
-    def __init__(self, settings, catalog):
-        self.settings, self.catalog = settings, catalog
+    def __init__(self, settings, catalog, onion=None):
+        self.settings, self.catalog, self.onion = settings, catalog, onion
         self.semaphore, self.pace_lock = asyncio.Semaphore(2), asyncio.Lock()
         self.last_request, self.robots_cache = {}, {}
 
@@ -353,7 +403,14 @@ class ForumConnector:
     async def fetch(self, source_id: str, url: str | None = None, limit: int = 20) -> ForumPage:
         limit_value(limit)
         source = self.source(source_id)
-        target = forum_url(url or source["locator"], source["allowed_hosts"])
+        target = source_url(source, url or source["locator"])
+        if source.get("transport") == "tor":
+            if self.onion is None:
+                raise DataAccessError("tor_unavailable", "Tor forum transport is unavailable")
+            target, document, _ = await self.onion.read_document(
+                target, validate=lambda value: source_url(source, value, robots=True)
+            )
+            return parse_forum(source, target, document, self.settings.max_text_chars, limit)
         async with self.semaphore:
             try:
                 async with asyncio.timeout(self.settings.request_timeout):

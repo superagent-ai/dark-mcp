@@ -134,6 +134,17 @@ def build_catalog() -> dict:
                 "research": {**existing["research"], "forum_access": row},
             }
         )
+    tor_access = json.loads((ROOT / "sources/onion-forum-access-2026-10-19.json").read_text())
+    for row in tor_access["sources"]:
+        existing = next(source for source in sources if source["id"] == row["id"])
+        existing.update(
+            {
+                **row,
+                "collection_method": "forum_page",
+                "checked_at": tor_access["checked_at"],
+                "research": {**existing["research"], "tor_forum_access": row},
+            }
+        )
     return {
         "schema_version": 2,
         "snapshot_date": "2026-10-19",

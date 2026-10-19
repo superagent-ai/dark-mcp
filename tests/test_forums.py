@@ -118,7 +118,8 @@ def test_mybb_post_dates_use_epoch_metadata_without_executing_scripts():
        <script>quick_quote(42,'seller',1792310400);</script><div class="post_body">Acme account offer
        <div class="hidden-content">You must login to view this content.</div></div></div>"""
     result = parse_forum(source, "https://cracked.st/Thread-Acme-listing", html, 60000, 20)
-    assert result.posts[0].published_at and result.posts[0].published_at_raw == "Yesterday"
+    assert result.posts[0].published_at and result.posts[0].published_at_raw == "1 day ago"
+    assert result.posts[0].published_at_hint == "Yesterday"
     assert result.posts[0].hidden_content and result.posts[0].author == "seller"
     assert result.posts[0].url.endswith("?pid=42")
 
@@ -232,3 +233,122 @@ async def test_real_mcp_collection_resume_search_and_refresh_preserve_post_evide
         post_route.respond(text=first)
         restored = (await client.call_tool("refresh_evidence", {"evidence_id": post_id})).structured_content
         assert restored["page"]["posts"][0]["evidence"]["change_type"] == "restored"
+
+
+def spear_source():
+    return SourceCatalog().get("onion:91e4e785a3af")
+
+
+def tor_thread(source):
+    return source["locator"] + "Thread-Synthetic-access-offer"
+
+
+def mybb_post(pid, number, text):
+    return f"""<article class="post-article" id="post_{pid}">
+      <div class="post-username"><a>fixture-seller</a></div>
+      <span class="post_date"><span title="10-18-2026">Yesterday</span>, 06:55 AM</span>
+      <div class="postbit-number"><a href="Thread-Synthetic-access-offer?pid={pid}#pid{pid}">#{number}</a></div>
+      <div class="post_body">{text}</div></article>"""
+
+
+def test_tor_parser_preserves_root_unknown_timezone_and_body_source_references(other_onion):
+    source = spear_source()
+    doc = mybb_post(42, 1, f'Unverified SaaS access offer. <a href="{other_onion}">Underlying market</a>')
+    result = parse_forum(source, tor_thread(source), doc, 60000, 20)
+    post = result.posts[0]
+    assert result.transport == "tor" and post.is_thread_root is True
+    assert post.published_at is None and result.published_at is None
+    assert post.published_at_raw == "Yesterday , 06:55 AM" and post.published_at_hint == "10-18-2026"
+    assert post.timestamp_basis == "unresolved_source_text"
+    assert post.url == tor_thread(source) + "?pid=42"
+    assert post.links == [{"url": other_onion, "label": "Underlying market"}]
+    reply = parse_forum(source, tor_thread(source) + "?page=2", mybb_post(43, 2, "Reply"), 60000, 20)
+    assert reply.posts[0].is_thread_root is False and reply.published_at is None
+
+
+@pytest.mark.parametrize("path", ["login", "uploads/archive.zip", "showthread.php?tid=1&action=delete"])
+def test_tor_forum_paths_are_still_read_only_and_catalog_scoped(path, other_onion):
+    from dark_mcp.forums import source_url
+
+    source = spear_source()
+    with pytest.raises(DataAccessError):
+        source_url(source, source["locator"] + path)
+    with pytest.raises(DataAccessError):
+        source_url(source, other_onion + "Thread-fixture")
+    with pytest.raises(DataAccessError):
+        source_url(source, "https://hard-tm.com/threads/1/")
+
+
+async def test_tor_forum_uses_proxy_and_rejects_non_catalog_redirect_before_request(settings, monkeypatch, other_onion):
+    import httpx
+
+    from dark_mcp.index import OnionIndex
+    from dark_mcp.onion import OnionConnector
+
+    source = spear_source()
+    seen = []
+
+    def handler(request):
+        seen.append(str(request.url))
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        return httpx.Response(302, headers={"Location": other_onion + "Thread-fixture"})
+
+    onion = OnionConnector(settings, OnionIndex(settings.prepare_data_dir()))
+    monkeypatch.setattr(onion, "client", lambda: httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    monkeypatch.setattr(onion, "_pace", AsyncMock())
+    monkeypatch.setattr("dark_mcp.forums.public_addresses", AsyncMock(side_effect=AssertionError("Must use Tor")))
+    with pytest.raises(DataAccessError):
+        await ForumConnector(settings, SourceCatalog(), onion).fetch(source["id"], tor_thread(source))
+    assert all(url.startswith(source["locator"]) for url in seen)
+
+
+async def test_real_mcp_tor_posts_cursor_restart_partial_bounds_and_reference_replay(
+    settings, monkeypatch, other_onion
+):
+    import httpx
+
+    from dark_mcp.onion import OnionConnector
+
+    source = spear_source()
+    seen = []
+    text = mybb_post(42, 1, f'Fixture.example alleged access <a href="{other_onion}">Source</a>')
+    text += mybb_post(43, 2, "Public reply")
+
+    def handler(request):
+        seen.append(str(request.url))
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        assert request.url.host in source["allowed_hosts"]
+        if request.url.params.get("page") == "2":
+            return httpx.Response(200, text=mybb_post(44, 3, "Later reply"))
+        return httpx.Response(200, text=text + '<a class="pagination_next" href="?page=2">Next</a>')
+
+    monkeypatch.setattr(
+        OnionConnector, "client", lambda self: httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    monkeypatch.setattr(OnionConnector, "_pace", AsyncMock())
+    async with Client(create_server(settings)) as client:
+        job = (
+            await client.call_tool("start_collection", {"source_id": source["id"], "url": tor_thread(source)})
+        ).structured_content["collection"]
+        partial = (
+            await client.call_tool("collect_next", {"collection_id": job["id"], "max_items": 1})
+        ).structured_content
+        assert partial["error"]["code"] == "forum_page_incomplete"
+        assert partial["collection"]["checkpoint"]["pages_collected"] == 0
+        first = (await client.call_tool("collect_next", {"collection_id": job["id"]})).structured_content
+        assert first["collection"]["status"] == "ready"
+        post = first["results"][0]["page"]["posts"][0]
+    async with Client(create_server(settings)) as client:
+        second = (await client.call_tool("collect_next", {"collection_id": job["id"]})).structured_content
+        assert second["collection"]["status"] == "complete"
+        saved = (
+            await client.call_tool("get_evidence", {"evidence_id": post["evidence"]["evidence_id"]})
+        ).structured_content
+        assert saved["evidence"]["snapshot"]["links"] == [{"url": other_onion, "label": "Source"}]
+        refreshed = (
+            await client.call_tool("refresh_evidence", {"evidence_id": post["evidence"]["evidence_id"]})
+        ).structured_content
+        assert refreshed["ok"] and refreshed["page"]["transport"] == "tor"
+    assert all(url.startswith(source["locator"]) for url in seen)  # References were never requested.

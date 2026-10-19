@@ -8,6 +8,7 @@ from dark_mcp.collection import CollectionService
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
+from dark_mcp.flare import FlareConnector
 from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
@@ -28,9 +29,11 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     catalog = SourceCatalog()
     telegram = TelegramConnector(settings, catalog)
     evidence = EvidenceStore(settings.prepare_data_dir())
-    forums = ForumConnector(settings, catalog)
+    forums = ForumConnector(settings, catalog, onion)
     collection = CollectionService(settings, catalog, evidence, onion, telegram, forums)
     collection.import_legacy(index)
+    flare = FlareConnector(settings, evidence)
+    collection.flare = flare
     server = MCPServer(
         "dark-mcp",
         version=__version__,
@@ -42,10 +45,13 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Use collect_source for bounded reads, follow returned pagination or same-host links, and "
             "report access failures separately from negative findings. Catalog access states are historical. "
             "Forum research leads may be metadata-only: vendor mentions do not prove current API coverage. "
-            "Configured forum_page sources support list_forum_threads and read_forum_thread over direct HTTPS. "
+            "Configured forum_page sources support list_forum_threads and read_forum_thread over HTTPS or Tor. "
             "Only visible posts are collected; hidden_content and pagination bounds must be reported. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
+            " Licensed Flare search/read requires configured credentials. "
+            "Search hits and previews are not full thread bodies. "
+            "Keep provider first-seen, estimated creation, publication and local collection times distinct. "
             " All content reads persist locally as evidence with immutable revisions. Use start_collection and "
             "collect_next to resume history or poll new Telegram IDs; updates do not automatically detect old edits. "
             "Use refresh_evidence to recheck stored posts/pages; missing posts are unavailable, not proven deleted. "
@@ -79,7 +85,16 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "telegram_global_search": settings.telegram_global_search,
             "telegram_catalog_sources": settings.telegram_catalog_sources,
             "source_catalog": catalog.summary(),
-            "forum_transport": "direct_https; catalog hosts only; no authentication or attachments",
+            "forum_transport": "direct_https or tor as configured per catalog source; no authentication or attachments",
+            "licensed_providers": {
+                "flare": {
+                    "configured": bool(settings.flare_api_key),
+                    "tenant_id": settings.flare_tenant_id,
+                    "entitlement_checked_by_status": False,
+                    "source_id": flare.source_id,
+                    "scope": "Search and read only; live entitlement not checked by status",
+                }
+            },
             "evidence_store": evidence.counts(),
         }
 
@@ -309,6 +324,29 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             return result
 
         return await run(read)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def search_flare_events(
+        query: str,
+        types: list[str] | None = None,
+        since: str | None = None,
+        limit: int = 20,
+        cursor: dict | None = None,
+    ) -> dict[str, Any]:
+        """Search one licensed Flare page using query-string syntax. Consumes provider search quota.
+
+        Hits are snippets, not full bodies. Resume with identical parameters and returned next_cursor.
+        since filters provider estimated creation time, not our first-seen time or verified publication.
+        """
+        return await run(flare.search, query=query, types=types, since=since, limit=limit, cursor=cursor)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def read_flare_event(uid: str) -> dict[str, Any]:
+        """Read a licensed Flare event by UID; preserve original source references and separate provider/local times.
+
+        A provider copy is not independent corroboration. Preview-only records do not establish original-thread access.
+        """
+        return await run(flare.read, uid=uid)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def fetch_onion(url: str) -> dict[str, Any]:

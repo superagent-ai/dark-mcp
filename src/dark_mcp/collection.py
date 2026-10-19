@@ -16,6 +16,7 @@ class CollectionService:
         self.settings, self.catalog, self.store = settings, catalog, store
         self.onion, self.telegram = onion, telegram
         self.forums = forums
+        self.flare = None
         for source in catalog.sources.values():
             store.register(source["id"], source["kind"], source["locator"], source["name"], source)
 
@@ -75,6 +76,8 @@ class CollectionService:
                     "title": page.title,
                     "access_state": "content_returned_unverified",
                     "thread_url": post.url,
+                    "thread_key": page.thread_key,
+                    "transport": page.transport,
                 }
                 post.evidence = self.store.observe(
                     source_id,
@@ -360,6 +363,18 @@ class CollectionService:
 
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
+        if item["kind"] == "provider":
+            if self.flare is None:
+                raise DataAccessError("provider_not_configured", "Licensed provider collector is unavailable")
+            if item["source_id"] != self.flare.source_id:
+                raise DataAccessError(
+                    "provider_scope_mismatch", "Reconfigure the original Flare tenant to refresh this evidence"
+                )
+            if item["snapshot"].get("record_scope") == "search_hit":
+                raise DataAccessError(
+                    "provider_search_recheck_required", "Repeat the original search to refresh a search hit"
+                )
+            return await self.flare.read(item["snapshot"]["event_uid"])
         if item["kind"] == "onion":
             return {"page": (await self.fetch(item["url"])).model_dump()}
         if item["kind"] == "forum":
@@ -448,6 +463,8 @@ class CollectionService:
         thread_id: int | None = None,
     ) -> dict:
         source = self.store.source(source_id)
+        if source["kind"] == "provider":
+            raise DataAccessError("provider_cursor_required", "Use the provider search tool and its returned cursor")
         if not source["locator"]:
             raise DataAccessError("source_access_required", "This source has no durable collection locator")
         if mode not in {"history", "updates"}:
@@ -463,10 +480,10 @@ class CollectionService:
                 raise ValueError(
                     "Onion/forum jobs paginate explicit page links; re-fetch evidence separately for changes"
                 )
-            if source["kind"] == "forum":
-                from dark_mcp.forums import forum_url
+            if source["metadata"].get("collection_method") == "forum_page":
+                from dark_mcp.forums import source_url
 
-                target = forum_url(url or source["locator"], source["metadata"]["allowed_hosts"])
+                target = source_url(source["metadata"], url or source["locator"])
             else:
                 target = onion_url(url or source["locator"])
                 if urlsplit(target).hostname != urlsplit(source["locator"]).hostname:
@@ -499,11 +516,11 @@ class CollectionService:
                     url = checkpoint["queue"][0]
                     page = (
                         await self.forum_page(source["id"], url, max_items, collection_id)
-                        if job["kind"] == "forum"
+                        if source["metadata"].get("collection_method") == "forum_page"
                         else await self.fetch(url, collection_id)
                     )
                     results.append({"page": page.model_dump()})
-                    if job["kind"] == "forum" and page.omitted_posts:
+                    if source["metadata"].get("collection_method") == "forum_page" and page.omitted_posts:
                         raise DataAccessError(
                             "forum_page_incomplete",
                             "Post bounds omitted visible posts; cursor retained. "

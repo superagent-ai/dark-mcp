@@ -14,7 +14,7 @@ from dark_mcp.errors import DataAccessError
 from dark_mcp.index import OnionIndex
 from dark_mcp.models import OnionPage, classify_page, limit_value, parse_date
 
-USER_AGENT = "dark-mcp/0.2 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.4 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def onion_url(value: str) -> str:
@@ -76,11 +76,15 @@ class OnionConnector:
                 await asyncio.sleep(delay)
             self.last_request[host] = time.monotonic()
 
-    async def _get(self, client: httpx.AsyncClient, url: str, *, respect_robots: bool = False) -> tuple[str, str, str]:
+    async def _get(
+        self, client: httpx.AsyncClient, url: str, *, respect_robots: bool = False, validate=None
+    ) -> tuple[str, str, str]:
         url = onion_url(url)
         for _ in range(6):
+            if validate:
+                url = validate(url)
             if respect_robots:
-                rules = await self._robots(client, url)
+                rules = await self._robots(client, url, validate=validate)
                 if not rules.can_fetch(USER_AGENT, url):
                     raise DataAccessError("robots_denied", "Source robots.txt disallows this path")
                 await self._pace(url, rules)
@@ -114,12 +118,12 @@ class OnionConnector:
                 return url, text, kind
         raise DataAccessError("too_many_redirects", "Source exceeded five redirects")
 
-    async def _robots(self, client: httpx.AsyncClient, url: str) -> RobotFileParser:
+    async def _robots(self, client: httpx.AsyncClient, url: str, validate=None) -> RobotFileParser:
         root = urlsplit(url)
         robots_url = urlunsplit((root.scheme, root.netloc, "/robots.txt", "", ""))
         parser = RobotFileParser()
         try:
-            _, text, _ = await self._get(client, robots_url)
+            _, text, _ = await self._get(client, robots_url, validate=validate)
         except DataAccessError as exc:
             if exc.code == "http_404":
                 parser.parse([])
@@ -131,17 +135,21 @@ class OnionConnector:
         parser.parse(text.splitlines())
         return parser
 
-    async def fetch(self, url: str) -> OnionPage:
+    async def read_document(self, url: str, validate=None) -> tuple[str, str, str]:
+        """Read bounded HTML/text through Tor, optionally restricting every redirect and robots URL."""
         url = onion_url(url)
         async with self.semaphore:
             try:
                 async with asyncio.timeout(self.settings.request_timeout):
                     async with self.client() as client:
-                        final_url, html, kind = await self._get(client, url, respect_robots=True)
+                        return await self._get(client, url, respect_robots=True, validate=validate)
             except (httpx.RequestError, TimeoutError) as exc:
                 raise DataAccessError(
                     "tor_unavailable", "Tor request failed or timed out; check the proxy and source availability"
                 ) from exc
+
+    async def fetch(self, url: str) -> OnionPage:
+        final_url, html, kind = await self.read_document(url)
         soup = BeautifulSoup(html, "html.parser")
         links, next_pages = [], []
         published_at = None

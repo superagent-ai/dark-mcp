@@ -312,7 +312,12 @@ class EvidenceStore:
         limit: int = 20,
     ) -> dict:
         limit_value(limit)
-        if not query.strip() or len(query) > 500 or offset < 0 or kind not in {None, "onion", "telegram", "forum"}:
+        if (
+            not query.strip()
+            or len(query) > 500
+            or offset < 0
+            or kind not in {None, "onion", "telegram", "forum", "provider"}
+        ):
             raise ValueError("Check query, kind and pagination")
         source_id = self._source_filter(source_id)
         published, collected = date_value(published_since), date_value(collected_since)
@@ -334,7 +339,8 @@ class EvidenceStore:
                 "AND (? IS NULL OR r.published_at>=?) AND (? IS NULL OR EXISTS "
                 "(SELECT 1 FROM observations o WHERE o.revision_id=r.id AND o.collected_at>=? "
                 "AND o.change_type IN ('new','edited','unchanged','restored'))) "
-                "AND (? OR r.id=i.latest_revision_id) AND (? OR r.access_state='content_returned_unverified')) "
+                "AND (? OR r.id=i.latest_revision_id) AND (? OR r.access_state IN "
+                "('content_returned_unverified','search_hit_unverified','preview_only_unverified'))) "
                 "SELECT * FROM matches WHERE n=1 ORDER BY last_collected_at DESC,evidence_id LIMIT ? OFFSET ?",
                 (
                     term,

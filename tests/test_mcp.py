@@ -4,6 +4,7 @@ import sys
 
 from mcp import Client, StdioServerParameters
 
+from dark_mcp import __version__
 from dark_mcp.server import create_server
 
 
@@ -13,6 +14,8 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
         names = {tool.name for tool in tools.tools}
         assert names == {
             "get_status",
+            "search_flare_events",
+            "read_flare_event",
             "list_sources",
             "get_source",
             "collect_source",
@@ -101,4 +104,4 @@ async def test_stdio_evidence_migration_and_profile_survive_process_restart(tmp_
         assert profile["document"]["identifiers"] == ["acme.example"]
         status = (await client.call_tool("get_status", {})).structured_content
         assert status["evidence_store"]["observations"] == 1
-        assert status["version"] == "0.3.0"
+        assert status["version"] == __version__

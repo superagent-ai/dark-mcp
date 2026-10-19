@@ -2538,14 +2538,15 @@
       "url": "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/",
       "family": "SPEAR",
       "source_class": "forum",
-      "access_state": "public_sections_and_sample_thread",
-      "checked_at": "2026-10-18T18:57:45.374724+00:00",
-      "assessment": "Public forum index, database-discussion section and one company-claim thread were readable. The sampled thread was originally posted in March despite appearing in recent activity. Personal-record samples were omitted from retained evidence.",
-      "collection_method": "onion_page",
+      "access_state": "public_threads_partial",
+      "checked_at": "2026-10-19T11:03:32.612873+00:00",
+      "assessment": "Public MyBB thread bodies include access-sale claims and company-key demand. External marketplace origins may require login. Dates without explicit timezone/epoch remain raw; source dates do not establish collection lead time. No access, key validity or victim attribution is verified.",
+      "collection_method": "forum_page",
       "collection_urls": [
-        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/",
-        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Database-Discussion",
-        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/showthread.php?tid=767"
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Access-Market",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Buyers-Place",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Sellers-Place",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Database-Discussion"
       ],
       "research": {
         "name": "SPEAR",
@@ -2586,8 +2587,29 @@
             "role": "public_section_check"
           }
         ],
-        "access_error": null
-      }
+        "access_error": null,
+        "tor_forum_access": {
+          "id": "onion:91e4e785a3af",
+          "transport": "tor",
+          "allowed_hosts": [
+            "spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion"
+          ],
+          "forum_engine": "mybb",
+          "collection_urls": [
+            "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Access-Market",
+            "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Buyers-Place",
+            "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Sellers-Place",
+            "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Database-Discussion"
+          ],
+          "access_state": "public_threads_partial",
+          "assessment": "Public MyBB thread bodies include access-sale claims and company-key demand. External marketplace origins may require login. Dates without explicit timezone/epoch remain raw; source dates do not establish collection lead time. No access, key validity or victim attribution is verified."
+        }
+      },
+      "transport": "tor",
+      "allowed_hosts": [
+        "spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion"
+      ],
+      "forum_engine": "mybb"
     },
     {
       "id": "onion:94c961978c90",

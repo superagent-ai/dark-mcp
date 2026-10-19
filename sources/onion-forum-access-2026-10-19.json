@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-19T11:03:32.612873+00:00",
+  "purpose": "Structured Tor reads of public access-market and company-key-demand discussions; source claims and identities remain unverified.",
+  "sources": [
+    {
+      "id": "onion:91e4e785a3af",
+      "transport": "tor",
+      "allowed_hosts": [
+        "spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion"
+      ],
+      "forum_engine": "mybb",
+      "collection_urls": [
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Access-Market",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Buyers-Place",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Sellers-Place",
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/Forum-Database-Discussion"
+      ],
+      "access_state": "public_threads_partial",
+      "assessment": "Public MyBB thread bodies include access-sale claims and company-key demand. External marketplace origins may require login. Dates without explicit timezone/epoch remain raw; source dates do not establish collection lead time. No access, key validity or victim attribution is verified."
+    }
+  ],
+  "verification": {
+    "method": "Real stdio MCP client over Tor, then server restart, cursor continuation, evidence replay and direct refresh.",
+    "thread_pages": 3,
+    "visible_post_records": 4,
+    "index_pages_before_job": 2,
+    "resumed_index_pages": 2,
+    "posts_with_author": 4,
+    "posts_with_resolved_publication_time": 0,
+    "posts_with_raw_source_date": 4,
+    "root_posts": 3,
+    "telegram_network_calls": 0,
+    "licensed_provider_live_access": "not_configured; explicit provider_not_configured result verified",
+    "raw_receipts": "Retained privately outside version control; no raw post bodies are bundled."
+  }
+}

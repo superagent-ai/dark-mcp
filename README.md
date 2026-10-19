@@ -13,7 +13,8 @@ Probing here means investigating sources and exposure signals. Findings should r
 | Onion discovery | [Onion Search Engine API](https://onionsearchengine.com/api_documentation.php), over HTTPS | Provider API key |
 | Onion page content | Direct HTTP(S) through your Tor SOCKS proxy | Running Tor client |
 | Telegram channel posts | Telegram client API via Telethon | Your application credentials, local account login, permitted channels |
-| Original forum threads | Public HTTPS pages on three configured forums | No credentials for visible posts; registration-only content remains hidden |
+| Original forum threads | Public pages on Cracked, Niflheim, HARD-TM and Spear | HTTPS for the first three; Tor for Spear; gated content remains hidden |
+| Licensed intelligence | Flare global search and event API | Flare API key with search/read entitlement; optional tenant ID |
 | Local onion search | SQLite FTS index populated by fetches and bounded crawls | No external search key |
 
 **Discovery uses an existing search engine. You do not need to build your own onion index.** The local index is optional and only covers pages this installation has collected. Search provider coverage and freshness are not independently verified.
@@ -34,21 +35,21 @@ The [18 October 2026 onion catalog](sources/onion-research-2026-10-18.json) reco
 
 The [19 October vendor research](docs/vendor-source-research.md) compares eight providers and 23 forum families, including Flare, DarkOwl, KELA, SOCRadar, Intel 471, Searchlight Cyber, Intelligence X and Bitsight/Cybersixgill. The [evidence matrix](sources/vendor-source-research-2026-10-19.json) distinguishes explicit monitoring claims, dated collection examples and research mentions. It also records disruption reports and uncertain identities.
 
-Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have public original-thread collectors: **Cracked, Niflheim and HARD-TM**. The remaining 14, including DamageLib, BHF, Duty Free, Lolzteam and HydraForums, are metadata-only leads. Commercial API adapters remain future work. Neither a vendor mention nor a historical collection chart proves present-day API access. `get_status` separates collection methods from source counts.
+Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have public original-thread collectors: **Cracked, Niflheim and HARD-TM**. The remaining 14, including DamageLib, BHF, Duty Free, Lolzteam and HydraForums, are metadata-only leads. An optional Flare search/read adapter is available; licensed corpus access requires credentials and entitlement. It has contract tests, not a live licensed-data validation. Neither a vendor mention nor a historical collection chart proves present-day API access. `get_status` separates collection methods from source counts.
 
 ### Original forum access
 
-The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`.
+The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`. Version 0.4 also supports structured Spear threads over Tor: access-market and buyer indexes, original bodies, authors, root/reply markers, raw source dates, referenced URLs and resumable pagination. See the [early-signal collection guide](docs/early-signal-collection.md) for verified access bounds and licensed-source setup.
 
 A current HARD-TM Lovable advertisement matching earlier Telegram repost headlines was collected with its author, timestamp and visible terms. Matching titles and handles do not prove it is the exact post behind an older relay. Its outbound links require registration. Niflheim exposed readable posts and multiple pages of replies; other post bodies can require login. Cracked exposed visible discussion with registration-only content marked as hidden. These are bounded access checks, not verified breach claims or complete site coverage. See the [forum collection guide](docs/forum-collection.md) for concrete calls and limitations.
 
 ### Full source registry for agents
 
-The server bundles **172 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 17 forum records (three public collectors and 14 metadata-only leads). Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
+The server bundles **172 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 17 forum records (three HTTPS collectors and 14 metadata-only leads; the onion records also include a structured Spear collector). Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
 
 `list_sources` exposes the complete registry with stable source IDs, filtering and pagination. `get_source` returns assessments, discovery references, evidence links, historical access checks and known forum section URLs. The catalog is packaged with the server, so an installed wheel or Docker image does not depend on this checkout's `sources/` directory.
 
-`collect_source` reads one onion/forum page or a bounded page of Telegram posts. For onion and configured forum sources, provide a known section or discovered thread URL to explore deeper. For Telegram, use `query`, `since` and `next_before_id` to search and paginate. Metadata-only invite and forum records return `source_access_required`; numeric IDs can only be read if the account can resolve and access them. Collection does not join channels, renew invite previews or solve login/browser challenges. Gates and hidden forum content are flagged; other returned text remains unverified.
+`collect_source` reads one onion/forum page or a bounded page of Telegram posts. Spear is an onion-kind source with the `forum_page` collection method; it uses the same forum tools through Tor. For onion and configured forum sources, provide a known section or discovered thread URL to explore deeper. For Telegram, use `query`, `since` and `next_before_id` to search and paginate. Metadata-only invite and forum records return `source_access_required`; numeric IDs can only be read if the account can resolve and access them. Collection does not join channels, renew invite previews or solve login/browser challenges. Gates and hidden forum content are flagged; other returned text remains unverified.
 
 To permit Telegram reads across all locatable catalog records, enable the following alongside your authenticated Telegram configuration:
 
@@ -146,6 +147,8 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion/forum page or page of Telegram posts; report current result and historical access state |
 | `list_forum_threads(source_id, url=null, query=null, limit=20)` | Discover thread links on one public index; optional local title filter, not a site-wide search |
 | `read_forum_thread(source_id, url, limit=20)` | Read visible original posts/replies with authors, timestamps, permalinks, hidden-content flags and next-page links |
+| `search_flare_events(query, types=null, since=null, limit=20, cursor=null)` | One licensed search page; snippets and a query-bound continuation cursor; consumes provider quota |
+| `read_flare_event(uid)` | Provider event body or explicitly marked preview, original URL/author/parent reference, separate provider and local timestamps, persistent evidence |
 | `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
 | `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
 | `crawl_onion(seeds, max_pages=5)` | Collect at most 10 pages from seed onions and same-host links |
@@ -171,7 +174,7 @@ For a fictional company called Acme with domain `acme.example`:
 4. Assess whether the text actually refers to the company. A mention or an alleged leak is not a confirmed compromise. Cite the evidence and retain uncertainty.
 5. For repeated monitoring, the calling workflow should persist seen source URLs, Telegram channel/message IDs, and content hashes; compare each run and notify on new or changed evidence. The server supplies data access, not a built-in scheduler or alert delivery service.
 
-The first version searches text only. It does not OCR images, download attachments, bypass authentication/CAPTCHAs, join channels, post messages, or verify the authenticity of leaked data.
+Collection searches text only. It does not OCR images, download attachments, bypass authentication/CAPTCHAs, join channels, post messages, or verify the authenticity of leaked data.
 
 ## Telegram setup
 

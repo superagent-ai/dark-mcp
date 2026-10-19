@@ -27,10 +27,14 @@ class ForumPost(BaseModel):
     text: str
     published_at: str | None = None
     published_at_raw: str | None = None
+    published_at_hint: str | None = None
+    timestamp_basis: str | None = None
+    is_thread_root: bool | None = None
     edited_at: str | None = None
     edited_at_raw: str | None = None
     hidden_content: bool = False
     quotes: list[dict] = Field(default_factory=list)
+    links: list[dict] = Field(default_factory=list)
     truncated: bool = False
     evidence: dict | None = None
 
@@ -44,6 +48,7 @@ class ForumPage(BaseModel):
     thread_key: str | None = None
     posts: list[ForumPost] = Field(default_factory=list)
     threads: list[dict] = Field(default_factory=list)
+    sections: list[dict] = Field(default_factory=list)
     next_page_urls: list[str] = Field(default_factory=list)
     access_state: str
     truncated: bool = False
