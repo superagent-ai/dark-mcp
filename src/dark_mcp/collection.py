@@ -99,6 +99,9 @@ class CollectionService:
                     "url": page.url,
                     "page_type": page.page_type,
                     "posts": len(page.posts),
+                    "thread_listings": len(page.threads),
+                    "thread_listing_scope": page.thread_listing_scope,
+                    "omitted_threads": page.omitted_threads,
                     "hidden_posts": sum(p.hidden_content for p in page.posts),
                     "truncated": page.truncated,
                     "next_page_urls": page.next_page_urls,
@@ -112,16 +115,23 @@ class CollectionService:
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 
-    async def forum_threads(self, source_id: str, url: str | None = None, query: str | None = None, limit=20):
+    async def forum_threads(
+        self, source_id: str, url: str | None = None, query: str | None = None, limit=20, exclude_pinned: bool = False
+    ):
         limit_value(limit)
         if query is not None and (not query.strip() or len(query) > 500):
             raise ValueError("Use a nonempty local title filter up to 500 characters")
         page = await self.forum_page(source_id, url, limit)
         results = [row for row in page.threads if query is None or query.casefold().strip() in row["title"].casefold()]
+        excluded = sum(row.get("pinned") is True for row in results) if exclude_pinned else 0
+        if exclude_pinned:
+            results = [row for row in results if row.get("pinned") is not True]
         return {
             "page": page.model_dump(),
             "results": results[:limit],
             "omitted_matches": max(0, len(results) - limit),
+            "excluded_pinned_matches": excluded,
+            "unknown_pin_status_matches": sum(row.get("pinned") is None for row in results),
             "coverage": "Local title filter on one public index page; follow next_page_urls. Not a site-wide search.",
         }
 
@@ -463,6 +473,7 @@ class CollectionService:
         max_threads: int = 100,
         max_index_pages: int = 3,
         max_thread_pages: int = 3,
+        exclude_pinned: bool = False,
     ) -> dict:
         source = self.store.source(source_id)
         if source["kind"] == "provider":
@@ -476,6 +487,8 @@ class CollectionService:
         limit_value(max_thread_pages, 20)
         if mode != "section" and (max_threads, max_index_pages, max_thread_pages) != (100, 3, 3):
             raise ValueError("Thread discovery bounds require section mode")
+        if type(exclude_pinned) is not bool or (exclude_pinned and mode != "section"):
+            raise ValueError("Pinned-thread exclusion requires section mode")
         parse_date(since)
         if query is not None and (not query.strip() or len(query) > 500):
             raise ValueError("Check query")
@@ -498,6 +511,7 @@ class CollectionService:
                 max_threads=max_threads,
                 max_index_pages=max_index_pages,
                 max_thread_pages=max_thread_pages,
+                exclude_pinned=exclude_pinned,
                 max_total_pages=max_index_pages + max_threads * max_thread_pages,
             )
             checkpoint = {"queue": [target], "visited": [], "pages_collected": 0}

@@ -1,6 +1,6 @@
 # Collect original forum threads
 
-Version 0.10 uses the same two forum tools for four HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
+Version 0.11 uses the same two forum tools for four HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
 
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
@@ -29,7 +29,11 @@ search_evidence
 {"query":"Lovable","kind":"forum","source_id":"forum:hard-tm","include_history":false}
 ```
 
-`list_forum_threads` inspects one accessible index page, extracting up to 100 thread links before applying the local title filter. Follow its `next_page_urls`, returned `sections`, or inspect another `collection_urls` section from `get_source`. An empty filtered index does not mean the forum has no matching posts. Automated search routes are not supported.
+`list_forum_threads` inspects one accessible index page, extracting up to 100 unique listings before applying the local title filter. Recognized MyBB subject rows and XenForo thread rows exclude unrelated sidebar/navigation links. The response labels `thread_listing_scope="recognized_thread_rows"`; unfamiliar layouts fall back to `unscoped_links`, with unknown pin status. Question2Answer currently leaves the listing scope unreported. `omitted_threads` counts listings beyond the 100-row cap; `omitted_matches` separately counts filtered matches beyond the requested result limit. Follow `next_page_urls`, returned `sections`, or another `collection_urls` section from `get_source`. An empty filtered index does not establish source-wide absence. Automated search routes are not supported.
+
+Recognized rows return `listing_basis`, a source-local `source_thread_id` when explicit, creator `author`, `published_at`/`published_at_raw`, `last_activity_at`/`last_activity_at_raw`, and `pinned` (`true`, `false` or unknown/null). Numeric source IDs are metadata, not an assertion that different URLs/sources are independent or automatically merged. Last activity can be a reply or bump on an old thread; it is not a new publication or a compromise timestamp. Only explicit offset-bearing source datetimes are normalized; offset-free MyBB dates remain raw. Handles and times remain source claims.
+
+Use `exclude_pinned=true` on `list_forum_threads` to skip only explicit pins after applying the title filter. The default includes all listings, and unknown status stays eligible. `excluded_pinned_matches` and `unknown_pin_status_matches` describe matches before the result limit. The full parsed index remains in saved page evidence. MyBB pin status uses the nearest explicit Important/Sticky/Normal Threads section heading, not misleading theme CSS classes. Unrecognized headings remain unknown. XenForo uses explicit sticky/normal thread-group containers; other layouts remain unknown. Pinned offers may still be relevant, so exclusion is an investigator choice.
 
 `get_collected_thread` reconstructs saved posts and replies without fetching the source again, optionally as of a local recording-time cutoff; see the [investigation workflow](investigation-workflow.md#search-and-inspect-exact-evidence).
 
@@ -112,9 +116,9 @@ collect_next
 {"collection_id":"<returned id>","max_items":100,"max_pages":5}
 ```
 
-Section mode reads indexes, canonicalizes discovered links to thread starters, collects their bodies and follows explicit reply pagination. `query`, if supplied, is a local title filter; it does not search bodies or the whole source. `since` and `thread_id` are not supported in this mode. Repeat `collect_next` to advance; queue, selected threads and page counts survive process restarts. There is no background collection.
+Section mode reads indexes, canonicalizes discovered links to thread starters, collects their bodies and follows explicit reply pagination. `query`, if supplied, is a local title filter; it does not search bodies or the whole source. Optional `exclude_pinned=true` is supported only in section mode and skips known pins while retaining unknown status. The default is false, including when resuming older jobs without this option. `since` and `thread_id` are not supported in this mode. Repeat `collect_next` to advance; queue, selected threads and page counts survive process restarts. There is no background collection.
 
-Bounds are 1–500 threads, 1–50 index pages and 1–20 pages per thread, plus an overall ceiling of `max_index_pages + max_threads * max_thread_pages` attempted pages. Inspect checkpoint `section`: `threads_selected`, `thread_pages`, `failed_pages`, `hidden_posts_seen`, `deferred_count` and `deferred_urls` (a sample capped at 100 URLs, with reasons). A finished job means its configured bounds were exhausted, including recorded gaps. It does not establish full source coverage.
+Bounds are 1–500 threads, 1–50 index pages and 1–20 pages per thread, plus an overall ceiling of `max_index_pages + max_threads * max_thread_pages` attempted pages. Inspect checkpoint `section`: `threads_selected`, `thread_pages`, `failed_pages`, `hidden_posts_seen`, `deferred_count` and `deferred_urls` (a sample capped at 100 URLs, with reasons). Known pins skipped by choice use reason `pinned_thread_excluded`. `index_rows_omitted` accumulates listings omitted by the per-page 100-row cap; those unknown URLs remain a coverage gap. A finished job means its configured bounds were exhausted, including recorded gaps. It does not establish full source coverage.
 
 Individual gated/missing threads are recorded as gaps and collection continues. Root/index failures, transient connection/server errors, expired sessions and rate limits retain the current cursor for retry. Rate limits persist across restarts. A page whose visible posts exceed `max_items` retains its cursor rather than silently skipping them. Hidden content remains unavailable even when other posts on the page are readable.
 

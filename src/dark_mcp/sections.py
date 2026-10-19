@@ -26,6 +26,7 @@ class SectionPlan:
             "section",
             {
                 "index_pages": 0,
+                "index_rows_omitted": 0,
                 "threads_selected": [],
                 "thread_pages": {},
                 "thread_owners": {},
@@ -56,11 +57,15 @@ class SectionPlan:
         future = []
         if page.page_type == "index":
             self.state["index_pages"] += 1
+            self.state["index_rows_omitted"] = self.state.get("index_rows_omitted", 0) + page.omitted_threads
             for row in page.threads:
                 term = self.options.get("query")
                 if term and term.casefold().strip() not in row["title"].casefold():
                     continue
                 root = thread_root(self.source, row["url"])
+                if self.options.get("exclude_pinned") and row.get("pinned") is True:
+                    self.deferred(root, "pinned_thread_excluded")
+                    continue
                 if root in self.state["threads_selected"]:
                     continue
                 if len(self.state["threads_selected"]) >= self.options["max_threads"]:

@@ -52,6 +52,8 @@ class ForumPage(BaseModel):
     thread_key: str | None = None
     posts: list[ForumPost] = Field(default_factory=list)
     threads: list[dict] = Field(default_factory=list)
+    thread_listing_scope: str = "unreported"
+    omitted_threads: int = 0
     sections: list[dict] = Field(default_factory=list)
     next_page_urls: list[str] = Field(default_factory=list)
     access_state: str

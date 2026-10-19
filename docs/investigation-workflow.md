@@ -8,6 +8,12 @@ The MCP collects and preserves evidence. The agent develops hypotheses, resolves
 2. Save company identifiers and context using `save_company_profile`, citing references. Profiles are versioned caller-provided information; they are never sent to sources automatically. Retrieve previous versions through `get_company_profile(profile_id, revision)`.
 3. Inspect `get_source`, `get_source_health` and `get_corpus_coverage`. Health reports actual local requests and their limits, not a global coverage percentage. An empty search is recorded separately from a successful content read.
 
+## Inspect listing age before selecting originals
+
+For recognized forum rows, compare the source creation date (`published_at`) with `last_activity_at` before describing an offer as new. A years-old pinned advertisement may have activity today. Raw dates without a source timezone stay unresolved. Creator handles, dates and pin labels remain unverified source metadata. Check `thread_listing_scope`: recognized rows exclude unrelated sidebars; fallback links carry less context. Inspect row-cap omissions before interpreting a negative title filter.
+
+An agent may set `exclude_pinned=true` on `list_forum_threads` or a section collection job. It excludes only known pins, retains unknown status, and leaves the complete index evidence saved. This controls collection selection; it is not a threat score or a claim that pinned offers are irrelevant. Jobs preserve the option across restarts and record exclusions as deferred URLs. Read selected originals and replies before drawing a company-specific conclusion.
+
 ## Collect history and resume after a restart
 
 Create a collection:

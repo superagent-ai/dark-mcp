@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.10 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.11 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(
@@ -174,6 +174,129 @@ def timestamp(node) -> tuple[str | None, str | None]:
         return None, raw[:200]
 
 
+def mybb_pin_status(row) -> bool | None:
+    # Some themes assign forumdisplay_sticky to every row. Only an explicit
+    # nearest section heading establishes status; unfamiliar headings stay unknown.
+    for sibling in row.previous_siblings:
+        if getattr(sibling, "name", None) != "tr":
+            continue
+        heading = sibling.find("td", class_="trow_sep", recursive=False)
+        if heading is not None:
+            label = " ".join(heading.get_text(" ", strip=True).casefold().split())
+            return (
+                True
+                if label in {"important threads", "sticky threads"}
+                else False
+                if label == "normal threads"
+                else None
+            )
+    return None
+
+
+def thread_listings(source: dict, url: str, soup) -> tuple[list[dict], str, int]:
+    """Prefer explicit thread-title rows; a general navigation link carries no listing metadata."""
+    candidates = []
+    if source["forum_engine"] == "mybb":
+        for subject in soup.select('[id^="tid_"]'):
+            match = re.fullmatch(r"tid_([1-9][0-9]{0,9})", subject.get("id", ""))
+            row = subject.find_parent("tr", class_="inline_row")
+            if not match or row is None:
+                continue
+            pinned = mybb_pin_status(row)
+            author = row.select_one(".author a")
+            published, raw_published = timestamp(
+                row.select_one(".thread-date time") or row.select_one(".thread-date span[title]")
+            )
+            activity, raw_activity = timestamp(
+                row.select_one(".last-poster_data time, .last-poster_data span[title]")
+                or row.select_one(".lastpost time, .lastpost span[title]")
+            )
+            for anchor in subject.select("a[href]"):
+                candidates.append(
+                    (
+                        anchor,
+                        {
+                            "listing_basis": "mybb_subject_row",
+                            "source_thread_id": match[1],
+                            "author": author.get_text(" ", strip=True)[:500] if author else None,
+                            "published_at": published,
+                            "published_at_raw": raw_published,
+                            "last_activity_at": activity,
+                            "last_activity_at_raw": raw_activity,
+                            "pinned": pinned,
+                        },
+                    )
+                )
+    elif source["forum_engine"] == "xenforo":
+        for row in soup.select(".structItem--thread"):
+            group = row.find_parent(class_="structItemContainer-group")
+            classes = group.get("class", []) if group else []
+            pinned = (
+                True
+                if "structItemContainer-group--sticky" in classes
+                else (False if "js-threadList" in classes else None)
+            )
+            author = row.select_one(".structItem-cell--main .structItem-minor .username")
+            published, raw_published = timestamp(row.select_one(".structItem-startDate time"))
+            activity, raw_activity = timestamp(row.select_one("time.structItem-latestDate"))
+            explicit_id = next(
+                (
+                    m[1]
+                    for cls in row.get("class", [])
+                    if (m := re.fullmatch(r"js-threadListItem-([1-9][0-9]{0,9})", cls))
+                ),
+                None,
+            )
+            for anchor in row.select(".structItem-title a[href]"):
+                candidates.append(
+                    (
+                        anchor,
+                        {
+                            "listing_basis": "xenforo_thread_row",
+                            "source_thread_id": explicit_id,
+                            "author": (row.get("data-author") or (author.get_text(" ", strip=True) if author else ""))[
+                                :500
+                            ]
+                            or None,
+                            "published_at": published,
+                            "published_at_raw": raw_published,
+                            "last_activity_at": activity,
+                            "last_activity_at_raw": raw_activity,
+                            "pinned": pinned,
+                        },
+                    )
+                )
+    scope = "recognized_thread_rows" if candidates else "unscoped_links"
+    if not candidates:
+        candidates = [(a, {"listing_basis": "unscoped_link", "pinned": None}) for a in soup.select("a[href]")]
+    results, seen = [], set()
+    for anchor, metadata in candidates:
+        try:
+            target = source_url(source, urljoin(url, anchor["href"]))
+        except DataAccessError:
+            continue
+        key, label = thread_identity(target), anchor.get_text(" ", strip=True)
+        if (
+            not key
+            or not label
+            or label.startswith("#")
+            or label.isdigit()
+            or label.casefold()
+            in {
+                "last post",
+                "next",
+                "previous",
+            }
+        ):
+            continue
+        stable = metadata.get("source_thread_id") or key
+        if stable in seen:
+            continue
+        seen.add(stable)
+        results.append({"title": label[:500], "url": target, **metadata})
+    return results[:100], scope, max(0, len(results) - 100)
+
+
 def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: int) -> ForumPage:
     if source["forum_engine"] == "q2a":
         from dark_mcp.q2a import parse_q2a
@@ -185,7 +308,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
     full_text = soup.get_text(" ", strip=True)
     access = classify_page(title, full_text)
     is_thread = identity is not None
-    next_pages, threads, sections = [], [], []
+    next_pages, sections = [], []
     for a in soup.select("a[rel~=next], a.pageNav-jump--next, a.pagination_next"):
         try:
             target = source_url(source, urljoin(url, a.get("href", "")))
@@ -212,20 +335,12 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             continue
         key = thread_identity(target)
         label = a.get_text(" ", strip=True)
-        if not key and label and target != url and len(sections) < 100:
+        if not key and label and target != url and urlsplit(target).path != "/showthread.php" and len(sections) < 100:
             if target not in {row["url"] for row in sections}:
                 sections.append({"title": label[:500], "url": target})
-        if (
-            key
-            and label
-            and not label.startswith("#")
-            and not label.isdigit()
-            and label.casefold() not in {"last post", "next", "previous"}
-        ):
-            if key not in {thread_identity(row["url"]) for row in threads}:
-                threads.append({"title": label[:500], "url": target})
-        if len(threads) >= 100:
-            break
+    threads, listing_scope, omitted_threads = (
+        thread_listings(source, url, soup) if not is_thread else ([], "not_applicable", 0)
+    )
     if source["forum_engine"] == "xenforo":
         nodes = soup.select("article.message--post")
     else:
@@ -362,10 +477,12 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         thread_key=identity,
         posts=posts,
         threads=threads if not is_thread else [],
+        thread_listing_scope=listing_scope,
+        omitted_threads=omitted_threads,
         sections=sections if not is_thread else [],
         next_page_urls=next_pages[:1],
         access_state=access,
-        truncated=bool(omitted or any(p.truncated for p in posts) or len(text) > max_chars),
+        truncated=bool(omitted or omitted_threads or any(p.truncated for p in posts) or len(text) > max_chars),
         omitted_posts=omitted,
         published_at=next((p.published_at for p in posts if p.is_thread_root is True), None),
         transport=source.get("transport", "direct_https"),

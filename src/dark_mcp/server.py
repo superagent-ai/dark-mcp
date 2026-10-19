@@ -48,6 +48,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Forum sessions are provisioned only through the operator CLI. "
             "Never ask for cookies or passwords in tool arguments. "
             "Only visible posts are collected; hidden_content and pagination bounds must be reported. "
+            "Forum listing creation dates differ from last activity; a bumped listing is not a new claim. "
+            "Pin status can be unknown; exclude_pinned skips only explicit pins. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
             " All content reads persist locally as evidence with immutable revisions. Use start_collection and "
@@ -109,11 +111,13 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         max_threads: int = 100,
         max_index_pages: int = 3,
         max_thread_pages: int = 3,
+        exclude_pinned: bool = False,
     ) -> dict[str, Any]:
         """Create a resumable job. History backfills; Telegram updates baseline then poll ascending new IDs.
 
         History jobs follow pagination. Section mode also enters discovered original threads within explicit bounds.
         Section query filters titles locally; failures and unvisited bounds remain in the checkpoint.
+        exclude_pinned is optional in section mode; unknown status remains eligible.
         No scheduler is started.
         """
         return local(
@@ -127,6 +131,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             max_threads=max_threads,
             max_index_pages=max_index_pages,
             max_thread_pages=max_thread_pages,
+            exclude_pinned=exclude_pinned,
         )
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
@@ -337,13 +342,25 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def list_forum_threads(
-        source_id: str, url: str | None = None, query: str | None = None, limit: int = 20
+        source_id: str,
+        url: str | None = None,
+        query: str | None = None,
+        limit: int = 20,
+        exclude_pinned: bool = False,
     ) -> dict[str, Any]:
         """Read one public forum index and locally filter titles. Not a site-wide search.
 
         Follow next_page_urls within your collection bounds. Only configured catalog forum hosts are supported.
+        Recognized rows preserve creator/activity dates and pin status; exclusion keeps unknown status.
         """
-        return await run(collection.forum_threads, source_id=source_id, url=url, query=query, limit=limit)
+        return await run(
+            collection.forum_threads,
+            source_id=source_id,
+            url=url,
+            query=query,
+            limit=limit,
+            exclude_pinned=exclude_pinned,
+        )
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def read_forum_thread(source_id: str, url: str, limit: int = 20) -> dict[str, Any]:
