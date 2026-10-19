@@ -12,6 +12,7 @@ from dark_mcp.evidence import EvidenceStore
 from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
+from dark_mcp.references import ReferenceSearch
 from dark_mcp.search import OnionSearch
 from dark_mcp.sources import SourceCatalog
 from dark_mcp.sources import collect_source as collect_catalog_source
@@ -59,6 +60,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Use refresh_evidence to recheck stored posts/pages; missing posts are unavailable, not proven deleted. "
             "search_evidence uses literal substring matching and can return explicitly marked historical revisions. "
             "Use get_corpus_coverage to inspect saved inventory before treating a negative search as meaningful. "
+            "Use search_references for collected URL/label metadata, including shortened links missed by text search. "
+            "A reference match is unverified context, not a verified exposure or an endorsement to follow the link. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
         ),
     )
@@ -177,6 +180,34 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             collected_since=collected_since,
             include_history=include_history,
             include_gates=include_gates,
+            offset=offset,
+            limit=limit,
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def search_references(
+        query: str | None = None,
+        host: str | None = None,
+        include_subdomains: bool = False,
+        kind: str | None = None,
+        source_id: str | None = None,
+        include_history: bool = False,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """Search already captured URL/label references or exact hosts, without fetching referenced content.
+
+        Top-level forum/onion references only. History and acquisition provenance identify the selected revision.
+        References may be quoted/copied; a matching company host does not verify ownership, access or compromise.
+        """
+        return local(
+            ReferenceSearch(evidence).search,
+            query=query,
+            host=host,
+            include_subdomains=include_subdomains,
+            kind=kind,
+            source_id=source_id,
+            include_history=include_history,
             offset=offset,
             limit=limit,
         )

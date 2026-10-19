@@ -49,6 +49,8 @@ For edits and deletions, call `sync_telegram_changes(channel)`. The first call e
 
 ## Search and inspect exact evidence
 
+Before treating a company text search as negative, also check extracted references with `search_references(host="company.example", include_subdomains=true, kind="forum")` or a literal URL/label query. Shortened visible labels can omit the actual destination. Hits identify an exact source revision; quoted/copied links, historical matches and acquisition provenance remain explicit. A host match does not verify ownership or exposure, and references are never fetched by this tool. Its index excludes Telegram entities, media and inferred text URLs. See the [reference search guide](reference-search.md).
+
 All MCP content-read tools persist their returned onion/Telegram snapshots, including legacy read tools. Telegram identity uses channel ID plus message ID; aliases do not create separate copies of the same post. Onion identity uses the validated final URL. Source claims are never authenticated by these identities alone.
 
 `search_evidence(query, kind, source_id, published_since, collected_since, include_history, include_gates, offset, limit)` searches collected onion, Telegram and forum evidence. Historical provider snapshots, if present from an earlier checkout, remain replayable. It uses casefolded literal substring matching, with a trigram index for queries of three or more characters. Punctuation is preserved: `superagent.sh` is not treated as a Boolean query or as unrelated words.

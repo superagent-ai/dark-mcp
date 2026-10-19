@@ -150,6 +150,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
 | `search_evidence(query, ...)` | Literal search of saved revisions; label title/body matches and local revision recording times; filter source, kind and dates |
+| `search_references(query=null, host=null, include_subdomains=false, ...)` | Search captured forum/onion URL and label metadata, including shortened references; exact revision provenance and no URL fetches |
 | `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
 | `get_collected_thread(evidence_id, as_of=null, offset=0, limit=20)` | Reconstruct saved forum posts/replies without network access; optional cutoff uses local recording time |
 | `list_evidence_changes(after_seq=0, ...)` | Cursor over new, edited, deleted, restored and unavailable observations |

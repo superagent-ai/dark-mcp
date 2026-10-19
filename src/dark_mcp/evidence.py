@@ -11,6 +11,7 @@ from pathlib import Path
 
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
+from dark_mcp.references import index_reference_revision
 from dark_mcp.thread_context import index_forum_revision
 
 
@@ -46,6 +47,7 @@ class EvidenceStore:
         self.path = directory / "evidence.sqlite3"
         with self.connect() as db:
             search_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='revision_search'").fetchone()
+            reference_search_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='reference_search'").fetchone()
             db.executescript("""
                 PRAGMA journal_mode=WAL;
                 CREATE TABLE IF NOT EXISTS sources (
@@ -71,6 +73,18 @@ class EvidenceStore:
                 );
                 CREATE TRIGGER IF NOT EXISTS revision_search_insert AFTER INSERT ON revisions BEGIN
                     INSERT INTO revision_search(rowid,search_text) VALUES(new.id,new.search_text);
+                END;
+                CREATE TABLE IF NOT EXISTS evidence_references (
+                    id INTEGER PRIMARY KEY,revision_id INTEGER NOT NULL REFERENCES revisions(id),
+                    ordinal INTEGER NOT NULL,url TEXT NOT NULL,label TEXT NOT NULL,host TEXT NOT NULL,
+                    search_text TEXT NOT NULL,UNIQUE(revision_id,ordinal)
+                );
+                CREATE INDEX IF NOT EXISTS evidence_reference_host ON evidence_references(host,revision_id);
+                CREATE VIRTUAL TABLE IF NOT EXISTS reference_search USING fts5(
+                    search_text,content='evidence_references',content_rowid='id',tokenize='trigram'
+                );
+                CREATE TRIGGER IF NOT EXISTS reference_search_insert AFTER INSERT ON evidence_references BEGIN
+                    INSERT INTO reference_search(rowid,search_text) VALUES(new.id,new.search_text);
                 END;
                 CREATE TABLE IF NOT EXISTS forum_thread_members (
                     revision_id INTEGER PRIMARY KEY REFERENCES revisions(id), source_id TEXT NOT NULL,
@@ -110,6 +124,8 @@ class EvidenceStore:
             """)
             if not search_exists:
                 db.execute("INSERT INTO revision_search(revision_search) VALUES('rebuild')")
+            if not reference_search_exists:
+                db.execute("INSERT INTO reference_search(reference_search) VALUES('rebuild')")
             if not db.in_transaction:
                 db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM migrations WHERE name='forum-context-v1'").fetchone():
@@ -121,6 +137,12 @@ class EvidenceStore:
                     for row in rows:
                         index_forum_revision(db, row["id"], row["source_id"], "forum", json.loads(row["snapshot"]))
                 db.execute("INSERT INTO migrations VALUES('forum-context-v1',?)", (now(),))
+            if not db.execute("SELECT 1 FROM migrations WHERE name='reference-index-v1'").fetchone():
+                cursor = db.execute("SELECT r.id,i.kind,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id")
+                while rows := cursor.fetchmany(100):
+                    for row in rows:
+                        index_reference_revision(db, row["id"], row["kind"], json.loads(row["snapshot"]))
+                db.execute("INSERT INTO migrations VALUES('reference-index-v1',?)", (now(),))
         self.path.chmod(0o600)
 
     @contextmanager
@@ -225,6 +247,7 @@ class EvidenceStore:
                 )
                 revision_id = cursor.lastrowid
                 index_forum_revision(db, revision_id, source_id, kind, snapshot)
+                index_reference_revision(db, revision_id, kind, snapshot)
             else:
                 revision_id = previous["id"]
             db.execute(

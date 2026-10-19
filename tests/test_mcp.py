@@ -23,6 +23,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "get_collection",
             "list_collections",
             "search_evidence",
+            "search_references",
             "get_evidence",
             "get_collected_thread",
             "get_evidence_history",

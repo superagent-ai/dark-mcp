@@ -116,6 +116,14 @@ This establishes direct public content access, not authenticated membership, sou
 
 Subsequent stdio acceptance against the packaged source collected 17 distinct post items across three discussions, including the access thread's second page after restart. All authors, numbers and three roots were retained; exact replay, direct refresh and positive/negative local searches passed. The bounded buyer job completed at one selected thread and one index, leaving other coverage deferred. A possible-repost relation preserves the recruitment overlap as a caller assertion. A fresh XSS web candidate failed browser DNS resolution; XForums and a separate BreachForums web candidate established no original access. Lolzteam documents a source-owned forum API requiring read-scoped authorization, but no account/token or authenticated API collection was established. Those leads remain research metadata rather than active collectors.
 
+## Captured-reference retrieval (0.15)
+
+`search_references` searches already captured URL/label metadata, with exact-host/optional-subdomain filters, revision-aware history and acquisition provenance. A derived FTS/host index backfills immutable snapshots without rewriting their hashes or observation history. This closes the shortened-link gap in literal title/body searches; references are never followed automatically. See the [retrieval guide](reference-search.md) for scope and limits.
+
+A real stdio check indexed 4,332 reference rows across saved revisions and recovered seven current post items referencing one known upstream-marketplace hostname that was absent from their title/body text. Exact provenance, restart replay and a negative control passed, with all original revision hashes and evidence/attempt counts unchanged. This recovered stored references; it did not establish new marketplace access, independent corroboration or an early-warning finding.
+
+A separate access check found that LeakForum's guest search works interactively but its robots rules deny automated search routes. bf.st's search link returned a browser challenge. Those per-capability gaps are now source metadata. No native site-wide search, paid provider adapter, scheduler or monitoring runner was added.
+
 ## Operator-provided source access (0.12)
 
 Operators can now configure a private MyBB/XenForo source locally, attach an existing exact-origin session and use the standard MCP tools without publishing that collection configuration. Source import is not an access test. It rejects credentials and unsafe routes, separates operator provenance from vendor research, preserves source identity across removal/re-import and keeps generic/structured Tor cooldown identity shared. Removal clears local sessions and disables the source on restart while preserving evidence. See the [operator source guide](operator-sources.md).

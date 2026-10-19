@@ -236,11 +236,12 @@ wheels = [
 
 [[package]]
 name = "dark-mcp"
-version = "0.14.0"
+version = "0.15.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "httpx", extra = ["socks"] },
+    { name = "idna" },
     { name = "mcp" },
     { name = "pydantic-settings" },
     { name = "telethon" },
@@ -259,6 +260,7 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.15.0" },
     { name = "httpx", extras = ["socks"], specifier = ">=0.28.1" },
+    { name = "idna", specifier = ">=3.10,<4" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "pydantic-settings", specifier = ">=2.16.0" },
     { name = "telethon", specifier = ">=1.45.0,<2" },

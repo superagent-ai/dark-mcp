@@ -228,6 +228,14 @@
             "direct_refresh_verified": true,
             "positive_and_negative_local_search_verified": true,
             "coverage": "Two original indexes checked, one bounded buyer section job and a two-page selected access discussion; unvisited sections and index pagination remain outside the sample."
+          },
+          "search_access_check": {
+            "checked_on": "2026-10-19",
+            "source_link_route": "https://bf.st/search",
+            "observed_access_state": "browser_challenge",
+            "query_submitted": false,
+            "native_mcp_site_search_enabled": false,
+            "assessment": "The observed search link returned a Cloudflare challenge in a normal browser. Readable original threads do not establish search availability."
           }
         }
       },
@@ -367,6 +375,14 @@
         "direct_refresh_verified": true,
         "positive_and_negative_local_search_verified": true,
         "coverage": "Two original indexes checked, one bounded buyer section job and a two-page selected access discussion; unvisited sections and index pagination remain outside the sample."
+      },
+      "search_access_check": {
+        "checked_on": "2026-10-19",
+        "source_link_route": "https://bf.st/search",
+        "observed_access_state": "browser_challenge",
+        "query_submitted": false,
+        "native_mcp_site_search_enabled": false,
+        "assessment": "The observed search link returned a Cloudflare challenge in a normal browser. Readable original threads do not establish search availability."
       },
       "url": "https://bf.st/",
       "collection_method": "forum_page"
@@ -1636,6 +1652,18 @@
                 ]
               }
             ]
+          },
+          "search_access_check": {
+            "checked_on": "2026-10-19",
+            "interactive_guest_search_observed": true,
+            "interactive_scope": "Entire-post search returning candidate post links; originals need separate reads",
+            "automated_search_route": "https://leakforum.io/search.php",
+            "robots_user_agent": "dark-mcp/0.14 (+https://github.com/superagent-ai/dark-mcp)",
+            "robots_allows_search_form": false,
+            "robots_allows_search_query": false,
+            "robots_allows_search_results": false,
+            "native_mcp_site_search_enabled": false,
+            "assessment": "Interactive guest search worked in a normal browser, but the native robots check denied search routes. This does not establish an automated search entitlement, complete result coverage or source-wide absence. Existing native original-thread collection is unchanged."
           }
         }
       },
@@ -1748,6 +1776,18 @@
             ]
           }
         ]
+      },
+      "search_access_check": {
+        "checked_on": "2026-10-19",
+        "interactive_guest_search_observed": true,
+        "interactive_scope": "Entire-post search returning candidate post links; originals need separate reads",
+        "automated_search_route": "https://leakforum.io/search.php",
+        "robots_user_agent": "dark-mcp/0.14 (+https://github.com/superagent-ai/dark-mcp)",
+        "robots_allows_search_form": false,
+        "robots_allows_search_query": false,
+        "robots_allows_search_results": false,
+        "native_mcp_site_search_enabled": false,
+        "assessment": "Interactive guest search worked in a normal browser, but the native robots check denied search routes. This does not establish an automated search entitlement, complete result coverage or source-wide absence. Existing native original-thread collection is unchanged."
       },
       "url": "https://leakforum.io/Forum-Buyer-Requests",
       "collection_method": "forum_page"
