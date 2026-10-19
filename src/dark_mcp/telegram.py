@@ -8,6 +8,7 @@ from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
 from dark_mcp.sources import SourceCatalog
+from dark_mcp.telegram_metadata import forward_attribution, message_links
 
 
 def channel_key(value: str) -> str:
@@ -140,6 +141,7 @@ class TelegramConnector:
         path = channel["username"] or f"c/{peer_id}"
         edited_at = getattr(message, "edit_date", None)
         reply = getattr(message, "reply_to", None)
+        links, link_capture = message_links(text[:16000], getattr(message, "entities", None))
         return {
             "id": message.id,
             "channel": channel,
@@ -150,6 +152,10 @@ class TelegramConnector:
             "has_media": message.media is not None,
             "edited_at": edited_at.isoformat() if edited_at else None,
             "reply_to_message_id": getattr(reply, "reply_to_msg_id", None),
+            "links": links,
+            "link_capture": link_capture,
+            "forward": forward_attribution(getattr(message, "fwd_from", None)),
+            "acquisition": {"method": "telegram_mtproto", "network_read": True, "source_identity_verified": False},
         }
 
     async def channels(self, query: str, limit: int = 10) -> dict:

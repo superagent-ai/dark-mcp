@@ -61,6 +61,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "search_evidence uses literal substring matching and can return explicitly marked historical revisions. "
             "Use get_corpus_coverage to inspect saved inventory before treating a negative search as meaningful. "
             "Use search_references for collected URL/label metadata, including shortened links missed by text search. "
+            "Telegram forward headers are unverified leads; keep their reported origin date separate from the "
+            "observed copy and local recording time. Missing legacy entity/header fields mean unrecorded metadata. "
             "A reference match is unverified context, not a verified exposure or an endorsement to follow the link. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
         ),
@@ -197,7 +199,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     ) -> dict[str, Any]:
         """Search already captured URL/label references or exact hosts, without fetching referenced content.
 
-        Top-level forum/onion references only. History and acquisition provenance identify the selected revision.
+        Top-level forum/onion links and captured Telegram URL entities. History identifies the selected revision.
         References may be quoted/copied; a matching company host does not verify ownership, access or compromise.
         """
         return local(

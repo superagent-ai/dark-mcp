@@ -4,6 +4,8 @@ Standalone MCP server for proactive company exposure research on onion pages, Te
 
 Search existing indexes for company names, domains, and aliases; inspect matching onion pages through Tor; retrieve relevant Telegram posts with source links and timestamps. Investigate early warning signals such as company targeting, exposed information, alleged data sales, and threat activity before an incident is known. The same tools can be called repeatedly by a monitoring agent or scheduled workflow.
 
+Telegram collection preserves hidden URL destinations and forward headers so an investigator can distinguish a relay's post time from the original time reported in its header. Local reference search can find company domains absent from visible text. Headers supply leads; original access, identities and first-publication dates remain unverified. See [Telegram attribution](docs/telegram-attribution.md).
+
 Probing here means investigating sources and exposure signals. Findings should retain their evidence and uncertainty: a source's claim does not establish that an intrusion occurred.
 
 ## Data sources
@@ -150,7 +152,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
 | `search_evidence(query, ...)` | Literal search of saved revisions; label title/body matches and local revision recording times; filter source, kind and dates |
-| `search_references(query=null, host=null, include_subdomains=false, ...)` | Search captured forum/onion URL and label metadata, including shortened references; exact revision provenance and no URL fetches |
+| `search_references(query=null, host=null, include_subdomains=false, ...)` | Search captured forum/onion links and Telegram URL entities; exact revision provenance and no URL fetches |
 | `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
 | `get_collected_thread(evidence_id, as_of=null, offset=0, limit=20)` | Reconstruct saved forum posts/replies without network access; optional cutoff uses local recording time |
 | `list_evidence_changes(after_seq=0, ...)` | Cursor over new, edited, deleted, restored and unavailable observations |

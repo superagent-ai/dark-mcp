@@ -213,10 +213,25 @@ class CollectionService:
             )
             snapshot = {
                 key: post.get(key)
-                for key in ["text", "published_at", "edited_at", "truncated", "has_media", "reply_to_message_id"]
+                for key in [
+                    "text",
+                    "published_at",
+                    "edited_at",
+                    "truncated",
+                    "has_media",
+                    "reply_to_message_id",
+                    "links",
+                    "link_capture",
+                    "forward",
+                    "acquisition",
+                ]
             }
             snapshot.update(
-                title="", access_state="content_returned_unverified", message_id=post["id"], channel_id=channel["id"]
+                title="",
+                access_state="content_returned_unverified",
+                message_id=post["id"],
+                channel_id=channel["id"],
+                url=post["url"],
             )
             stable_url = f"https://t.me/c/{channel['id'].removeprefix('-100')}/{post['id']}"
             post["evidence"] = self.store.observe(

@@ -189,7 +189,7 @@ def test_backfill_and_reopen_preserve_immutable_evidence_and_index_once(settings
     assert again.get(ref["evidence_id"])["snapshot"] == before["snapshot"]
 
 
-def test_bounds_bad_urls_nested_copies_and_non_forum_onion_metadata_are_excluded(settings):
+def test_bounds_bad_urls_nested_copies_and_provider_metadata_are_excluded(settings):
     store = store_for(settings)
     links = [
         {"url": "https://user:private-secret@example.com/", "label": "Credentials"},
@@ -201,7 +201,7 @@ def test_bounds_bad_urls_nested_copies_and_non_forum_onion_metadata_are_excluded
     ]
     save(store, links)
     store.observe("a", "forum", "aggregate", "https://forum.example/", {"posts": [{"links": links}], "text": "Page"})
-    store.observe("a", "telegram", "telegram", "https://t.me/example/1", {"links": links, "text": "Telegram"})
+    store.observe("a", "provider", "provider", "https://provider.example/1", {"links": links, "text": "Provider"})
     save(store, [{"url": f"https://bound.example/{i}", "label": "x" * 1000} for i in range(201)], pid="43")
     result = ReferenceSearch(store).search(host="example.com")
     assert len(result["results"]) == 1 and result["results"][0]["reference_url"] == "https://example.com/valid"
@@ -241,7 +241,7 @@ async def test_mcp_reference_search_is_local_reports_acquisition_and_structured_
             {},
             {"query": "x\x00y"},
             {"host": "user:private-secret@example.com"},
-            {"query": "x", "kind": "telegram"},
+            {"query": "x", "kind": "provider"},
         ]:
             error = (await client.call_tool("search_references", args)).structured_content
             assert error["error"]["code"] == "invalid_arguments" and "private-secret" not in json.dumps(error)

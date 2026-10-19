@@ -143,6 +143,14 @@ class EvidenceStore:
                     for row in rows:
                         index_reference_revision(db, row["id"], row["kind"], json.loads(row["snapshot"]))
                 db.execute("INSERT INTO migrations VALUES('reference-index-v1',?)", (now(),))
+            if not db.execute("SELECT 1 FROM migrations WHERE name='telegram-reference-index-v1'").fetchone():
+                cursor = db.execute(
+                    "SELECT r.id,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id WHERE i.kind='telegram'"
+                )
+                while rows := cursor.fetchmany(100):
+                    for row in rows:
+                        index_reference_revision(db, row["id"], "telegram", json.loads(row["snapshot"]))
+                db.execute("INSERT INTO migrations VALUES('telegram-reference-index-v1',?)", (now(),))
         self.path.chmod(0o600)
 
     @contextmanager

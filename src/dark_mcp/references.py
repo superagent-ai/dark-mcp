@@ -29,10 +29,31 @@ def canonical_host(value: str) -> str:
             raise ValueError("Use a valid hostname or IP address") from None
 
 
+def reference_host(url) -> str | None:
+    """Validate reference metadata without resolving or connecting to its destination."""
+    if (
+        not isinstance(url, str)
+        or not 1 <= len(url) <= 4000
+        or any(ord(c) < 33 or ord(c) == 127 for c in url)
+        or "\\" in url
+    ):
+        return None
+    try:
+        parts = urlsplit(url)
+        if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username is not None:
+            return None
+        if parts.password is not None:
+            return None
+        _ = parts.port
+        return canonical_host(parts.hostname)
+    except ValueError:
+        return None
+
+
 def index_reference_revision(db, revision_id: int, kind: str, snapshot: dict):
     """Derived metadata only. Do not expand nested page copies, infer links from text or mutate snapshots."""
     links = snapshot.get("links")
-    if kind not in {"forum", "onion"} or not isinstance(links, list):
+    if kind not in {"forum", "onion", "telegram"} or not isinstance(links, list):
         return
     seen = set()
     for ordinal, link in enumerate(links[:200]):
@@ -42,24 +63,8 @@ def index_reference_revision(db, revision_id: int, kind: str, snapshot: dict):
             url, label = link.get("url"), link.get("label", "")
         else:
             continue
-        if (
-            not isinstance(url, str)
-            or not 1 <= len(url) <= 4000
-            or not isinstance(label, str)
-            or any(ord(c) < 33 or ord(c) == 127 for c in url)
-            or "\\" in url
-            or url in seen
-        ):
-            continue
-        try:
-            parts = urlsplit(url)
-            if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username is not None:
-                continue
-            if parts.password is not None:
-                continue
-            _ = parts.port  # Validate a supplied port, without resolving or connecting to the reference.
-            host = canonical_host(parts.hostname)
-        except ValueError:
+        host = reference_host(url)
+        if host is None or not isinstance(label, str) or url in seen:
             continue
         seen.add(url)
         label = label[:500]
@@ -86,7 +91,7 @@ class ReferenceSearch:
         limit: int = 20,
     ) -> dict:
         limit_value(limit)
-        if offset < 0 or kind not in {None, "forum", "onion"}:
+        if offset < 0 or kind not in {None, "forum", "onion", "telegram"}:
             raise ValueError("Check evidence kind and pagination")
         if query is None and host is None:
             raise ValueError("Supply a reference query or host")
@@ -130,7 +135,10 @@ class ReferenceSearch:
             "(SELECT max(o.observed_at) FROM observations o WHERE o.revision_id=r.id "
             "AND o.change_type IN ('new','edited','unchanged','restored')) order_recorded_at,"
             "json_extract(r.snapshot,'$.url') recorded_source_url,"
-            "json_extract(r.snapshot,'$.acquisition') acquisition,l.url reference_url,l.label,l.host,"
+            "json_extract(r.snapshot,'$.acquisition') acquisition,"
+            "json_extract(r.snapshot,'$.links['||l.ordinal||']') captured_reference,"
+            "json_extract(r.snapshot,'$.link_capture') link_capture,"
+            "json_extract(r.snapshot,'$.forward') forward,l.url reference_url,l.label,l.host,"
             "row_number() OVER (PARTITION BY i.id,l.url ORDER BY r.id DESC) n "
             "FROM evidence_references l JOIN revisions r ON r.id=l.revision_id "
             "JOIN items i ON i.id=r.evidence_id WHERE "
@@ -165,6 +173,13 @@ class ReferenceSearch:
             result["source_url"] = recorded_url or result["current_item_url"]
             result["source_url_basis"] = "selected_revision_snapshot" if recorded_url else "current_item_fallback"
             result["acquisition"] = json.loads(result["acquisition"]) if result["acquisition"] else {}
+            captured = result.pop("captured_reference")
+            captured = json.loads(captured) if captured and captured.startswith("{") else {}
+            result["reference_metadata"] = {
+                key: captured[key] for key in ("basis", "offset", "length", "offset_unit") if key in captured
+            }
+            for key in ("link_capture", "forward"):
+                result[key] = json.loads(result[key]) if result[key] else None
             result["is_latest_revision"] = bool(result["is_latest_revision"])
             result["truncated"] = bool(result["truncated"])
             result["hidden_content"] = bool(result["hidden_content"])
@@ -197,8 +212,9 @@ class ReferenceSearch:
             "match_mode": "casefolded_literal_reference_text_and_exact_idna_host",
             "reference_followed": False,
             "coverage": (
-                "Extracted top-level references on saved forum posts and onion pages only; no network requests. "
-                "No nested forum-page copies, inferred text URLs, Telegram/media or attachment contents. "
+                "Extracted top-level references on saved forum posts, onion pages and Telegram URL entities; "
+                "no network requests. No nested forum-page copies, inferred text URLs, media or attachment contents. "
+                "Legacy Telegram snapshots without captured entities have no reference coverage. "
                 "Gated snapshots are excluded. "
                 "References may be quoted, copied, stale or unrelated; they do not prove ownership or exposure. "
                 "History returns the most recent matching revision per item/reference URL, explicitly labeled. "

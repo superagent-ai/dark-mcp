@@ -1,6 +1,6 @@
 # Collect useful early-stage evidence
 
-The MCP includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. Version 0.13 adds local ingestion of operator-supplied browser HTML with distinct acquisition provenance. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
+The MCP includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. Local operator-supplied browser HTML retains distinct acquisition provenance. Version 0.16 preserves Telegram forward attribution and hidden URL entities for local reference search; see [Telegram attribution](telegram-attribution.md) for chronology and coverage limits. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
 
 ## Direct original threads over Tor
 
