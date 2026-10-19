@@ -55,6 +55,45 @@
         "method": "Real stdio MCP reads over Tor, section continuation after restart, exact evidence replay, local context reconstruction and direct refresh.",
         "raw_receipts": "Private; no raw post bodies or contact details are bundled."
       }
+    },
+    {
+      "id": "onion:e51377a2216a",
+      "transport": "tor",
+      "allowed_hosts": [
+        "darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion"
+      ],
+      "forum_engine": "mybb",
+      "collection_urls": [
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Access-Market",
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Buyers-Place",
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Web-application-vulnerabilities"
+      ],
+      "checked_at": "2026-10-19T13:04:00.249058+00:00",
+      "access_state": "public_threads_partial",
+      "assessment": "Public access-market and buyer discussions include access-sale and insider-recruitment claims, original visible bodies and replies. Identities and access validity are unverified; undated or offset-free source dates remain raw. Public readability does not establish an authenticated forum incarnation, independent corroboration or detection lead time.",
+      "verification": {
+        "indexes": 2,
+        "thread_pages": 3,
+        "posts": 13,
+        "posts_with_author": 13,
+        "posts_with_explicit_number": 13,
+        "posts_with_resolved_dates": 0,
+        "root_posts": 2,
+        "replies": 11,
+        "root_exact_duplicate_hits": 0,
+        "hidden_posts": 0,
+        "claim_job_status": "complete",
+        "restart_resume": true,
+        "exact_replay": true,
+        "direct_refresh": true,
+        "telegram_network_calls": 0,
+        "early_warning_proven": false,
+        "claim_validity_verified": false,
+        "method": "Real stdio MCP over Tor: two indexes, original thread pagination across restart, local thread context, exact revision replay and direct refresh.",
+        "closing_reply_retained": true,
+        "closing_reply_assessment": "The sampled access-sale thread ends with the original poster stating the data was sold; the statement and transaction remain unverified. It is historical context rather than evidence of a currently open offer. A sold statement does not establish remediation or invalidate possible continuing exposure.",
+        "raw_receipts": "Private; no raw post bodies, contact details or alleged victim names are bundled."
+      }
     }
   ],
   "verification": {

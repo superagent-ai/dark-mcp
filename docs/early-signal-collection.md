@@ -1,6 +1,6 @@
 # Collect useful early-stage evidence
 
-Version 0.7 includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
+Version 0.8 includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
 
 ## Direct original threads over Tor
 
@@ -35,6 +35,12 @@ These are useful *types of evidence*: alleged access sales and advertised creden
 Exilio404 (`onion:a9bcde64e044`) now supports structured collection in configured hacking/leak categories, using the same forum and section-ingestion tools. A real stdio MCP check collected nine posts from two original discussions: two questions, four answers and three comments. Authors, explicit timestamps and comment parents were preserved; restart/resume, exact replay and direct refresh passed. See the [Exilio404 guide](forum-collection.md#exilio404-questions-answers-and-comments).
 
 One request mentions two training providers and explicitly says it is for studying. Its wording supplies context for an access-sharing inquiry; attack intent, account validity and early-warning lead time remain unverified. Broad marketplace categories contained substantial unrelated activity and are excluded from this structured collector. This is secondary regional coverage alongside the higher-priority access-market sources.
+
+## Priority access-market recheck
+
+A fresh MCP check found the cataloged DarkForums route (`onion:e51377a2216a`) readable after the original timeout. Structured access-market/buyer collection now preserves original bodies, author handles, explicit post numbers and raw dates. A bounded live run collected 13 posts across two discussions, resumed a thread after restart and verified saved context/replay/refresh. The sampled sale thread's closing reply states that the data was sold; that is an unverified source statement, not a currently open offer or proven transaction. The sold statement does not establish remediation or remove possible continuing exposure. Collection today cannot establish earlier detection from an older displayed date.
+
+The [dated priority snapshot](../sources/priority-forum-access-2026-10-19.json) also records current Exploit/XSS challenges and the failed ReHub connection. Those requests did not establish original-thread access. See the [DarkForums guide](forum-collection.md#darkforums-access-market-context) for exact tool calls and coverage limits.
 
 ## Build and operate our own source access
 

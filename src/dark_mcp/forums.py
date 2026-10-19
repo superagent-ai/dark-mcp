@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.7 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.8 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(
@@ -224,7 +224,9 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         pid = node.get("data-content", "").removeprefix("post-") or node.get("id", "").removeprefix("post_")
         if not pid.isdigit():
             continue
-        author_node = node.select_one(".message-name .username, .post-username a, a[data-class=profile_url]")
+        author_node = node.select_one(
+            ".message-name .username, .post-username a, a[data-class=profile_url], .post_author .post_user-profile a"
+        )
         author = node.get("data-author") or (author_node.get_text(" ", strip=True) if author_node else None)
         date_node = node.select_one(".message-attribution-main time") or node.select_one(".post_date")
         published, raw_date = timestamp(date_node)
@@ -265,8 +267,14 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         links = reference_links(body, url)
         text = body.get_text("\n", strip=True)
         cap = min(16000, remaining)
-        permalink = node.select_one(".message-attribution-main a[href], .posturl a[href], .postbit-number a[href]")
-        counter = node.select_one(".postbit-number a, .posturl a, .message-attribution-opposite a")
+        permalink = node.select_one(
+            ".message-attribution-main a[href], .posturl a[href], .postbit-number a[href], "
+            ".post_head > .float_right > strong > a[href]"
+        )
+        counter = node.select_one(
+            ".postbit-number a, .posturl a, .message-attribution-opposite a, "
+            ".post_head > .float_right > strong > a[href]"
+        )
         position = node.get("data-position")
         number = int(position) + 1 if position and re.fullmatch(r"[0-9]{1,9}", position) else None
         root = number == 1 if number is not None else None

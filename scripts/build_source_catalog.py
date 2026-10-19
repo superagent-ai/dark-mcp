@@ -134,6 +134,11 @@ def build_catalog() -> dict:
                 "research": {**existing["research"], "forum_access": row},
             }
         )
+    priority = json.loads((ROOT / "sources/priority-forum-access-2026-10-19.json").read_text())
+    for row in priority["sources"]:
+        existing = next(source for source in sources if source["id"] == row["source_id"])
+        existing.update(access_state=row["access_state"], checked_at=row["checked_at"], assessment=row["assessment"])
+        existing["research"]["latest_priority_access_check"] = row
     tor_access = json.loads((ROOT / "sources/onion-forum-access-2026-10-19.json").read_text())
     for row in tor_access["sources"]:
         existing = next(source for source in sources if source["id"] == row["id"])
@@ -148,7 +153,12 @@ def build_catalog() -> dict:
     return {
         "schema_version": 2,
         "snapshot_date": "2026-10-19",
-        "access_snapshot_dates": {"telegram": "2026-10-18", "onion": "2026-10-18", "forum": "2026-10-19"},
+        "access_snapshot_dates": {
+            "telegram": "2026-10-18",
+            "onion": "2026-10-18",
+            "forum": "2026-10-19",
+            "priority_forums": "2026-10-19",
+        },
         "sources": sorted(sources, key=lambda source: source["id"]),
         "references": {
             "telegram": telegram["research_references"],

@@ -352,3 +352,73 @@ async def test_real_mcp_tor_posts_cursor_restart_partial_bounds_and_reference_re
         ).structured_content
         assert refreshed["ok"] and refreshed["page"]["transport"] == "tor"
     assert all(url.startswith(source["locator"]) for url in seen)  # References were never requested.
+
+
+def darkforums_post(pid, number, text, author="fixture-author"):
+    return f"""<div id="post_{pid}" class="post classic">
+      <div class="post_author"><div class="post_user"><span class="post_user-profile largetext">
+      <a href="User-{author}">{author}</a></span></div></div>
+      <div class="post_whole"><div class="post_content"><div class="post_head">
+      <div class="float_right"><strong><a href="Thread-fixture?pid={pid}#pid{pid}">#{number}</a></strong></div>
+      <span class="post_date">02-10-26, 09:31 PM</span></div>
+      <div class="post_body">{text}</div></div></div></div>"""
+
+
+def test_darkforums_theme_preserves_header_author_counters_and_permalinks_without_guessing_dates():
+    source = SourceCatalog().get("onion:e51377a2216a")
+    url = source["locator"] + "Thread-fixture"
+    doc = darkforums_post(900, 1, "Unverified company access claim")
+    doc += darkforums_post(
+        901, 2, '<blockquote data-source="post:900">Quoted claim</blockquote>Request for evidence', "reply-author"
+    )
+    page = parse_forum(source, url, doc, 60000, 100)
+    assert [p.author for p in page.posts] == ["fixture-author", "reply-author"]
+    assert [p.post_number for p in page.posts] == [1, 2]
+    assert [p.is_thread_root for p in page.posts] == [True, False]
+    assert page.posts[0].url == url + "?pid=900"
+    assert page.posts[1].quotes[0]["post_id"] == "900"
+    assert all(p.published_at is None and p.published_at_raw == "02-10-26, 09:31 PM" for p in page.posts)
+    assert page.published_at is None
+    reply = parse_forum(source, url + "?page=2", darkforums_post(902, 11, "Later reply"), 60000, 100)
+    assert reply.posts[0].is_thread_root is False and reply.posts[0].post_number == 11
+
+
+async def test_darkforums_collector_is_source_scoped_and_preserves_thread_context_over_real_mcp(settings, monkeypatch):
+    import httpx
+
+    from dark_mcp.onion import OnionConnector
+
+    source = SourceCatalog().get("onion:e51377a2216a")
+    url = source["locator"] + "Thread-fixture"
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        assert request.method == "GET" and request.url.host in source["allowed_hosts"]
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        return httpx.Response(
+            200, text=darkforums_post(900, 1, "Fixture alleged access") + darkforums_post(901, 2, "Reply")
+        )
+
+    monkeypatch.setattr(
+        OnionConnector, "client", lambda self: httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    monkeypatch.setattr(OnionConnector, "_pace", AsyncMock())
+    async with Client(create_server(settings)) as client:
+        read = (await client.call_tool("read_forum_thread", {"source_id": source["id"], "url": url})).structured_content
+        assert read["ok"] and read["page"]["posts"][0]["author"] == "fixture-author"
+        seed = read["page"]["posts"][0]["evidence"]["evidence_id"]
+        context = (await client.call_tool("get_collected_thread", {"evidence_id": seed})).structured_content
+        assert context["root_observed"] and context["total_stored_posts"] == 2
+        count = len(requests)
+        blocked = (
+            await client.call_tool(
+                "read_forum_thread",
+                {
+                    "source_id": source["id"],
+                    "url": spear_source()["locator"] + "Thread-fixture",
+                },
+            )
+        ).structured_content
+        assert not blocked["ok"] and len(requests) == count

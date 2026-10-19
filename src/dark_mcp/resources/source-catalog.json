@@ -4,7 +4,8 @@
   "access_snapshot_dates": {
     "telegram": "2026-10-18",
     "onion": "2026-10-18",
-    "forum": "2026-10-19"
+    "forum": "2026-10-19",
+    "priority_forums": "2026-10-19"
   },
   "sources": [
     {
@@ -1552,9 +1553,9 @@
       "url": "https://rehubg7wpn5vuwttbzqrzm5epq6ta5mqm6cbfpn7wtukaskzte3ehcyd.onion/",
       "family": "REHUBCOM (Dark)",
       "source_class": "forum",
-      "access_state": "timeout",
-      "checked_at": "2026-10-18T18:57:34.287910+00:00",
-      "assessment": "No usable content was established in this attempt.",
+      "access_state": "connection_failed",
+      "checked_at": "2026-10-19T12:59:02.976056+00:00",
+      "assessment": "Tor connection failed; this does not establish permanent source downtime.",
       "collection_method": "onion_page",
       "collection_urls": [
         "https://rehubg7wpn5vuwttbzqrzm5epq6ta5mqm6cbfpn7wtukaskzte3ehcyd.onion/"
@@ -1620,6 +1621,22 @@
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
           ]
+        },
+        "latest_priority_access_check": {
+          "source_id": "onion:101f1e4f7366",
+          "checked_at": "2026-10-19T12:59:02.976056+00:00",
+          "scope": "catalog homepage only",
+          "transport": "tor",
+          "fetch_ok": false,
+          "runtime_state": null,
+          "access_state": "connection_failed",
+          "title": null,
+          "text_chars": 0,
+          "error": {
+            "code": "tor_unavailable",
+            "message": "Tor request failed or timed out; check the proxy and source availability"
+          },
+          "assessment": "Tor connection failed; this does not establish permanent source downtime."
         }
       },
       "vendor_evidence": [
@@ -2054,8 +2071,8 @@
       "family": "XSS (Dark)",
       "source_class": "forum",
       "access_state": "humanity_challenge",
-      "checked_at": "2026-10-18T18:57:59.581291+00:00",
-      "assessment": "One onion route returned a browser-check page; two timed out. The ordinary-web route tested returned a login screen. Mirrors are one source family, not separate coverage. Operator continuity not authenticated.",
+      "checked_at": "2026-10-19T12:58:43.527652+00:00",
+      "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately.",
       "collection_method": "onion_page",
       "collection_urls": [
         "http://xssac4uqtauxumkktnp3knz2ag7qcb3efmb66mokjg5fcqhzvilgwfid.onion/"
@@ -2175,6 +2192,19 @@
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
           ]
+        },
+        "latest_priority_access_check": {
+          "source_id": "onion:55b16b2db3c6",
+          "checked_at": "2026-10-19T12:58:43.527652+00:00",
+          "scope": "catalog homepage only",
+          "transport": "tor",
+          "fetch_ok": true,
+          "runtime_state": "challenge_suspected",
+          "access_state": "humanity_challenge",
+          "title": "Проверка браузера…",
+          "text_chars": 65,
+          "error": null,
+          "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
         }
       },
       "vendor_evidence": [
@@ -2247,8 +2277,8 @@
       "family": "EXPLOIT.IN (Dark)",
       "source_class": "forum",
       "access_state": "humanity_challenge",
-      "checked_at": "2026-10-18T18:57:26.948018+00:00",
-      "assessment": "High-value access-broker forum according to vendor research. Both tested Tor and ordinary-web routes returned a Verify Humanity page. No forum content was collected.",
+      "checked_at": "2026-10-19T12:58:43.096468+00:00",
+      "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately.",
       "collection_method": "onion_page",
       "collection_urls": [
         "https://exploitivzcm5dawzhe6c32bbylyggbjvh5dyvsvb5lkuz5ptmunkmqd.onion/"
@@ -2360,6 +2390,19 @@
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
           ]
+        },
+        "latest_priority_access_check": {
+          "source_id": "onion:8779af3aebf3",
+          "checked_at": "2026-10-19T12:58:43.096468+00:00",
+          "scope": "catalog homepage only",
+          "transport": "tor",
+          "fetch_ok": true,
+          "runtime_state": "challenge_suspected",
+          "access_state": "humanity_challenge",
+          "title": "Verify Humanity",
+          "text_chars": 21,
+          "error": null,
+          "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
         }
       },
       "vendor_evidence": [
@@ -3725,12 +3768,14 @@
       "url": "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/",
       "family": "DARKFORUMS (Dark)",
       "source_class": "forum",
-      "access_state": "timeout",
-      "checked_at": "2026-10-18T18:56:32.603561+00:00",
-      "assessment": "Both 30-second and 60-second attempts failed. Vendor research supports relevance, but no current Tor content was collected. One tested ordinary-web alias returned an empty document.",
-      "collection_method": "onion_page",
+      "access_state": "public_threads_partial",
+      "checked_at": "2026-10-19T13:04:00.249058+00:00",
+      "assessment": "Public access-market and buyer discussions include access-sale and insider-recruitment claims, original visible bodies and replies. Identities and access validity are unverified; undated or offset-free source dates remain raw. Public readability does not establish an authenticated forum incarnation, independent corroboration or detection lead time.",
+      "collection_method": "forum_page",
       "collection_urls": [
-        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/"
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Access-Market",
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Buyers-Place",
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Web-application-vulnerabilities"
       ],
       "research": {
         "name": "DARKFORUMS (Dark)",
@@ -3832,6 +3877,58 @@
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
           ]
+        },
+        "latest_priority_access_check": {
+          "source_id": "onion:e51377a2216a",
+          "checked_at": "2026-10-19T12:58:49.921231+00:00",
+          "scope": "catalog homepage only",
+          "transport": "tor",
+          "fetch_ok": true,
+          "runtime_state": "content_returned_unverified",
+          "access_state": "public_homepage_unverified",
+          "title": "DarkForums",
+          "text_chars": 18321,
+          "error": null,
+          "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
+        },
+        "tor_forum_access": {
+          "id": "onion:e51377a2216a",
+          "transport": "tor",
+          "allowed_hosts": [
+            "darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion"
+          ],
+          "forum_engine": "mybb",
+          "collection_urls": [
+            "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Access-Market",
+            "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Buyers-Place",
+            "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Web-application-vulnerabilities"
+          ],
+          "checked_at": "2026-10-19T13:04:00.249058+00:00",
+          "access_state": "public_threads_partial",
+          "assessment": "Public access-market and buyer discussions include access-sale and insider-recruitment claims, original visible bodies and replies. Identities and access validity are unverified; undated or offset-free source dates remain raw. Public readability does not establish an authenticated forum incarnation, independent corroboration or detection lead time.",
+          "verification": {
+            "indexes": 2,
+            "thread_pages": 3,
+            "posts": 13,
+            "posts_with_author": 13,
+            "posts_with_explicit_number": 13,
+            "posts_with_resolved_dates": 0,
+            "root_posts": 2,
+            "replies": 11,
+            "root_exact_duplicate_hits": 0,
+            "hidden_posts": 0,
+            "claim_job_status": "complete",
+            "restart_resume": true,
+            "exact_replay": true,
+            "direct_refresh": true,
+            "telegram_network_calls": 0,
+            "early_warning_proven": false,
+            "claim_validity_verified": false,
+            "method": "Real stdio MCP over Tor: two indexes, original thread pagination across restart, local thread context, exact revision replay and direct refresh.",
+            "closing_reply_retained": true,
+            "closing_reply_assessment": "The sampled access-sale thread ends with the original poster stating the data was sold; the statement and transaction remain unverified. It is historical context rather than evidence of a currently open offer. A sold statement does not establish remediation or invalidate possible continuing exposure.",
+            "raw_receipts": "Private; no raw post bodies, contact details or alleged victim names are bundled."
+          }
         }
       },
       "vendor_evidence": [
@@ -3865,7 +3962,35 @@
         }
       ],
       "status_context": [],
-      "research_priority": "high"
+      "research_priority": "high",
+      "transport": "tor",
+      "allowed_hosts": [
+        "darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion"
+      ],
+      "forum_engine": "mybb",
+      "verification": {
+        "indexes": 2,
+        "thread_pages": 3,
+        "posts": 13,
+        "posts_with_author": 13,
+        "posts_with_explicit_number": 13,
+        "posts_with_resolved_dates": 0,
+        "root_posts": 2,
+        "replies": 11,
+        "root_exact_duplicate_hits": 0,
+        "hidden_posts": 0,
+        "claim_job_status": "complete",
+        "restart_resume": true,
+        "exact_replay": true,
+        "direct_refresh": true,
+        "telegram_network_calls": 0,
+        "early_warning_proven": false,
+        "claim_validity_verified": false,
+        "method": "Real stdio MCP over Tor: two indexes, original thread pagination across restart, local thread context, exact revision replay and direct refresh.",
+        "closing_reply_retained": true,
+        "closing_reply_assessment": "The sampled access-sale thread ends with the original poster stating the data was sold; the statement and transaction remain unverified. It is historical context rather than evidence of a currently open offer. A sold statement does not establish remediation or invalidate possible continuing exposure.",
+        "raw_receipts": "Private; no raw post bodies, contact details or alleged victim names are bundled."
+      }
     },
     {
       "id": "telegram-invite:borwitafreelogs",

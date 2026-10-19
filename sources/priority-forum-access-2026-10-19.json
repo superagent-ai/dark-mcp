@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-19",
+  "method": "Real stdio MCP collect_source calls; public root reads only; no Telegram calls, account creation or challenge solving.",
+  "sources": [
+    {
+      "source_id": "onion:8779af3aebf3",
+      "checked_at": "2026-10-19T12:58:43.096468+00:00",
+      "scope": "catalog homepage only",
+      "transport": "tor",
+      "fetch_ok": true,
+      "runtime_state": "challenge_suspected",
+      "access_state": "humanity_challenge",
+      "title": "Verify Humanity",
+      "text_chars": 21,
+      "error": null,
+      "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
+    },
+    {
+      "source_id": "onion:55b16b2db3c6",
+      "checked_at": "2026-10-19T12:58:43.527652+00:00",
+      "scope": "catalog homepage only",
+      "transport": "tor",
+      "fetch_ok": true,
+      "runtime_state": "challenge_suspected",
+      "access_state": "humanity_challenge",
+      "title": "Проверка браузера…",
+      "text_chars": 65,
+      "error": null,
+      "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
+    },
+    {
+      "source_id": "onion:e51377a2216a",
+      "checked_at": "2026-10-19T12:58:49.921231+00:00",
+      "scope": "catalog homepage only",
+      "transport": "tor",
+      "fetch_ok": true,
+      "runtime_state": "content_returned_unverified",
+      "access_state": "public_homepage_unverified",
+      "title": "DarkForums",
+      "text_chars": 18321,
+      "error": null,
+      "assessment": "Root check only; no original thread was established in this request. Structured DarkForums verification is recorded separately."
+    },
+    {
+      "source_id": "onion:101f1e4f7366",
+      "checked_at": "2026-10-19T12:59:02.976056+00:00",
+      "scope": "catalog homepage only",
+      "transport": "tor",
+      "fetch_ok": false,
+      "runtime_state": null,
+      "access_state": "connection_failed",
+      "title": null,
+      "text_chars": 0,
+      "error": {
+        "code": "tor_unavailable",
+        "message": "Tor request failed or timed out; check the proxy and source availability"
+      },
+      "assessment": "Tor connection failed; this does not establish permanent source downtime."
+    }
+  ]
+}

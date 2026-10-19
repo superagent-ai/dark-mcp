@@ -166,7 +166,16 @@ def test_vendor_leads_distinguish_collection_examples_from_current_access():
     assert ramp["status_context"][0]["state"] == "reported_seized"
     exilio = catalog.get("onion:a9bcde64e044")
     assert exilio["forum_engine"] == "q2a" and exilio["collection_method"] == "forum_page"
-    assert catalog.summary()["by_collection_method"]["forum_page"] == 5
+    assert catalog.summary()["by_collection_method"]["forum_page"] == 6
+    darkforums = catalog.get("onion:e51377a2216a")
+    assert darkforums["forum_engine"] == "mybb" and darkforums["transport"] == "tor"
+    assert darkforums["research"]["access_state"] == "timeout"
+    assert darkforums["research"]["checked_at"].startswith("2026-10-18")
+    assert darkforums["research"]["latest_priority_access_check"]["runtime_state"] == "content_returned_unverified"
+    assert darkforums["verification"]["closing_reply_retained"]
+    assert darkforums["access_state"] == "public_threads_partial"
+    assert catalog.get("onion:8779af3aebf3")["access_state"] == "humanity_challenge"
+    assert catalog.get("onion:8779af3aebf3")["checked_at"].startswith("2026-10-19")
     assert exilio["verification"]["posts"] == 9
     assert catalog.get("onion:91e4e785a3af")["checked_at"] == "2026-10-19T11:03:32.612873+00:00"
     assert catalog.get("forum:leakbase")["status_context"][0]["reference_ids"] == ["leakbase-enforcement"]
