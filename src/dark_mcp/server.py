@@ -30,8 +30,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     onion = OnionConnector(settings, index)
     search = OnionSearch(settings)
     catalog = SourceCatalog(settings)
-    telegram = TelegramConnector(settings, catalog)
     evidence = EvidenceStore(settings.prepare_data_dir())
+    telegram = TelegramConnector(settings, catalog, evidence)
     forums = ForumConnector(settings, catalog, onion)
     collection = CollectionService(settings, catalog, evidence, onion, telegram, forums)
     collection.import_legacy(index)
@@ -91,6 +91,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "onion_search_provider": "onionsearchengine.com",
             "onion_search_configured": bool(settings.onion_search_api_key),
             "telegram_enabled": settings.telegram_enabled,
+            "telegram_access": evidence.connector_status("telegram"),
             "telegram_configured": telegram.configured(),
             "telegram_global_search": settings.telegram_global_search,
             "telegram_catalog_sources": settings.telegram_catalog_sources,

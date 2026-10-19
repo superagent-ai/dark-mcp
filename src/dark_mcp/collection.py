@@ -120,8 +120,7 @@ class CollectionService:
             )
             return page
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown(cooldown_key, exc.retry_after)
+            self.store.record_retry(cooldown_key, exc)
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 
@@ -181,8 +180,7 @@ class CollectionService:
             )
             return page
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("onion:" + source_id, exc.retry_after)
+            self.store.record_retry("onion:" + source_id, exc)
             self.store.finish_attempt(attempt, exc.code, {"url": url, **exc.as_dict()})
             raise
 
@@ -293,8 +291,7 @@ class CollectionService:
             )
             return result
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             self.store.finish_attempt(attempt, exc.code, {"options": options, **exc.as_dict()})
             raise
         except ValueError:
@@ -306,8 +303,7 @@ class CollectionService:
         try:
             result = await self.telegram.posts(**kwargs)
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             raise
         for post in result["results"]:
             locator = post["channel"]["username"] or post["channel"]["id"]
@@ -324,8 +320,7 @@ class CollectionService:
         try:
             return await self.telegram.channels(**kwargs)
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             raise
 
     async def message(self, channel: str, message_id: int, collection_id: str | None = None) -> dict:
@@ -342,8 +337,7 @@ class CollectionService:
             )
             return result
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 
@@ -397,8 +391,7 @@ class CollectionService:
             )
             return result
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 
@@ -456,8 +449,7 @@ class CollectionService:
             )
             return result
         except DataAccessError as exc:
-            if exc.retry_after is not None:
-                self.store.cooldown("telegram", exc.retry_after)
+            self.store.record_retry("telegram", exc)
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 

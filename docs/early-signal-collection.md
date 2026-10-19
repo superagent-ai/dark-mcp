@@ -6,6 +6,8 @@ Version 0.17 adds [source-local author context](author-context.md): explicit hea
 
 Version 0.18 adds optional [root/last-page sampling](last-page-collection.md) for section jobs. It reaches an explicitly advertised final page within a small page budget and reports the skipped middle pages. A live eight-page-thread check resumed page eight after a server restart and preserved 14 posts. Page position and later replies do not establish a newly created claim or detection before compromise.
 
+Version 0.19 adds [shared Telegram access guards](connector-gates.md) and absolute retry deadlines. Queued or independent MCP readers sharing a store cannot bypass an active local wait, and repeated blocked checks do not prolong it. This protects collection availability; it does not add original-source access or establish a new signal.
+
 ## Direct original threads over Tor
 
 Spear (`onion:91e4e785a3af`) now supports the same structured forum tools as the HTTPS sources. Use `get_source` to inspect its actual transport, known section URLs and dated access checks. It remains an onion-kind catalog record; filter on `collection_method="forum_page"` in returned records rather than assuming every forum collector has kind `forum`.

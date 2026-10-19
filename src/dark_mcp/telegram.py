@@ -26,10 +26,11 @@ def query_value(query: str) -> str:
 
 
 class TelegramConnector:
-    def __init__(self, settings: Settings, catalog: SourceCatalog | None = None):
+    def __init__(self, settings: Settings, catalog: SourceCatalog | None = None, store=None):
         self.settings = settings
         self.lock = asyncio.Lock()
         self.catalog = catalog
+        self.store = store
 
     def configured(self) -> bool:
         return bool(
@@ -58,17 +59,23 @@ class TelegramConnector:
     async def session(self, *, global_search: bool = False):
         self._check(global_search=global_search)
         async with self.lock:
-            client = TelegramClient(
-                str(self.settings.session_path),
-                self.settings.telegram_api_id,
-                self.settings.telegram_api_hash.get_secret_value(),
-                flood_sleep_threshold=0,
-                request_retries=0,
-                connection_retries=1,
-                receive_updates=False,
-                timeout=10,
-            )
+            if self.store is None:
+                from dark_mcp.evidence import EvidenceStore
+
+                self.store = EvidenceStore(self.settings.prepare_data_dir())
+            token = self.store.claim_connector("telegram", self.settings.request_timeout + 15)
+            client = None
             try:
+                client = TelegramClient(
+                    str(self.settings.session_path),
+                    self.settings.telegram_api_id,
+                    self.settings.telegram_api_hash.get_secret_value(),
+                    flood_sleep_threshold=0,
+                    request_retries=0,
+                    connection_retries=1,
+                    receive_updates=False,
+                    timeout=10,
+                )
                 async with asyncio.timeout(self.settings.request_timeout):
                     await client.connect()
                     if not await client.is_user_authorized():
@@ -76,12 +83,16 @@ class TelegramConnector:
                             "telegram_not_authenticated", "Session expired; run dark-mcp telegram-login locally"
                         )
                     yield client
-            except errors.FloodWaitError as exc:
-                raise DataAccessError(
+            except (errors.FloodWaitError, errors.FloodPremiumWaitError) as exc:
+                error = DataAccessError(
                     "telegram_rate_limited",
                     "Telegram requires a wait before retrying",
                     retry_after=exc.seconds,
-                ) from exc
+                )
+                # Persist the provider deadline while still holding the shared lease,
+                # before disconnect/release lets any queued caller approach the account.
+                self.store.record_retry("telegram", error)
+                raise error from exc
             except errors.RPCError as exc:
                 raise DataAccessError(
                     "telegram_rpc_error", f"Telegram rejected the request ({type(exc).__name__})"
@@ -89,9 +100,13 @@ class TelegramConnector:
             except (TimeoutError, ConnectionError, OSError) as exc:
                 raise DataAccessError("telegram_unavailable", "Telegram connection failed or timed out") from exc
             finally:
-                with suppress(Exception):
-                    async with asyncio.timeout(5):
-                        await client.disconnect()
+                try:
+                    if client is not None:
+                        with suppress(Exception):
+                            async with asyncio.timeout(5):
+                                await client.disconnect()
+                finally:
+                    self.store.release_connector("telegram", token)
 
     def _allowed_channel(self, channel: str) -> str | int:
         key = channel_key(channel)

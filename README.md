@@ -182,7 +182,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 
 Dates must include a timezone, for example `2026-10-18T00:00:00Z`. Telegram message limits are 1–100; channel discovery is 1–50. Use the returned `next_before_id`, `next_cursor`, or `next_page` for pagination. Search API page size is provider controlled.
 
-Tools return structured `ok`, `results`/`page`, coverage information, and errors with stable codes. Rate limit errors include a retry delay when Telegram provides one. Missing configuration and source failures are explicit errors, never empty results disguised as successful searches.
+Tools return structured `ok`, `results`/`page`, coverage information, and errors with stable codes. Stored rate limits include an absolute `retry_at`; blocked checks preserve that deadline. `get_status.telegram_access` reports the saved Telegram cooldown and local session lease without connecting. See [connector waits and shared sessions](docs/connector-gates.md). Missing configuration and source failures are explicit errors, never empty results disguised as successful searches.
 
 ## Example proactive company investigation
 
@@ -242,7 +242,7 @@ docker compose run --rm mcp telegram-login
 docker compose run --rm --no-deps -T mcp serve
 ```
 
-The MCP client must run that command in this checkout. Persistent container data and sessions live in the `mcp-data` volume; local `uv` runs use `DARK_MCP_DATA_DIR` instead. Do not run multiple processes against the same Telegram session. Tor's SOCKS port is published only to the host loopback address.
+The MCP client must run that command in this checkout. Persistent container data and sessions live in the `mcp-data` volume; local `uv` runs use `DARK_MCP_DATA_DIR` instead. MCP readers sharing one data directory coordinate Telegram access through a local lease. Interactive login and external clients are outside that guard; stop readers before changing their session. Tor's SOCKS port is published only to the host loopback address.
 
 ## Local onion corpus
 

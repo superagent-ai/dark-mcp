@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import re
 import sqlite3
 import uuid
@@ -111,6 +112,9 @@ class EvidenceStore:
                 CREATE INDEX IF NOT EXISTS observation_revision ON observations(revision_id,collected_at);
                 CREATE INDEX IF NOT EXISTS observation_item ON observations(evidence_id,seq);
                 CREATE TABLE IF NOT EXISTS cooldowns (kind TEXT PRIMARY KEY, retry_at TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS connector_leases (
+                    kind TEXT PRIMARY KEY,token TEXT NOT NULL,lease_until TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS telegram_state (source_id TEXT PRIMARY KEY, pts INTEGER NOT NULL);
                 CREATE TABLE IF NOT EXISTS jobs (
                     id TEXT PRIMARY KEY, source_id TEXT NOT NULL REFERENCES sources(id), kind TEXT NOT NULL,
@@ -572,23 +576,85 @@ class EvidenceStore:
                 (now(), state, encoded(detail), attempt_id),
             )
 
-    def cooldown(self, kind: str, retry_after: int | None = None):
-        if retry_after is not None:
-            retry_at = (datetime.now(UTC) + timedelta(seconds=retry_after)).isoformat()
+    @staticmethod
+    def _check_deadline(
+        deadline: str | None, code="collection_rate_limited", message="Stored connector cooldown is still active"
+    ):
+        remaining = math.ceil((parse_date(deadline) - parse_date(now())).total_seconds()) if deadline else 0
+        if remaining > 0:
+            raise DataAccessError(code, message, retry_after=remaining, retry_at=deadline)
+
+    def cooldown(self, kind: str, retry_after: int | None = None, *, retry_at: str | None = None):
+        if retry_after is not None or retry_at is not None:
+            if retry_after is not None and retry_at is not None:
+                raise ValueError("Supply a retry interval or an absolute deadline")
+            retry_at = (
+                parse_date(retry_at) if retry_at else parse_date(now()) + timedelta(seconds=retry_after)
+            ).isoformat()
             with self.connect() as db:
                 db.execute(
                     "INSERT INTO cooldowns VALUES(?,?) ON CONFLICT(kind) DO UPDATE SET "
                     "retry_at=max(cooldowns.retry_at,excluded.retry_at)",
                     (kind, retry_at),
                 )
-            return
+                return db.execute("SELECT retry_at FROM cooldowns WHERE kind=?", (kind,)).fetchone()[0]
         with self.connect() as db:
             row = db.execute("SELECT retry_at FROM cooldowns WHERE kind=?", (kind,)).fetchone()
-        if row and row["retry_at"] > now():
-            seconds = max(1, int((parse_date(row["retry_at"]) - datetime.now(UTC)).total_seconds()) + 1)
-            raise DataAccessError(
-                "collection_rate_limited", "Stored connector cooldown is still active", retry_after=seconds
+        self._check_deadline(row["retry_at"] if row else None)
+
+    def record_retry(self, kind: str, error: DataAccessError):
+        # A local blocked/busy check is not a new provider wait. Never slide its deadline forward.
+        if error.retry_after is None or error.code in {"collection_rate_limited", "connector_busy"}:
+            return
+        error.retry_at = (
+            self.cooldown(kind, retry_at=error.retry_at) if error.retry_at else self.cooldown(kind, error.retry_after)
+        )
+
+    def claim_connector(self, kind: str, seconds: float) -> str:
+        if not 1 <= seconds <= 600:
+            raise ValueError("Check connector lease duration")
+        token = uuid.uuid4().hex
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            cooldown = db.execute("SELECT retry_at FROM cooldowns WHERE kind=?", (kind,)).fetchone()
+            self._check_deadline(cooldown["retry_at"] if cooldown else None)
+            lease = db.execute("SELECT lease_until FROM connector_leases WHERE kind=?", (kind,)).fetchone()
+            self._check_deadline(
+                lease["lease_until"] if lease else None,
+                "connector_busy",
+                "Another connector request holds the local session lease",
             )
+            until = (parse_date(now()) + timedelta(seconds=seconds)).isoformat()
+            db.execute(
+                "INSERT INTO connector_leases VALUES(?,?,?) ON CONFLICT(kind) DO UPDATE SET "
+                "token=excluded.token,lease_until=excluded.lease_until",
+                (kind, token, until),
+            )
+        return token
+
+    def release_connector(self, kind: str, token: str):
+        with self.connect() as db:
+            db.execute("DELETE FROM connector_leases WHERE kind=? AND token=?", (kind, token))
+
+    def connector_status(self, kind: str) -> dict:
+        with self.connect() as db:
+            db.execute("BEGIN")
+            cooldown = db.execute("SELECT retry_at FROM cooldowns WHERE kind=?", (kind,)).fetchone()
+            lease = db.execute("SELECT lease_until FROM connector_leases WHERE kind=?", (kind,)).fetchone()
+            current = parse_date(now())
+        retry_at = cooldown["retry_at"] if cooldown else None
+        lease_until = lease["lease_until"] if lease else None
+        remaining = max(0, math.ceil((parse_date(retry_at) - current).total_seconds())) if retry_at else 0
+        busy = max(0, math.ceil((parse_date(lease_until) - current).total_seconds())) if lease_until else 0
+        return {
+            "scope": "shared_data_directory",
+            "cooldown_active": remaining > 0,
+            "retry_at": retry_at,
+            "retry_after_seconds": remaining,
+            "lease_active": busy > 0,
+            "lease_until": lease_until,
+            "network_read": False,
+        }
 
     def health(self, source_id: str | None = None, offset: int = 0, limit: int = 20) -> dict:
         limit_value(limit)
