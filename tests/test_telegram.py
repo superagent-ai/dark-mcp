@@ -286,3 +286,69 @@ async def test_update_cursor_uses_explicit_delete_events_and_marks_gap(settings,
     with pytest.raises(DataAccessError) as exc:
         await connector.changes("research", pts=500, expected_id="-100999")
     assert exc.value.code == "source_identity_changed"
+
+
+@pytest.mark.parametrize("stage", ["preflight", "search"])
+async def test_premium_requirement_is_an_entitlement_error_with_durable_mcp_attempt(settings, monkeypatch, stage):
+    from mcp import Client
+
+    from dark_mcp.evidence import EvidenceStore
+    from dark_mcp.server import create_server
+
+    configure(settings)
+    settings.telegram_global_search = True
+    client = AsyncMock()
+    client.is_user_authorized.return_value = True
+    failure = errors.PremiumAccountRequiredError(request=None)
+    client.side_effect = [failure] if stage == "preflight" else [SimpleNamespace(query_is_free=True), failure]
+    factories = []
+
+    def factory(*args, **kwargs):
+        factories.append(kwargs)
+        return client
+
+    monkeypatch.setattr("dark_mcp.telegram.TelegramClient", factory)
+    async with Client(create_server(settings)) as mcp:
+        result = (await mcp.call_tool("search_telegram_posts", {"query": "Acme", "limit": 10})).structured_content
+        assert result["error"]["code"] == "telegram_premium_required"
+        assert "retry_after" not in result["error"] and "retry_at" not in result["error"]
+        health = (await mcp.call_tool("get_source_health", {"source_id": "telegram-public-search"})).structured_content
+        entry = health["results"][0]
+        assert entry["last_access_state"] == "telegram_premium_required"
+        assert entry["last_attempt"]["options"] == {"query": "Acme", "limit": 10}
+        assert entry["last_successful_collection_at"] is None
+    assert client.await_count == (1 if stage == "preflight" else 2)
+    client.disconnect.assert_awaited_once()
+    assert factories[0]["request_retries"] == 0 and factories[0]["flood_sleep_threshold"] == 0
+    if stage == "search":
+        assert client.call_args.args[0].allow_paid_stars is None
+    status = EvidenceStore(settings.data_dir).connector_status("telegram")
+    assert status["cooldown_active"] is False and status["lease_active"] is False
+
+
+async def test_empty_public_search_is_a_saved_observation_not_a_channel_or_absence_proof(settings, monkeypatch):
+    from mcp import Client
+
+    from dark_mcp.models import now
+    from dark_mcp.server import create_server
+
+    mock = AsyncMock(
+        return_value={
+            "results": [],
+            "next_cursor": None,
+            "collected_at": now(),
+            "coverage": "Bounded public search; not exhaustive",
+        }
+    )
+    monkeypatch.setattr(TelegramConnector, "posts", mock)
+    async with Client(create_server(settings)) as client:
+        result = (await client.call_tool("search_telegram_posts", {"query": "Acme", "limit": 10})).structured_content
+        assert result["ok"] and result["results"] == []
+        assert result["search_observation"]["source_id"] == "telegram-public-search"
+        health = (
+            await client.call_tool("get_source_health", {"source_id": "telegram-public-search"})
+        ).structured_content["results"][0]
+        assert health["last_access_state"] == "no_matching_posts"
+        assert health["last_attempt"]["returned_items"] == 0
+        assert health["last_attempt"]["coverage"] == "Bounded public search; not exhaustive"
+        assert health["last_successful_collection_at"] and health["last_content_at"] is None

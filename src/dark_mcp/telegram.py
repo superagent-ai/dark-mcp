@@ -93,6 +93,12 @@ class TelegramConnector:
                 # before disconnect/release lets any queued caller approach the account.
                 self.store.record_retry("telegram", error)
                 raise error from exc
+            except errors.PremiumAccountRequiredError as exc:
+                raise DataAccessError(
+                    "telegram_premium_required",
+                    "Telegram requires Premium for this operation on the current account; "
+                    "no paid search was authorized",
+                ) from exc
             except errors.RPCError as exc:
                 raise DataAccessError(
                     "telegram_rpc_error", f"Telegram rejected the request ({type(exc).__name__})"

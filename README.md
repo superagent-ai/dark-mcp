@@ -238,7 +238,7 @@ DARK_MCP_TELEGRAM_ENABLED=true
 DARK_MCP_TELEGRAM_CHANNELS=["permitted_channel","-1001234567890"]
 ```
 
-Global channel discovery and public post search are disabled separately. Where your permission arrangement covers these searches, set `DARK_MCP_TELEGRAM_GLOBAL_SEARCH=true`. Public post search may require Premium and available free quota. The server never authorizes spending Telegram Stars.
+Global channel discovery and public post search are disabled separately. Where your permission arrangement covers these searches, set `DARK_MCP_TELEGRAM_GLOBAL_SEARCH=true`. Public post search may require Premium and available free quota. The server never authorizes spending Telegram Stars. An account entitlement rejection returns `telegram_premium_required`, separately from a flood wait or empty result. New public-post query outcomes are retained through `get_source_health(source_id="telegram-public-search")`; that scope is a query record, not an additional channel.
 
 Private channels require the account to already have access. Read/search tools accept broadcast channels only. Credentials and the account session stay server-side; login is never exposed as an MCP tool. Treat the session file as an account credential. Revoke a session through Telegram's Devices settings if compromised.
 

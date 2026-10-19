@@ -251,3 +251,19 @@ async def test_retired_provider_evidence_remains_replayable_without_active_colle
         assert refresh["error"]["code"] == "historical_evidence_only"
         job = (await client.call_tool("start_collection", {"source_id": "provider:legacy"})).structured_content
         assert job["error"]["code"] == "historical_evidence_only"
+
+
+async def test_cancelled_public_search_finishes_its_query_observation(settings):
+    import asyncio
+
+    import pytest
+
+    collector = service(settings)
+    collector.telegram.posts = AsyncMock(side_effect=asyncio.CancelledError)
+    with pytest.raises(asyncio.CancelledError):
+        await collector.posts(query="Acme", limit=10)
+    health = collector.store.health("telegram-public-search")["results"][0]
+    assert health["last_access_state"] == "cancelled"
+    assert health["last_attempt"]["options"] == {"query": "Acme", "limit": 10}
+    assert health["last_attempt"]["search_complete"] is False
+    assert health["last_successful_collection_at"] is None

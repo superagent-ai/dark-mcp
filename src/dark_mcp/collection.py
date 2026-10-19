@@ -1,5 +1,6 @@
 """Observe all MCP content reads and drive bounded, restart-safe collection jobs."""
 
+import asyncio
 import json
 from urllib.parse import urlsplit
 
@@ -311,21 +312,52 @@ class CollectionService:
             raise
 
     async def posts(self, **kwargs):
-        self.store.cooldown("telegram")
+        scope = "telegram-public-search"
+        self.store.register(
+            scope,
+            "telegram",
+            None,
+            "Telegram public-post search",
+            {"collection_method": "query_observation", "scope": "public_post_search", "channel_identity": False},
+        )
+        options = {"query": kwargs.get("query"), "limit": kwargs.get("limit", 20)}
+        cursor = kwargs.get("cursor")
+        if isinstance(cursor, dict):
+            options["cursor"] = {k: cursor[k] for k in ("offset_rate", "offset_id", "channel") if k in cursor}
+        attempt = self.store.begin_attempt(scope, options)
         try:
+            self.store.cooldown("telegram")
             result = await self.telegram.posts(**kwargs)
+            for post in result["results"]:
+                locator = post["channel"]["username"] or post["channel"]["id"]
+                source_id = self.telegram_source(locator)
+                self.persist_messages(
+                    {"results": [post], "channel": post["channel"], "collected_at": result["collected_at"]},
+                    locator,
+                    source_id,
+                )
+            self.store.finish_attempt(
+                attempt,
+                "posts_returned" if result["results"] else "no_matching_posts",
+                {
+                    "options": options,
+                    "returned_items": len(result["results"]),
+                    "next_cursor_returned": bool(result.get("next_cursor")),
+                    "collected_at": result["collected_at"],
+                    "coverage": result["coverage"],
+                },
+            )
+            return {**result, "search_observation": {"source_id": scope, "attempt_id": attempt}}
+        except asyncio.CancelledError:
+            self.store.finish_attempt(attempt, "cancelled", {"options": options, "search_complete": False})
+            raise
         except DataAccessError as exc:
             self.store.record_retry("telegram", exc)
+            self.store.finish_attempt(attempt, exc.code, {"options": options, **exc.as_dict()})
             raise
-        for post in result["results"]:
-            locator = post["channel"]["username"] or post["channel"]["id"]
-            source_id = self.telegram_source(locator)
-            self.persist_messages(
-                {"results": [post], "channel": post["channel"], "collected_at": result["collected_at"]},
-                locator,
-                source_id,
-            )
-        return result
+        except ValueError:
+            self.store.finish_attempt(attempt, "invalid_arguments", {"options": options})
+            raise
 
     async def channels(self, **kwargs):
         self.store.cooldown("telegram")

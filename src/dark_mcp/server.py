@@ -641,7 +641,12 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def search_telegram_posts(query: str, limit: int = 20, cursor: dict | None = None) -> dict[str, Any]:
-        """Search public channel posts with free quota only. Requires global search to be enabled."""
+        """Search public channel posts with free quota only; requires configured global search and server eligibility.
+
+        Premium restrictions are explicit errors, not rate waits or negative findings. No Stars payment is
+        authorized. Future outcomes, including empty searches/errors, are saved under source health ID
+        telegram-public-search. This is a query observation scope, not a collected channel or complete coverage.
+        """
         return await run(collection.posts, query=query, limit=limit, cursor=cursor)
 
     return server
