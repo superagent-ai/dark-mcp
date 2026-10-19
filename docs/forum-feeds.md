@@ -48,3 +48,7 @@ Real stdio MCP reads collected 15 items per source, 45 total, all with body text
 A separate native Telegram read ran only after its saved deadline had expired: five posts returned without a retry. That sample contained neither forward headers nor hidden text-URL entities, so those particular live metadata cases remain unexercised. Earlier forum-linked Telegram checks produced one stale public preview and six redirects; contact references were not treated as active channels or joined/messaged.
 
 These checks establish bounded current data retrieval and source chronology. They do not establish comprehensive coverage, operator identity, access-offer validity, company-specific impending attacks or pre-disclosure lead time. Monitoring, scheduling and alerts remain deferred.
+
+## Corrected robots matching
+
+The subsequent 19 October access audit found that the former robots parser mishandled blank lines and wildcard rules. The shared matcher now handles these cases. DarkForums' `/syndication.php*` restriction blocks its configured feed URL before a content request. The earlier 45-item live check records actual historical retrieval with the old matcher; it does not establish current feed availability. Feed configuration is a dated endpoint record, and current robots denial remains an explicit collection failure.

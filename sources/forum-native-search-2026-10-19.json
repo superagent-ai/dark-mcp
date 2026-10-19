@@ -14,5 +14,26 @@
       },
       "validation": "Source-advertised GET form, positive post results, explicit negative result, and a matched original post were read."
     }
+  ],
+  "additional_checks": [
+    {
+      "source_id": "forum:niflheim",
+      "checked_at": "2026-10-19T20:42:11.568620+00:00",
+      "native_search_enabled": false,
+      "robots_url": "https://niflheim.world/robots.txt",
+      "applicable_rule": "Disallow: /search/",
+      "result": "robots_denied",
+      "assessment": "A public POST form returns data, but blank lines caused the previous parser to discard its search restriction. The collector is not enabled. Original thread reads remain separately permitted by the inspected rules."
+    },
+    {
+      "source_id": "onion:e51377a2216a",
+      "checked_at": "2026-10-19T20:42:11.568821+00:00",
+      "native_search_enabled": false,
+      "robots_url": "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/robots.txt",
+      "applicable_rule": "Disallow: /search.php",
+      "additional_rule": "Disallow: /syndication.php*",
+      "result": "robots_denied",
+      "assessment": "Source advertises a GET search form; current search and feed paths are disallowed. No native search collector is enabled. Correct wildcard handling also blocks the configured historical feed URL before its content request."
+    }
   ]
 }

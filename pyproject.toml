@@ -1,6 +1,6 @@
 [project]
 name = "dark-mcp"
-version = "0.26.0"
+version = "0.27.0"
 description = "Standalone MCP server for proactive company exposure research on onion sources and Telegram"
 readme = "README.md"
 license = "MIT"
@@ -14,6 +14,7 @@ dependencies = [
     "httpx[socks]>=0.28.1",
     "idna>=3.10,<4",
     "mcp>=2.3.0,<3",
+    "protego>=0.7,<1",
     "pydantic-settings>=2.16.0",
     "telethon>=1.45.0,<2",
     "typer>=0.27.3",

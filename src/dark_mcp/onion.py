@@ -4,7 +4,6 @@ import hashlib
 import re
 import time
 from urllib.parse import urljoin, urlsplit, urlunsplit
-from urllib.robotparser import RobotFileParser
 
 import httpx
 from bs4 import BeautifulSoup
@@ -13,6 +12,7 @@ from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.index import OnionIndex
 from dark_mcp.models import OnionPage, classify_page, limit_value, parse_date
+from dark_mcp.robots import RobotsRules
 
 USER_AGENT = "dark-mcp/0.12 (+https://github.com/superagent-ai/dark-mcp)"
 
@@ -64,7 +64,7 @@ class OnionConnector:
             headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"},
         )
 
-    async def _pace(self, url: str, rules: RobotFileParser) -> None:
+    async def _pace(self, url: str, rules: RobotsRules) -> None:
         host = urlsplit(url).netloc
         interval = max(1, rules.crawl_delay(USER_AGENT) or rules.crawl_delay("*") or 1)
         rate = rules.request_rate(USER_AGENT) or rules.request_rate("*")
@@ -139,10 +139,10 @@ class OnionConnector:
                 return url, text, kind
         raise DataAccessError("too_many_redirects", "Source exceeded five redirects")
 
-    async def _robots(self, client: httpx.AsyncClient, url: str, validate=None) -> RobotFileParser:
+    async def _robots(self, client: httpx.AsyncClient, url: str, validate=None) -> RobotsRules:
         root = urlsplit(url)
         robots_url = urlunsplit((root.scheme, root.netloc, "/robots.txt", "", ""))
-        parser = RobotFileParser()
+        parser = RobotsRules()
         try:
             _, text, _ = await self._get(client, robots_url, validate=validate)
         except DataAccessError as exc:

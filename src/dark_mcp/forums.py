@@ -7,7 +7,6 @@ import socket
 import time
 from datetime import UTC, datetime
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
-from urllib.robotparser import RobotFileParser
 
 import httpx
 from bs4 import BeautifulSoup
@@ -17,6 +16,7 @@ from dark_mcp.errors import DataAccessError
 from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
+from dark_mcp.robots import RobotsRules
 
 USER_AGENT = "dark-mcp/0.15 (+https://github.com/superagent-ai/dark-mcp)"
 FEED_CONTENT_TYPES = {"text/xml", "application/xml", "application/rss+xml", "text/html", "text/plain"}
@@ -714,7 +714,7 @@ class ForumConnector:
         cached = self.robots_cache.get(host)
         if cached and cached[0] > time.monotonic():
             return cached[1]
-        parser = RobotFileParser()
+        parser = RobotsRules()
         target = f"https://{host}/robots.txt"
         try:
             for _ in range(6):

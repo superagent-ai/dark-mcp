@@ -39,3 +39,11 @@ Live stdio MCP validation on 19 October 2026 searched Spear for `OpenAI`, saved 
 A larger `account` query returned 20 excerpts on page one and 20 different excerpts on page two after a process restart. The second call made a remote read and retained a continuation cursor. The source advertised additional pages; they were not traversed. Live pagination required MyBB’s default `uid=0` parameter; other user filters remain unsupported.
 
 A separate live `Superagent` query completed with the source's explicit no-results message and zero returned excerpts. This describes one guest query on one forum; it does not establish that the company faces no threats. Negative searches retain their query, document checksum and access context in saved collection attempts.
+
+## Source-access correction
+
+The 19 October expansion check found a robots matching bug in the previous parser: a blank line after `User-agent` could discard a group's rules, while wildcard paths were treated as literal strings. Shared matching now uses Protego for group merging, wildcard/end-anchor matching, precedence and encoded paths. Transport URL guards, status handling and response bounds remain in the collectors. The rule syntax is described by [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html); the parser's [official API](https://github.com/scrapy/protego) documents matching and timing extensions.
+
+Niflheim's public POST form returned post/thread snippets during research, but its robots file disallows `/search/`. That experimental collector is not enabled or included in the package. The successful requests do not establish supported automated search access. Original thread URLs remain separately readable under the inspected policy. Source identity and claims remain unverified.
+
+DarkForums disallows `/search.php` and `/syndication.php*`; native search is not configured, and corrected feed matching stops before a feed content request. Earlier successful feed reads remain historical observations acquired with the older matcher. They do not validate current access. The source catalog's research records retain these failed access checks separately from Spear's verified native-search configuration. No source policy is overridden by account configuration or a readable form.

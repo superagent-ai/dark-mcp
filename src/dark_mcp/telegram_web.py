@@ -7,7 +7,6 @@ import time
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qs, urljoin, urlsplit
-from urllib.robotparser import RobotFileParser
 
 import httpx
 from bs4 import BeautifulSoup
@@ -15,6 +14,7 @@ from bs4 import BeautifulSoup
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
 from dark_mcp.references import reference_host
+from dark_mcp.robots import RobotsRules
 from dark_mcp.telegram import channel_key
 
 USER_AGENT = "dark-mcp/0.21 (+https://github.com/superagent-ai/dark-mcp)"
@@ -319,7 +319,7 @@ class TelegramWeb:
         if self.robots is not None and time.monotonic() < self.robots_until:
             return self.robots
         status, raw = await self._get(client, "https://t.me/robots.txt", robots=True)
-        rules = RobotFileParser()
+        rules = RobotsRules()
         rules.parse(["User-agent: *", "Disallow: /"] if status in {401, 403} else raw.decode("utf-8").splitlines())
         self.robots, self.robots_until = rules, time.monotonic() + 300
         return rules
