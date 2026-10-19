@@ -80,6 +80,40 @@ def test_history_bound_excludes_newer_posts_and_stops_ignored_pagination():
     assert error.value.code == "telegram_web_pagination_ignored"
 
 
+@respx.mock
+async def test_web_only_allowlist_survives_server_restart_without_native_permission(web, monkeypatch):
+    monkeypatch.setenv("DARK_MCP_TELEGRAM_WEB_CHANNELS", '["@Fixture_Channel"]')
+    settings = type(web.settings)(
+        _env_file=None,
+        data_dir=web.settings.data_dir,
+        telegram_web_enabled=True,
+        telegram_channels=[],
+        telegram_catalog_sources=False,
+        telegram_web_directory_sources=False,
+    )
+    respx.get(ROBOTS).mock(return_value=httpx.Response(404))
+    route = respx.get(ROOT).mock(return_value=html_response(page(widget(5, "Acme.example"))))
+    with pytest.raises(DataAccessError):
+        TelegramConnector(settings, web.catalog)._allowed_channel(HANDLE)
+    for _ in range(2):
+        async with Client(create_server(settings)) as client:
+            status = (await client.call_tool("get_status")).structured_content
+            assert status["telegram_web_channels"] == ["@Fixture_Channel"]
+            result = (
+                await client.call_tool("read_telegram_public_preview", {"channel": HANDLE, "limit": 1})
+            ).structured_content
+            assert result["ok"] and result["results"][0]["text"] == "Acme.example"
+            denied = (
+                await client.call_tool("read_telegram_public_preview", {"channel": "unlisted_channel"})
+            ).structured_content
+            assert denied["error"]["code"] == "channel_not_allowed"
+            private = (
+                await client.call_tool("read_telegram_public_preview", {"channel": "-10012345"})
+            ).structured_content
+            assert private["error"]["code"] == "invalid_arguments"
+    assert route.call_count == 2
+
+
 def test_imported_directory_needs_web_only_opt_in_and_never_grants_native_access(web, tmp_path):
     file = tmp_path / "sources.md"
     file.write_text(

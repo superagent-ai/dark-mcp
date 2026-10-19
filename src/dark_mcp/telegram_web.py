@@ -219,6 +219,7 @@ class TelegramWeb:
         if handle.startswith("-100"):
             raise ValueError("Public web previews require a public username, not a private/numeric locator")
         allowed = {channel_key(item) for item in self.settings.telegram_channels}
+        allowed.update(channel_key(item) for item in self.settings.telegram_web_channels)
         if self.settings.telegram_catalog_sources:
             allowed.update(self.catalog.telegram_targets())
         if handle not in allowed and self.settings.telegram_web_directory_sources:

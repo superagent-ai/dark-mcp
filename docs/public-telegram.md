@@ -6,8 +6,10 @@ Version 0.21 adds `read_telegram_public_preview`. It retrieves visible text and 
 
 ```dotenv
 DARK_MCP_TELEGRAM_WEB_ENABLED=true
-DARK_MCP_TELEGRAM_CHANNELS=["permitted_public_channel"]
+DARK_MCP_TELEGRAM_WEB_CHANNELS=["permitted_public_channel"]
 ```
+
+`DARK_MCP_TELEGRAM_WEB_CHANNELS` permits only public HTML collection. It does not extend the native account allowlist. `get_status` reports these configured handles without claiming successful access. Public handles in the existing `DARK_MCP_TELEGRAM_CHANNELS` list remain permitted for web reads too.
 
 The existing `DARK_MCP_TELEGRAM_CATALOG_SOURCES=true` opt-in also permits public usernames already in the packaged catalog. Imported directory leads remain disabled by default. Separately setting `DARK_MCP_TELEGRAM_WEB_DIRECTORY_SOURCES=true` permits public handles from those local directories through this web collector only; it does not change native account permissions or turn reported status into an access claim. Native credentials, native connector enablement and global search enablement are not required. Numeric/private locators, invite links and arbitrary URLs are unsupported.
 

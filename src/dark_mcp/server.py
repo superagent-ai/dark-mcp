@@ -111,6 +111,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "onion_search_configured": bool(settings.onion_search_api_key),
             "telegram_enabled": settings.telegram_enabled,
             "telegram_web_enabled": settings.telegram_web_enabled,
+            "telegram_web_channels": settings.telegram_web_channels,
             "telegram_web_directory_sources": settings.telegram_web_directory_sources,
             "telegram_web_access": evidence.connector_status("telegram_web"),
             "telegram_access": evidence.connector_status("telegram"),
