@@ -13,6 +13,7 @@ from pathlib import Path
 from dark_mcp.authors import index_author_revision
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
+from dark_mcp.quotes import captured_quotes, index_quote_revision
 from dark_mcp.references import index_reference_revision
 from dark_mcp.thread_context import index_forum_revision
 
@@ -50,6 +51,7 @@ class EvidenceStore:
         with self.connect() as db:
             search_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='revision_search'").fetchone()
             reference_search_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='reference_search'").fetchone()
+            quote_search_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='quote_search'").fetchone()
             db.executescript("""
                 PRAGMA journal_mode=WAL;
                 CREATE TABLE IF NOT EXISTS sources (
@@ -99,6 +101,17 @@ class EvidenceStore:
                 );
                 CREATE INDEX IF NOT EXISTS forum_author_id ON forum_author_members(source_id,author_id);
                 CREATE INDEX IF NOT EXISTS forum_author_handle ON forum_author_members(source_id,handle_folded);
+                CREATE TABLE IF NOT EXISTS evidence_quotes (
+                    id INTEGER PRIMARY KEY,revision_id INTEGER NOT NULL REFERENCES revisions(id),
+                    ordinal INTEGER NOT NULL,text TEXT NOT NULL,search_text TEXT NOT NULL,
+                    UNIQUE(revision_id,ordinal)
+                );
+                CREATE VIRTUAL TABLE IF NOT EXISTS quote_search USING fts5(
+                    search_text,content='evidence_quotes',content_rowid='id',tokenize='trigram'
+                );
+                CREATE TRIGGER IF NOT EXISTS quote_search_insert AFTER INSERT ON evidence_quotes BEGIN
+                    INSERT INTO quote_search(rowid,search_text) VALUES(new.id,new.search_text);
+                END;
                 CREATE TABLE IF NOT EXISTS observations (
                     seq INTEGER PRIMARY KEY AUTOINCREMENT, evidence_id TEXT NOT NULL REFERENCES items(id),
                     revision_id INTEGER NOT NULL REFERENCES revisions(id), observed_at TEXT NOT NULL,
@@ -137,6 +150,8 @@ class EvidenceStore:
                 db.execute("INSERT INTO revision_search(revision_search) VALUES('rebuild')")
             if not reference_search_exists:
                 db.execute("INSERT INTO reference_search(reference_search) VALUES('rebuild')")
+            if not quote_search_exists:
+                db.execute("INSERT INTO quote_search(quote_search) VALUES('rebuild')")
             if not db.in_transaction:
                 db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM migrations WHERE name='forum-context-v1'").fetchone():
@@ -171,6 +186,16 @@ class EvidenceStore:
                     for row in rows:
                         index_author_revision(db, row["id"], row["source_id"], "forum", json.loads(row["snapshot"]))
                 db.execute("INSERT INTO migrations VALUES('forum-author-index-v1',?)", (now(),))
+            if not db.execute("SELECT 1 FROM migrations WHERE name='quote-index-v1'").fetchone():
+                cursor = db.execute(
+                    "SELECT r.id,i.kind,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id "
+                    "WHERE i.kind IN ('forum','forum_feed','telegram_web') "
+                    "AND json_type(r.snapshot,'$.quotes')='array'"
+                )
+                while rows := cursor.fetchmany(100):
+                    for row in rows:
+                        index_quote_revision(db, row["id"], row["kind"], json.loads(row["snapshot"]))
+                db.execute("INSERT INTO migrations VALUES('quote-index-v1',?)", (now(),))
         self.path.chmod(0o600)
 
     @contextmanager
@@ -277,6 +302,7 @@ class EvidenceStore:
                 index_forum_revision(db, revision_id, source_id, kind, snapshot)
                 index_author_revision(db, revision_id, source_id, kind, snapshot)
                 index_reference_revision(db, revision_id, kind, snapshot)
+                index_quote_revision(db, revision_id, kind, snapshot)
             else:
                 revision_id = previous["id"]
             db.execute(
@@ -404,6 +430,7 @@ class EvidenceStore:
         include_gates: bool = False,
         offset: int = 0,
         limit: int = 20,
+        include_quotes: bool = False,
     ) -> dict:
         limit_value(limit)
         if (
@@ -420,6 +447,17 @@ class EvidenceStore:
         indexed = len(term) >= 3
         fts_filter = "AND r.id IN (SELECT rowid FROM revision_search WHERE revision_search MATCH ?) " if indexed else ""
         fts_args = ('"' + term.replace('"', '""') + '"',) if indexed else ()
+        match_filter = "(instr(r.search_text,?)>0 " + fts_filter
+        match_args = [term, *fts_args]
+        if include_quotes:
+            quote_fts = "AND q.id IN (SELECT rowid FROM quote_search WHERE quote_search MATCH ?) " if indexed else ""
+            match_filter += (
+                "OR r.id IN (SELECT q.revision_id FROM evidence_quotes q WHERE instr(q.search_text,?)>0 "
+                + quote_fts
+                + ") "
+            )
+            match_args.extend([term, *fts_args])
+        match_filter += ") "
         with self.connect() as db:
             db.execute("BEGIN")  # Search hits and their local observation times share a read snapshot.
             rows = db.execute(
@@ -431,8 +469,8 @@ class EvidenceStore:
                 "(SELECT max(o.collected_at) FROM observations o WHERE o.revision_id=r.id "
                 "AND o.change_type IN ('new','edited','unchanged','restored')) AS last_collected_at,"
                 "row_number() OVER (PARTITION BY i.id ORDER BY r.id DESC) AS n "
-                "FROM items i JOIN revisions r ON r.evidence_id=i.id WHERE instr(r.search_text,?)>0 "
-                + fts_filter
+                "FROM items i JOIN revisions r ON r.evidence_id=i.id WHERE "
+                + match_filter
                 + "AND (? IS NULL OR i.kind=?) AND (? IS NULL OR i.source_id=?) "
                 "AND (? IS NULL OR r.published_at>=?) AND (? IS NULL OR EXISTS "
                 "(SELECT 1 FROM observations o WHERE o.revision_id=r.id AND o.collected_at>=? "
@@ -441,8 +479,7 @@ class EvidenceStore:
                 "('content_returned_unverified','search_hit_unverified','preview_only_unverified'))) "
                 "SELECT * FROM matches WHERE n=1 ORDER BY last_collected_at DESC,evidence_id LIMIT ? OFFSET ?",
                 (
-                    term,
-                    *fts_args,
+                    *match_args,
                     kind,
                     kind,
                     source_id,
@@ -475,7 +512,8 @@ class EvidenceStore:
         for row in rows[:limit]:
             result = dict(row)
             text = result.pop("text")
-            result["acquisition"] = json.loads(result.pop("snapshot")).get("acquisition", {})
+            snapshot = json.loads(result.pop("snapshot"))
+            result["acquisition"] = snapshot.get("acquisition", {})
             result.pop("n")
             position = text.casefold().find(term)
             fields = []
@@ -483,7 +521,29 @@ class EvidenceStore:
                 fields.append("title")
             if position >= 0:
                 fields.append("body")
-            result["matched_fields"] = fields or ["title_body_boundary"]
+            matched_quotes = []
+            if include_quotes:
+                for ordinal, quote in captured_quotes(result["kind"], snapshot):
+                    quoted_position = quote["text"].casefold().find(term)
+                    if quoted_position >= 0:
+                        matched_quotes.append(
+                            {
+                                "ordinal": ordinal,
+                                "excerpt": match_excerpt(quote["text"], quoted_position),
+                                "reference": {key: value for key, value in quote.items() if key != "text"},
+                                "attribution": "quoted_context_unverified",
+                            }
+                        )
+                if matched_quotes:
+                    fields.append("quotes")
+            # A cross-title/body match must remain visible even if the same literal appears in a quote.
+            if (
+                not any(field in fields for field in ("title", "body"))
+                and term in (result["title"] + "\n" + text).casefold()
+            ):
+                fields.insert(0, "title_body_boundary")
+            result["matched_fields"] = fields
+            result["matched_quotes"] = matched_quotes
             result["excerpt_basis"] = "body_match_context" if position >= 0 else "body_preview"
             times = recorded.get(result["revision_id"], {})
             result.update(
@@ -497,6 +557,7 @@ class EvidenceStore:
             "next_offset": offset + limit if len(rows) > limit else None,
             "match_mode": "casefolded_literal_substring",
             "includes_history": include_history,
+            "includes_quotes": include_quotes,
             "corpus_scope": {
                 "source_id": source_id,
                 "evidence_kind": kind,
@@ -504,10 +565,15 @@ class EvidenceStore:
                 "collected_since": collected,
                 "include_history": include_history,
                 "include_gates": include_gates,
+                "include_quotes": include_quotes,
                 "inventory_tool": "get_corpus_coverage",
                 "inventory_is_search_denominator": False,
             },
-            "coverage": "Stored evidence only; historical matches are explicitly marked, gates excluded by default",
+            "coverage": (
+                "Stored evidence only; historical matches are explicitly marked, gates excluded by default. "
+                "Optional quote matches describe captured quoted context, not verified original authorship, "
+                "origin publication time or independently corroborated claims. The enclosing post's dates apply."
+            ),
         }
 
     def history(self, evidence_id: str, offset: int = 0, limit: int = 20) -> dict:

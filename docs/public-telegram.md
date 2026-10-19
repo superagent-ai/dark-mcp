@@ -18,6 +18,7 @@ read_telegram_public_preview(channel="permitted_public_channel", limit=8)
 read_telegram_public_preview(channel="permitted_public_channel", before_id=RETURNED_NEXT_BEFORE_ID, limit=8)
 read_telegram_public_preview(channel="permitted_public_channel", message_id=KNOWN_POST_ID)
 search_evidence(query="company.example", kind="telegram_web")
+search_evidence(query="company.example", kind="telegram_web", include_quotes=true)
 search_references(host="company.example", kind="telegram_web")
 get_corpus_coverage(kind="telegram_web")
 ```

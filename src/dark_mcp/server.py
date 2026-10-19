@@ -65,6 +65,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "collect_next to resume history or poll new Telegram IDs; updates do not automatically detect old edits. "
             "Use refresh_evidence to recheck stored posts/pages; missing posts are unavailable, not proven deleted. "
             "search_evidence uses literal substring matching and can return explicitly marked historical revisions. "
+            "Set include_quotes=true to also find explicitly captured forum/feed/public-Telegram quote text; "
+            "matched_quotes are unverified quoted context, not the enclosing author's independent claim. "
             "Use get_corpus_coverage to inspect saved inventory before treating a negative search as meaningful. "
             "Use search_references for collected URL/label metadata, including shortened links missed by text search. "
             "Telegram forward headers are unverified leads; keep their reported origin date separate from the "
@@ -227,11 +229,14 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         include_gates: bool = False,
         offset: int = 0,
         limit: int = 20,
+        include_quotes: bool = False,
     ) -> dict[str, Any]:
         """Search saved Telegram/onion/forum text using case-insensitive literal substring matching.
 
         Historical matches are marked is_latest_revision=false. Gates are excluded unless requested.
-        matched_fields distinguishes title/body hits. Recording times concern the selected revision, not first mention.
+        include_quotes adds captured quoted context, labeled separately in matched_fields/matched_quotes.
+        Quote references and enclosing-post dates do not verify the original source or its publication time.
+        Recording times concern the selected revision, not first mention.
         """
         return local(
             evidence.search,
@@ -242,6 +247,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             collected_since=collected_since,
             include_history=include_history,
             include_gates=include_gates,
+            include_quotes=include_quotes,
             offset=offset,
             limit=limit,
         )

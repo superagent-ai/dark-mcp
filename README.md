@@ -167,7 +167,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `start_collection(source_id, mode="history", ..., max_threads=100, max_index_pages=3, max_thread_pages=3, exclude_pinned=false, thread_page_order="oldest_first")` | Create a resumable history job, Telegram cursor, or bounded forum section job; optional root/last-page sampling; no background process |
 | `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
-| `search_evidence(query, ...)` | Literal search of saved revisions; label title/body matches and local revision recording times; filter source, kind and dates |
+| `search_evidence(query, ..., include_quotes=false)` | Literal search of saved revisions; label title/body and optional captured quote matches, local recording times, source/kind/date filters |
 | `search_references(query=null, host=null, include_subdomains=false, ...)` | Search captured forum/onion links and Telegram URL entities; exact revision provenance and no URL fetches |
 | `get_collected_author_posts(source_id, author_id=null, author=null, as_of=null, ...)` | Retrieve saved posts for a source-local account ID or exact handle, with recording-time cutoffs and no profile fetches |
 | `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
