@@ -178,7 +178,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `get_corpus_coverage(source_id=null, kind=null, offset=0, limit=20)` | Local item/revision inventory, explicit thread depth and gaps; no network calls |
 | `get_source_health(source_id=null, ...)` | Recorded attempts, bounds, identities, last successful read/content and errors |
 | `save_company_profile(profile_id, name, identifiers, context=null, references=null)` / `get_company_profile(profile_id, revision=null)` | Version caller-provided company context; not independently verified |
-| `add_evidence_relation(from_id, to_id, relation, supporting_ids, note="")` / `get_evidence_relations(evidence_id)` | Save explicit, evidence-backed agent assertions; not automatic factual attribution |
+| `add_evidence_relation(from_id, to_id, relation, supporting_ids, note="", revision_ids=null)` / `get_evidence_relations(evidence_id)` | Save caller assertions pinned to exact versions/hashes; use explicit revision maps or atomic latest-at-save selection; legacy assertions remain unbound |
 | `list_sources(kind=null, access_state=null, query=null, offset=0, limit=20)` | Full candidate inventory; paginate with `next_offset` |
 | `list_open_telegram_sources(kind=null, dataset=null, query=null, offset=0, limit=20)` | Locally imported archive sources and directory leads, with reported status and provenance; no channel access or permission changes |
 | `get_source(source_id)` | Provenance, evidence links, historical checks and known section URLs |

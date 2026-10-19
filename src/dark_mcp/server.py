@@ -402,16 +402,32 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     def add_evidence_relation(
-        from_id: str, to_id: str, relation: str, supporting_ids: list[str], note: str = ""
+        from_id: str,
+        to_id: str,
+        relation: str,
+        supporting_ids: list[str],
+        note: str = "",
+        revision_ids: dict[str, int] | None = None,
     ) -> dict[str, Any]:
-        """Store an agent's explicit relationship with supporting evidence IDs; always marked caller_asserted."""
+        """Store a caller-asserted relationship pinned to exact evidence versions and hashes.
+
+        revision_ids must cover all distinct endpoint/supporting IDs, or omit it to bind latest versions atomically
+        at save time. Latest-at-save does not establish which version the caller actually read. Legacy relations
+        remain explicitly unbound; exact versions are not guessed from creation or source dates.
+        """
         return local(
-            evidence.relate, from_id=from_id, to_id=to_id, relation=relation, supporting_ids=supporting_ids, note=note
+            evidence.relate,
+            from_id=from_id,
+            to_id=to_id,
+            relation=relation,
+            supporting_ids=supporting_ids,
+            note=note,
+            revision_ids=revision_ids,
         )
 
     @server.tool(structured_output=True, annotations=READ_ONLY)
     def get_evidence_relations(evidence_id: str, limit: int = 20) -> dict[str, Any]:
-        """Inspect caller-asserted relationships; these are not automatically corroborated facts."""
+        """Inspect caller assertions with pinned versions/hashes or explicit legacy_unbound status."""
         return local(evidence.relations, evidence_id=evidence_id, limit=limit)
 
     @server.tool(structured_output=True, annotations=READ_ONLY)

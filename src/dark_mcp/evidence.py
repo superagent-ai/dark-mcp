@@ -143,7 +143,7 @@ class EvidenceStore:
                 CREATE TABLE IF NOT EXISTS relations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, from_id TEXT NOT NULL REFERENCES items(id),
                     to_id TEXT NOT NULL REFERENCES items(id), relation TEXT NOT NULL, note TEXT NOT NULL,
-                    supporting_ids TEXT NOT NULL, created_at TEXT NOT NULL
+                    supporting_ids TEXT NOT NULL, created_at TEXT NOT NULL, revision_bindings TEXT
                 );
                 CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY, completed_at TEXT NOT NULL);
             """)
@@ -155,6 +155,8 @@ class EvidenceStore:
                 db.execute("INSERT INTO quote_search(quote_search) VALUES('rebuild')")
             if not db.in_transaction:
                 db.execute("BEGIN IMMEDIATE")
+            if "revision_bindings" not in {row["name"] for row in db.execute("PRAGMA table_info(relations)")}:
+                db.execute("ALTER TABLE relations ADD COLUMN revision_bindings TEXT")
             if not db.execute("SELECT 1 FROM migrations WHERE name='forum-context-v1'").fetchone():
                 cursor = db.execute(
                     "SELECT r.id,i.source_id,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id "
@@ -862,20 +864,62 @@ class EvidenceStore:
             "verification": "caller_provided; not independently verified",
         }
 
-    def relate(self, from_id: str, to_id: str, relation: str, supporting_ids: list[str], note: str = "") -> dict:
+    def relate(
+        self,
+        from_id: str,
+        to_id: str,
+        relation: str,
+        supporting_ids: list[str],
+        note: str = "",
+        revision_ids: dict[str, int] | None = None,
+    ) -> dict:
         if not relation.strip() or len(relation) > 80 or len(note) > 4000 or not 1 <= len(supporting_ids) <= 20:
             raise ValueError("Check relation, note and supporting evidence")
-        for key in [from_id, to_id, *supporting_ids]:
-            self.get(key)
+        keys = list(dict.fromkeys([from_id, to_id, *supporting_ids]))
+        if revision_ids is not None and (
+            not isinstance(revision_ids, dict)
+            or set(revision_ids) != set(keys)
+            or any(type(value) is not int or not 0 < value < 2**63 for value in revision_ids.values())
+        ):
+            raise ValueError("Provide one positive revision ID for every distinct endpoint/supporting evidence ID")
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            references = []
+            for key in keys:
+                item = db.execute("SELECT latest_revision_id FROM items WHERE id=?", (key,)).fetchone()
+                if not item:
+                    raise DataAccessError("evidence_not_found", "No evidence with this ID")
+                selected = revision_ids[key] if revision_ids is not None else item["latest_revision_id"]
+                revision = db.execute(
+                    "SELECT id AS revision_id,evidence_id,content_hash,snapshot_hash,published_at,edited_at,"
+                    "collected_at AS revision_collected_at FROM revisions WHERE id=? AND evidence_id=?",
+                    (selected, key),
+                ).fetchone()
+                if not revision:
+                    raise DataAccessError("revision_not_found", "Revision does not belong to this evidence")
+                first = db.execute(
+                    "SELECT min(observed_at) FROM observations WHERE evidence_id=? AND revision_id=? "
+                    "AND change_type IN ('new','edited','unchanged','restored')",
+                    (key, selected),
+                ).fetchone()[0]
+                references.append({**dict(revision), "revision_first_recorded_at": first})
+            timestamp = now()
+            bindings = {
+                "basis": "caller_selected_revisions" if revision_ids is not None else "latest_revisions_at_save",
+                "selected_at": timestamp,
+                "references": references,
+            }
             cursor = db.execute(
-                "INSERT INTO relations(from_id,to_id,relation,note,supporting_ids,created_at) VALUES(?,?,?,?,?,?)",
-                (from_id, to_id, relation, note, encoded(supporting_ids), now()),
+                "INSERT INTO relations(from_id,to_id,relation,note,supporting_ids,created_at,revision_bindings) "
+                "VALUES(?,?,?,?,?,?,?)",
+                (from_id, to_id, relation, note, encoded(supporting_ids), timestamp, encoded(bindings)),
             )
         return {
             "relation_id": cursor.lastrowid,
             "verification": "caller_asserted",
             "supporting_evidence_ids": supporting_ids,
+            "revision_binding_status": "bound",
+            "revision_bindings": bindings,
         }
 
     def relations(self, evidence_id: str, limit: int = 20) -> dict:
@@ -888,7 +932,13 @@ class EvidenceStore:
             ).fetchall()
         return {
             "results": [
-                {**dict(row), "supporting_ids": json.loads(row["supporting_ids"]), "verification": "caller_asserted"}
+                {
+                    **dict(row),
+                    "supporting_ids": json.loads(row["supporting_ids"]),
+                    "verification": "caller_asserted",
+                    "revision_binding_status": "bound" if row["revision_bindings"] else "legacy_unbound",
+                    "revision_bindings": json.loads(row["revision_bindings"]) if row["revision_bindings"] else None,
+                }
                 for row in rows
             ]
         }
