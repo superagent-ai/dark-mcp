@@ -16,6 +16,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "get_status",
             "get_forum_access_status",
             "list_sources",
+            "list_open_telegram_sources",
             "get_source",
             "collect_source",
             "start_collection",

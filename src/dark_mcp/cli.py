@@ -16,11 +16,62 @@ from dark_mcp.forum_capture import import_forum_capture
 from dark_mcp.forum_sessions import ForumSessions
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
+from dark_mcp.open_telegram import import_archive, import_directory
+from dark_mcp.open_telegram_fetch import fetch_open_artifacts
 from dark_mcp.operator_sources import OperatorSources, validate_id
 from dark_mcp.server import create_server
 from dark_mcp.sources import SourceCatalog
 
 app = typer.Typer(help="Onion and Telegram data access over MCP.", no_args_is_help=True, pretty_exceptions_enable=False)
+
+
+@app.command()
+def telegram_open_fetch(dataset: str):
+    """Fetch checksum-pinned open research artifacts locally. No Telegram account, joins or linked downloads."""
+    os.umask(0o077)
+    try:
+        result = asyncio.run(fetch_open_artifacts(Settings(), dataset))
+    except (DataAccessError, ValueError):
+        typer.echo("Open dataset download failed. Check provider name, network and local storage.", err=True)
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps(result, indent=2))
+
+
+@app.command()
+def telegram_archive_import(
+    archive_file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    dataset: str,
+    version: str,
+    offset: Annotated[int, typer.Option(min=0, max=199999)] = 0,
+    limit: Annotated[int, typer.Option(min=1, max=100000)] = 1000,
+    category: str | None = None,
+):
+    """Import a local DarkGram posts ZIP or bounded TGDataset JSON shard; never fetch linked content."""
+    os.umask(0o077)
+    try:
+        result = import_archive(Settings(), archive_file, dataset, version, offset, limit, category)
+    except (DataAccessError, ValueError):
+        typer.echo(
+            "Archive import failed. Check format, size, dataset, version and bounds; prior rows may be saved.", err=True
+        )
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps(result, indent=2))
+
+
+@app.command()
+def telegram_directory_import(
+    markdown_file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    version: str,
+    collection: str = "telegram_threat_actors",
+):
+    """Import a local deepdarkCTI table as unverified leads. Does not enable collection or join channels."""
+    os.umask(0o077)
+    try:
+        result = import_directory(Settings(), markdown_file, version, collection)
+    except (DataAccessError, ValueError):
+        typer.echo("Directory import failed. Check UTF-8 table, collection and version.", err=True)
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps(result, indent=2))
 
 
 class Transport(StrEnum):

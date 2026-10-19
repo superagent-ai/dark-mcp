@@ -4,12 +4,13 @@ Audit date: 19 October 2026. The objective is an in-house Flare alternative expo
 
 | Requirement | Current evidence | Remaining gap |
 | --- | --- | --- |
-| Standalone repository and MCP interface | Public `superagent-ai/dark-mcp`, reviewable PR #1, installed-wheel initialization and 36 tools | Changes remain on the PR branch; full product parity is unproven |
+| Standalone repository and MCP interface | Public `superagent-ai/dark-mcp`, reviewable PR #1, installed-wheel initialization and 37 tools | Changes remain on the PR branch; full product parity is unproven |
 | Collection we operate ourselves | Native HTTPS/Tor collectors, local evidence, optional operator sessions and HTML imports; no competitor intelligence adapter | The optional onion search API is still a separate discovery aid, not our original-source corpus |
 | Read original forum bodies and context | Eight configured collectors: five HTTPS and three Tor; live bounded roots/replies, author metadata, exact replay and restart checks | These are public samples, with hidden/unvisited material and unverified operators; they do not establish access to all credited upstream sources |
 | Reach high-value gated originals | Session/configuration/import paths tested; dated Exploit/XSS challenges, CryptBB login gate, PwnForums section 403 and upstream marketplace login-only responses | No operator-owned authenticated forum session or original gated listing is available in this installation |
 | Expand priority source access | Latest native candidate checks retain Breached `.st` robots denial, `.su` connection failure and DamageLib Tor failure | Zero original posts from those checks; none became a collector or authenticated successor |
 | Telegram investigation and source lineage | Existing collected posts, channel/history/update tools, forward/entity preservation, fixed cooldown deadlines and shared-session guards | Live verification of the newer metadata remains pending; the account cooldown remained active at audit time, with its exact deadline available locally through `get_status` |
+| Open Telegram research coverage | DarkGram text imports, deepdarkCTI directory leads, bounded TGDataset JSON imports and a pinned preview download; archive search and exact replay over MCP | Historical third-party data and unverified directory labels do not establish current access or advance detection; imports are separate from native evidence |
 | Preserve chronology and evidence | Immutable revisions/hashes, recording-time cutoffs for saved thread/author context, bounded history, acquisition labels and explicit gaps | A displayed older source date cannot prove our system detected the post earlier |
 | Demonstrate early-warning value | Observable access claims, recruitment, buyer demand and post-compromise statements are retained with caveats | No verified company-specific pre-disclosure or pre-compromise detection has been established |
 

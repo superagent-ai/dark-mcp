@@ -28,7 +28,7 @@ class CorpusCoverage:
 
     def get(self, source_id: str | None = None, kind: str | None = None, offset: int = 0, limit: int = 20) -> dict:
         limit_value(limit)
-        if offset < 0 or kind not in {None, "onion", "telegram", "forum", "provider"}:
+        if offset < 0 or kind not in {None, "onion", "telegram", "telegram_archive", "forum", "provider"}:
             raise ValueError("Check evidence kind and pagination")
         source_id = self.store._source_filter(source_id)
         # One row per item, even after repeated collection, edits, reverts, or unavailable observations.
@@ -115,6 +115,7 @@ class CorpusCoverage:
                 "Older unreported acquisition methods are not retroactively classified as native reads. "
                 "Thread counts require explicit saved identities; missing roots and unknown dates remain gaps. "
                 "Source publication ranges do not establish continuous collection or pre-compromise lead time. "
+                "telegram_archive items are historical third-party imports, not native Telegram observations. "
                 "Use list_collections/get_collection for job bounds and get_source_health for access attempts. "
                 "Search history, publication/collection filters and gate exclusions can narrow or change its scope."
             ),

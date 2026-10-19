@@ -13,6 +13,7 @@ from dark_mcp.evidence import EvidenceStore
 from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
+from dark_mcp.open_telegram import list_open_sources
 from dark_mcp.references import ReferenceSearch
 from dark_mcp.search import OnionSearch
 from dark_mcp.sources import SourceCatalog
@@ -67,6 +68,12 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "A reference match is unverified context, not a verified exposure or an endorsement to follow the link. "
             "Use get_collected_author_posts for source-local author context; same-name accounts are not merged. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
+            " Use list_open_telegram_sources for locally imported research directories and archive sources. "
+            "Search kind=telegram_archive for historical imported messages. They are separate from native "
+            "Telegram evidence: import time never proves earlier detection. Dataset content may be processed "
+            "or obfuscated. Directory VALID/EXPIRED labels are upstream reports, not live checks; source labels "
+            "do not authenticate actors. Directory imports do not enable collection or join channels. "
+            "Inspect acquisition, published_at_raw and timestamp_basis; timezone-free dates remain unresolved."
         ),
     )
 
@@ -109,6 +116,24 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             return exc.as_dict()
         except ValueError:
             return DataAccessError("invalid_arguments", "Check identifiers, dates, filters and bounds").as_dict()
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def list_open_telegram_sources(
+        kind: str | None = None,
+        dataset: str | None = None,
+        query: str | None = None,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """List locally imported directory leads and historical archive sources, with provenance and limitations.
+
+        kind is telegram_directory or telegram_archive. dataset is deepdarkcti, darkgram or tgdataset.
+        These are separate from the live collection catalog and never extend Telegram permissions.
+        Use search_evidence(kind='telegram_archive') and get_evidence for imported message bodies.
+        """
+        return local(
+            list_open_sources, store=evidence, kind=kind, dataset=dataset, query=query, offset=offset, limit=limit
+        )
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     def start_collection(

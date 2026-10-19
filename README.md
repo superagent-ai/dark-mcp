@@ -60,6 +60,10 @@ Use `source-import` to configure an operator-provided MyBB/XenForo source locall
 
 Version 0.13 adds local `forum-page-import` for UTF-8 HTML saved from an operator's accessible forum page. It uses the configured parser to preserve posts, replies, dates, references, hidden-content flags and pagination in the same evidence store. Search, saved thread context and corpus inventory distinguish these unverified operator submissions from native network reads. Imports do not run scripts, make source requests, verify membership or establish an earlier capture time. They do not solve challenges or provide access to unsupported/gated sources. See the [capture guide](docs/forum-captures.md).
 
+### Open Telegram research data
+
+Local `telegram-open-fetch`, `telegram-archive-import` and `telegram-directory-import` commands add checksum-pinned DarkGram messages, deepdarkCTI source leads and bounded TGDataset JSON data. Agents use `list_open_telegram_sources` and `search_evidence(kind="telegram_archive")` to investigate the imported corpus without Telegram requests. Historical imports retain attribution and dates and stay separate from native evidence; directory imports never extend channel permissions. See the [open Telegram guide](docs/open-telegram.md) for coverage, licensing, import bounds and provenance.
+
 ### Full source registry for agents
 
 The server bundles **174 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 19 forum records (five HTTPS collectors and 14 metadata-only leads; the onion records also include structured Spear, Exilio404 and DarkForums collectors). Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
@@ -166,6 +170,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `save_company_profile(profile_id, name, identifiers, context=null, references=null)` / `get_company_profile(profile_id, revision=null)` | Version caller-provided company context; not independently verified |
 | `add_evidence_relation(from_id, to_id, relation, supporting_ids, note="")` / `get_evidence_relations(evidence_id)` | Save explicit, evidence-backed agent assertions; not automatic factual attribution |
 | `list_sources(kind=null, access_state=null, query=null, offset=0, limit=20)` | Full candidate inventory; paginate with `next_offset` |
+| `list_open_telegram_sources(kind=null, dataset=null, query=null, offset=0, limit=20)` | Locally imported archive sources and directory leads, with reported status and provenance; no channel access or permission changes |
 | `get_source(source_id)` | Provenance, evidence links, historical checks and known section URLs |
 | `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion/forum page or page of Telegram posts; report current result and historical access state |
 | `get_forum_access_status(source_id, origin=null)` | Sanitized local session metadata; does not test live authentication |

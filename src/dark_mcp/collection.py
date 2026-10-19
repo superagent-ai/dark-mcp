@@ -397,6 +397,11 @@ class CollectionService:
 
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
+        if item["kind"] == "telegram_archive":
+            raise DataAccessError(
+                "archive_reimport_required",
+                "Reimport the dataset locally; historical imports do not authorize native Telegram requests",
+            )
         if item["kind"] == "provider":
             raise DataAccessError(
                 "historical_evidence_only",
