@@ -228,3 +228,26 @@ async def test_actual_mcp_tools_collect_restart_search_revisions_and_profiles(se
         assert (await call("get_company_profile", profile_id="superagent"))["document"]["name"] == "Superagent"
         assert (await call("list_evidence_changes"))["results"]
         assert (await call("get_source_health", source_id=SOURCE))["results"][0]["last_content_at"]
+
+
+async def test_retired_provider_evidence_remains_replayable_without_active_collection(settings):
+    store = EvidenceStore(settings.prepare_data_dir())
+    store.register("provider:legacy", "provider", "https://legacy.example/", "Historical source")
+    saved = store.observe(
+        "provider:legacy",
+        "provider",
+        "legacy:42",
+        "https://source.example/thread/42",
+        {
+            "title": "Archived source",
+            "text": "Acme.example historical claim",
+            "access_state": "content_returned_unverified",
+        },
+    )
+    async with Client(create_server(settings)) as client:
+        replay = (await client.call_tool("get_evidence", {"evidence_id": saved["evidence_id"]})).structured_content
+        assert replay["evidence"]["snapshot"]["text"] == "Acme.example historical claim"
+        refresh = (await client.call_tool("refresh_evidence", {"evidence_id": saved["evidence_id"]})).structured_content
+        assert refresh["error"]["code"] == "historical_evidence_only"
+        job = (await client.call_tool("start_collection", {"source_id": "provider:legacy"})).structured_content
+        assert job["error"]["code"] == "historical_evidence_only"

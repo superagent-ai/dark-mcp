@@ -30,6 +30,4 @@ def settings(tmp_path):
         telegram_api_id=None,
         telegram_api_hash=None,
         onion_search_api_key=None,
-        flare_api_key=None,
-        flare_tenant_id=None,
     )

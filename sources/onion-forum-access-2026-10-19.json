@@ -31,7 +31,6 @@
     "posts_with_raw_source_date": 4,
     "root_posts": 3,
     "telegram_network_calls": 0,
-    "licensed_provider_live_access": "not_configured; explicit provider_not_configured result verified",
     "raw_receipts": "Retained privately outside version control; no raw post bodies are bundled."
   }
 }

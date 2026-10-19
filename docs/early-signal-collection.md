@@ -28,48 +28,16 @@ A real stdio MCP client retrieved two relevant indexes and three original thread
 
 These are useful *types of evidence*: alleged access sales and advertised credential demand. Neither access validity, a named victim match, upcoming exploitation nor pre-compromise detection was established. Some posts explicitly credit another marketplace; its gated listing was not collected. Telegram was not contacted during its existing account cooldown.
 
-## Optional licensed source: Flare
+## Build and operate our own source access
 
-The adapter implements Flare's documented global search and event retrieval. It requires your own entitled API key; no subscription, trial or account is created. The implementation has mocked HTTP contract tests. No licensed live collection is claimed without a configured key and a successful check.
+The product direction is a collection capability we operate ourselves. Competitor research identifies source gaps and validation criteria; it does not introduce competitor intelligence APIs as runtime dependencies. The optional onion search API remains a discovery aid, while original posts and our collected corpus supply evidence.
 
-```dotenv
-DARK_MCP_FLARE_API_KEY=your-key-in-a-local-secret-store
-# Optional; otherwise the API key's default tenant is used.
-DARK_MCP_FLARE_TENANT_ID=1234
-```
+The next access milestones are:
 
-The API key needs the relevant search/read permissions. Flare documents `Read Tenant` for global search and `Read All` for event retrieval; account quotas and source entitlements still apply. The key is exchanged for an in-memory token, with the tenant selected at token generation. HTTP requests use the fixed Flare API origin and never follow redirects. Errors do not echo provider response bodies or credentials.
+1. **Validate source identity and readable depth.** Prioritize access-sale and targeting sections with original bodies, not homepages, mirrored headlines or advertisements pointing to inaccessible origins. Store verified locators, source incarnation, current access state and section-level coverage.
+2. **Support operator-owned access where required.** For sources requiring membership, establish an eligible account and read permissions first. A future source-specific connector can use a server-side session provisioned by the operator, with explicit expiry and revocation. Credentials never belong in agent arguments. An implementation cannot create entitlement to a gated source; authentication and current access must be tested separately. The current forum connectors remain public-only.
+3. **Collect the full context we can access.** Preserve roots, replies, author IDs/handles, original references, dates and hidden-content limits. Keep an access-market repost distinct from the listing it references. Expand parsers only against inspected source structures.
+4. **Search the corpus we build.** Collect selected sections and chosen original threads with bounded, resumable calls. The MCP provides cursors and evidence storage; a later runner determines frequency and scheduling. Local searches must report the collected bounds rather than imply source-wide or global coverage.
+5. **Verify actionable evidence and freshness.** Each new collector must retrieve a substantive original post, preserve its metadata and exact evidence revision, resume a multi-page read after restart, refresh the same item and report gates/expiry/rate limits explicitly. Keep publication, local first-seen and collection times separate. Detection before disclosure requires a recorded observation before that disclosure; detection before compromise needs a separately established compromise timeline.
 
-```text
-search_flare_events
-{"query":"\"superagent.sh\"","types":["forum_post","forum_topic","chat_message","listing"],"since":"2026-10-01T00:00:00Z","limit":20}
-
-read_flare_event
-{"uid":"<metadata.uid from a returned hit>"}
-```
-
-Global search consumes provider quota. It returns one page and a `next_cursor`. Resume with the same query, types, since, limit and tenant, passing the cursor unchanged. Even an empty page may have a continuation. The date filter applies to the provider's `estimated_created_at`, not to independently verified source publication or our local first-seen time.
-
-Search hits contain snippets and have separate evidence identities from event bodies. `read_flare_event` returns supported original text (`content`/`description`) or a clearly marked provider preview. It retains author, original URL, source name, parent event UID and thread ID where supplied. A thread-level record does not imply that all replies were collected. Read the referenced parent UID separately if needed; linked URLs and payloads are never fetched automatically.
-
-Persisted provider evidence is searchable with `search_evidence(kind="provider")`, replayable with `get_evidence`, and recheckable with `refresh_evidence`. Refresh requires the original configured tenant. A provider 404 is an access/availability error, not confirmed deletion. Rate-limit cooldowns survive restarts. Inspect provider `source_id` from `get_status` with `get_source_health` for actual attempt outcomes; status itself performs no entitlement probe.
-
-Keep four clocks separate:
-
-| Field | Meaning |
-| --- | --- |
-| `published_at` / `published_at_raw` | Explicit source post date supplied by the provider; unknown offset stays unresolved |
-| `provider_first_seen_at` | Provider `first_crawled_at`, when supplied; not our observation |
-| `provider_estimated_created_at` | Provider estimate; not silently substituted for publication |
-| `collected_at` and stored local `first_seen` | When this installation retrieved/observed the evidence |
-
-Provider metadata and a hash of the returned payload are retained alongside the selected text fields. This is a bounded extraction, not a raw archive of every provider field. `record_scope`, `truncated` and `access_state` explain the limits. Provider copies and direct-source reads are not automatically independent corroboration. No source completeness, commercial corpus freshness or detection lead time is inferred from a successful API response.
-
-Official API references, checked 19 October 2026:
-
-- [Authentication](https://api.docs.flare.io/concepts/authentication)
-- [Global search guide](https://api.docs.flare.io/guides/global-search)
-- [Search API](https://api.docs.flare.io/api-reference/v4/endpoints/global-search)
-- [Retrieve event](https://api.docs.flare.io/api-reference/v2/endpoints/activities/get-fireworkv2activities-)
-- [Forum post data model](https://api.docs.flare.io/event-types/forum-post)
-- [Paging](https://api.docs.flare.io/concepts/paging)
+Existing source research remains in `docs/vendor-source-research.md`. Research-only forum records do not become working collectors until access and parsing are implemented and verified. Monitoring, notification delivery and defender response remain later work.

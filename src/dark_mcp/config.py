@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     max_response_bytes: int = Field(default=2_000_000, ge=1024, le=10_000_000)
     max_text_chars: int = Field(default=60_000, ge=100, le=200_000)
     onion_search_api_key: SecretStr | None = None
-    flare_api_key: SecretStr | None = None
-    flare_tenant_id: int | None = Field(default=None, gt=0)
     telegram_api_id: int | None = Field(default=None, gt=0)
     telegram_api_hash: SecretStr | None = None
     telegram_enabled: bool = False

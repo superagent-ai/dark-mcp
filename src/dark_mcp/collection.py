@@ -16,7 +16,6 @@ class CollectionService:
         self.settings, self.catalog, self.store = settings, catalog, store
         self.onion, self.telegram = onion, telegram
         self.forums = forums
-        self.flare = None
         for source in catalog.sources.values():
             store.register(source["id"], source["kind"], source["locator"], source["name"], source)
 
@@ -364,17 +363,10 @@ class CollectionService:
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
         if item["kind"] == "provider":
-            if self.flare is None:
-                raise DataAccessError("provider_not_configured", "Licensed provider collector is unavailable")
-            if item["source_id"] != self.flare.source_id:
-                raise DataAccessError(
-                    "provider_scope_mismatch", "Reconfigure the original Flare tenant to refresh this evidence"
-                )
-            if item["snapshot"].get("record_scope") == "search_hit":
-                raise DataAccessError(
-                    "provider_search_recheck_required", "Repeat the original search to refresh a search hit"
-                )
-            return await self.flare.read(item["snapshot"]["event_uid"])
+            raise DataAccessError(
+                "historical_evidence_only",
+                "Legacy provider evidence remains replayable; collect its original source directly",
+            )
         if item["kind"] == "onion":
             return {"page": (await self.fetch(item["url"])).model_dump()}
         if item["kind"] == "forum":
@@ -464,7 +456,7 @@ class CollectionService:
     ) -> dict:
         source = self.store.source(source_id)
         if source["kind"] == "provider":
-            raise DataAccessError("provider_cursor_required", "Use the provider search tool and its returned cursor")
+            raise DataAccessError("historical_evidence_only", "Legacy provider sources have no active collector")
         if not source["locator"]:
             raise DataAccessError("source_access_required", "This source has no durable collection locator")
         if mode not in {"history", "updates"}:

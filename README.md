@@ -14,10 +14,9 @@ Probing here means investigating sources and exposure signals. Findings should r
 | Onion page content | Direct HTTP(S) through your Tor SOCKS proxy | Running Tor client |
 | Telegram channel posts | Telegram client API via Telethon | Your application credentials, local account login, permitted channels |
 | Original forum threads | Public pages on Cracked, Niflheim, HARD-TM and Spear | HTTPS for the first three; Tor for Spear; gated content remains hidden |
-| Licensed intelligence | Flare global search and event API | Flare API key with search/read entitlement; optional tenant ID |
 | Local onion search | SQLite FTS index populated by fetches and bounded crawls | No external search key |
 
-**Discovery uses an existing search engine. You do not need to build your own onion index.** The local index is optional and only covers pages this installation has collected. Search provider coverage and freshness are not independently verified.
+**The MCP collects original source content into its own local corpus.** The optional Onion Search Engine API helps discover URLs; it is not the evidence corpus. Local search only covers content this installation has collected, and discovery-provider coverage and freshness are not independently verified.
 
 ### Telegram source research
 
@@ -35,11 +34,11 @@ The [18 October 2026 onion catalog](sources/onion-research-2026-10-18.json) reco
 
 The [19 October vendor research](docs/vendor-source-research.md) compares eight providers and 23 forum families, including Flare, DarkOwl, KELA, SOCRadar, Intel 471, Searchlight Cyber, Intelligence X and Bitsight/Cybersixgill. The [evidence matrix](sources/vendor-source-research-2026-10-19.json) distinguishes explicit monitoring claims, dated collection examples and research mentions. It also records disruption reports and uncertain identities.
 
-Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have public original-thread collectors: **Cracked, Niflheim and HARD-TM**. The remaining 14, including DamageLib, BHF, Duty Free, Lolzteam and HydraForums, are metadata-only leads. An optional Flare search/read adapter is available; licensed corpus access requires credentials and entitlement. It has contract tests, not a live licensed-data validation. Neither a vendor mention nor a historical collection chart proves present-day API access. `get_status` separates collection methods from source counts.
+Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have public original-thread collectors: **Cracked, Niflheim and HARD-TM**. The remaining 14, including DamageLib, BHF, Duty Free, Lolzteam and HydraForums, are metadata-only leads. Vendor research informs our own source-access priorities; competitor intelligence APIs are not runtime data sources. Neither a vendor mention nor a historical collection chart proves present-day API access. `get_status` separates collection methods from source counts.
 
 ### Original forum access
 
-The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`. Version 0.4 also supports structured Spear threads over Tor: access-market and buyer indexes, original bodies, authors, root/reply markers, raw source dates, referenced URLs and resumable pagination. See the [early-signal collection guide](docs/early-signal-collection.md) for verified access bounds and licensed-source setup.
+The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`. Version 0.4 also supports structured Spear threads over Tor: access-market and buyer indexes, original bodies, authors, root/reply markers, raw source dates, referenced URLs and resumable pagination. See the [early-signal collection guide](docs/early-signal-collection.md) for verified access bounds and priorities for our own collection.
 
 A current HARD-TM Lovable advertisement matching earlier Telegram repost headlines was collected with its author, timestamp and visible terms. Matching titles and handles do not prove it is the exact post behind an older relay. Its outbound links require registration. Niflheim exposed readable posts and multiple pages of replies; other post bodies can require login. Cracked exposed visible discussion with registration-only content marked as hidden. These are bounded access checks, not verified breach claims or complete site coverage. See the [forum collection guide](docs/forum-collection.md) for concrete calls and limitations.
 
@@ -147,8 +146,6 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion/forum page or page of Telegram posts; report current result and historical access state |
 | `list_forum_threads(source_id, url=null, query=null, limit=20)` | Discover thread links on one public index; optional local title filter, not a site-wide search |
 | `read_forum_thread(source_id, url, limit=20)` | Read visible original posts/replies with authors, timestamps, permalinks, hidden-content flags and next-page links |
-| `search_flare_events(query, types=null, since=null, limit=20, cursor=null)` | One licensed search page; snippets and a query-bound continuation cursor; consumes provider quota |
-| `read_flare_event(uid)` | Provider event body or explicitly marked preview, original URL/author/parent reference, separate provider and local timestamps, persistent evidence |
 | `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
 | `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
 | `crawl_onion(seeds, max_pages=5)` | Collect at most 10 pages from seed onions and same-host links |
@@ -245,4 +242,4 @@ uv run pytest -q
 uv build
 ```
 
-Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Authenticated provider search and Telegram access require operator credentials and separate live verification.
+Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Authenticated Telegram access requires operator credentials and separate live verification.

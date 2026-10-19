@@ -14,8 +14,6 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
         names = {tool.name for tool in tools.tools}
         assert names == {
             "get_status",
-            "search_flare_events",
-            "read_flare_event",
             "list_sources",
             "get_source",
             "collect_source",
