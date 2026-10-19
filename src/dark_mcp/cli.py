@@ -15,6 +15,7 @@ from dark_mcp.errors import DataAccessError
 from dark_mcp.forum_sessions import ForumSessions
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
+from dark_mcp.operator_sources import OperatorSources, validate_id
 from dark_mcp.server import create_server
 from dark_mcp.sources import SourceCatalog
 
@@ -34,7 +35,11 @@ def serve(
     """Run MCP over stdio (default) or HTTP on 127.0.0.1 only."""
     os.umask(0o077)
     logging.basicConfig(level=logging.WARNING)
-    server = create_server()
+    try:
+        server = create_server()
+    except DataAccessError:
+        typer.echo("Cannot load source configuration. Check local source storage with source-list.", err=True)
+        raise typer.Exit(1) from None
     if transport == Transport.stdio:
         server.run(transport="stdio")
     else:
@@ -79,6 +84,57 @@ def telegram_login():
 
 
 @app.command()
+def source_import(config_file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)]):
+    """Provision a local MyBB/XenForo source from JSON. Not an MCP tool; does not verify access."""
+    os.umask(0o077)
+    try:
+        result = OperatorSources(Settings()).import_file(config_file)
+    except DataAccessError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps(result, indent=2))
+
+
+@app.command()
+def source_list():
+    """List local operator configurations; no cookies, requests or access claims."""
+    try:
+        result = OperatorSources(Settings()).sources()
+    except DataAccessError:
+        typer.echo("Local source configuration is unavailable or invalid.", err=True)
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps({"sources": result, "restart_required_after_changes": True}, indent=2))
+
+
+@app.command()
+def source_remove(source_id: str):
+    """Disable a local source and clear its sessions. Identity/evidence remain; restart serving clients."""
+    try:
+        validate_id(source_id)
+        settings = Settings()
+        cleared = ForumSessions(settings, SourceCatalog()).remove_source_sessions(source_id)
+        removed = OperatorSources(settings).remove(source_id)
+    except DataAccessError:
+        typer.echo("Local source removal failed. Check the local source ID and storage.", err=True)
+        raise typer.Exit(1) from None
+    typer.echo(
+        json.dumps(
+            {
+                "removed": removed,
+                "local_sessions_removed": cleared,
+                "restart_required": True,
+                "identity_retained_for_evidence": True,
+            }
+        )
+    )
+
+
+def configured_forum_sessions():
+    settings = Settings()
+    return ForumSessions(settings, SourceCatalog(settings))
+
+
+@app.command()
 def forum_session_import(
     source_id: str,
     cookie_file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
@@ -88,7 +144,7 @@ def forum_session_import(
     """Import an operator's JSON cookie export for one forum origin. Run locally, never through an agent tool."""
     os.umask(0o077)
     try:
-        result = ForumSessions(Settings(), SourceCatalog()).import_file(source_id, cookie_file, origin, ttl_hours)
+        result = configured_forum_sessions().import_file(source_id, cookie_file, origin, ttl_hours)
     except (DataAccessError, ValueError):
         typer.echo(
             "Session import failed. Check source, exact origin, cookie export and expiry. No cookies were printed.",
@@ -102,7 +158,7 @@ def forum_session_import(
 def forum_session_status(source_id: str, origin: str | None = None):
     """Show local session metadata only; no network access or authentication claim."""
     try:
-        result = ForumSessions(Settings(), SourceCatalog()).status(source_id, origin)
+        result = configured_forum_sessions().status(source_id, origin)
     except DataAccessError:
         typer.echo("Session status unavailable. Check source, origin and local storage.", err=True)
         raise typer.Exit(1) from None
@@ -113,7 +169,7 @@ def forum_session_status(source_id: str, origin: str | None = None):
 def forum_session_remove(source_id: str, origin: str | None = None):
     """Delete the local session for an exact forum origin; subsequent reads use public access."""
     try:
-        result = ForumSessions(Settings(), SourceCatalog()).remove(source_id, origin)
+        result = configured_forum_sessions().remove(source_id, origin)
     except DataAccessError:
         typer.echo("Session removal failed. Check source, origin and local storage.", err=True)
         raise typer.Exit(1) from None

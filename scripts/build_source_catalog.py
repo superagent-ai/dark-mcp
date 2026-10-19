@@ -139,6 +139,12 @@ def build_catalog() -> dict:
         existing = next(source for source in sources if source["id"] == row["source_id"])
         existing.update(access_state=row["access_state"], checked_at=row["checked_at"], assessment=row["assessment"])
         existing["research"]["latest_priority_access_check"] = row
+    for row in priority.get("additional_checks", []):
+        existing = next(source for source in sources if source["id"] == row["source_id"])
+        existing["research"] = {
+            **existing["research"],
+            "additional_access_checks": [*existing["research"].get("additional_access_checks", []), row],
+        }
     tor_access = json.loads((ROOT / "sources/onion-forum-access-2026-10-19.json").read_text())
     for row in tor_access["sources"]:
         existing = next(source for source in sources if source["id"] == row["id"])

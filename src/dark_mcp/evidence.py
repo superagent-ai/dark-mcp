@@ -136,6 +136,13 @@ class EvidenceStore:
 
     def register(self, source_id: str, kind: str, locator: str | None, name: str, metadata: dict | None = None):
         with self.connect() as db:
+            previous = db.execute("SELECT metadata FROM sources WHERE id=?", (source_id,)).fetchone()
+            if previous and (old := json.loads(previous["metadata"])).get("configuration_origin") == "local_operator":
+                keys = ("configuration_origin", "allowed_hosts", "transport", "forum_engine", "locator")
+                if any(old.get(key) != (metadata or {}).get(key) for key in keys):
+                    raise DataAccessError(
+                        "source_identity_conflict", "Saved operator source identity changed; use a new slug"
+                    )
             db.execute(
                 "INSERT INTO sources(id,kind,locator,name,metadata) VALUES(?,?,?,?,?) "
                 "ON CONFLICT(id) DO UPDATE SET locator=excluded.locator,name=excluded.name,metadata=excluded.metadata",

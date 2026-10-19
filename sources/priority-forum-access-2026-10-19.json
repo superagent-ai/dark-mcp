@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "checked_on": "2026-10-19",
-  "method": "Real stdio MCP collect_source calls; public root reads only; no Telegram calls, account creation or challenge solving.",
+  "method": "Dated native MCP Tor and bounded HTTPS candidate-root checks; no challenge solving, account creation or Telegram calls.",
   "sources": [
     {
       "source_id": "onion:8779af3aebf3",
@@ -57,6 +57,47 @@
         "message": "Tor request failed or timed out; check the proxy and source availability"
       },
       "assessment": "Tor connection failed; this does not establish permanent source downtime."
+    }
+  ],
+  "additional_checks": [
+    {
+      "source_id": "onion:101f1e4f7366",
+      "url": "http://rehubg7wpn5vuwttbzqrzm5epq6ta5mqm6cbfpn7wtukaskzte3ehcyd.onion/",
+      "checked_at": "2026-10-19T14:12:27.287676+00:00",
+      "transport": "tor",
+      "scope": "Candidate root only; no original thread access established",
+      "access_state": "robots_denied",
+      "observed_title": null,
+      "text_chars": 0,
+      "error_code": "robots_denied",
+      "identity_authenticated": false,
+      "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+    },
+    {
+      "source_id": "onion:55910ea342a7",
+      "url": "https://dumpforums.to/",
+      "checked_at": "2026-10-19T14:12:26.757047+00:00",
+      "transport": "direct_https",
+      "scope": "Candidate root only; no original thread access established",
+      "access_state": "empty_document",
+      "observed_title": "",
+      "text_chars": 0,
+      "error_code": null,
+      "identity_authenticated": false,
+      "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+    },
+    {
+      "source_id": "forum:breachforums",
+      "url": "http://breach5yz2b5lepmq4gaqwcon3jippw3bislhvvdavem5git55sy2nid.onion/",
+      "checked_at": "2026-10-19T14:13:42.104642+00:00",
+      "transport": "tor",
+      "scope": "Candidate root only; no original thread access established",
+      "access_state": "tor_unavailable",
+      "observed_title": null,
+      "text_chars": 0,
+      "error_code": "tor_unavailable",
+      "identity_authenticated": false,
+      "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
     }
   ]
 }

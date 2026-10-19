@@ -8,12 +8,24 @@ from urllib.parse import urlsplit
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import classify_page, limit_value, now
 from dark_mcp.onion import onion_url
+from dark_mcp.operator_sources import OperatorSources, hosts_for
 
 
 class SourceCatalog:
-    def __init__(self):
+    def __init__(self, settings=None):
         self.document = json.loads(files("dark_mcp").joinpath("resources/source-catalog.json").read_text())
         self.sources = {source["id"]: source for source in self.document["sources"]}
+        self.operator_count = 0
+        if settings is not None:
+            occupied = set().union(*(hosts_for(s) for s in self.sources.values()))
+            for source in OperatorSources(settings).sources():
+                if source["id"] in self.sources or occupied.intersection(hosts_for(source)):
+                    raise DataAccessError(
+                        "operator_source_conflict", "Local source configuration overlaps another source"
+                    )
+                occupied.update(hosts_for(source))
+                self.sources[source["id"]] = source
+                self.operator_count += 1
 
     def get(self, source_id: str) -> dict:
         if source_id not in self.sources:
@@ -31,6 +43,8 @@ class SourceCatalog:
         return {
             "snapshot_date": self.document["snapshot_date"],
             "total": len(self.sources),
+            "operator_configured_sources": self.operator_count,
+            "packaged_sources": len(self.document["sources"]),
             "by_kind": dict(Counter(source["kind"] for source in self.sources.values())),
             "by_collection_method": dict(Counter(source["collection_method"] for source in self.sources.values())),
             "access_snapshot_dates": self.document["access_snapshot_dates"],
@@ -40,7 +54,10 @@ class SourceCatalog:
                 "forum_families_reviewed": self.document["vendor_research"]["forum_families_reviewed"],
                 "current_provider_coverage_verified": False,
             },
-            "coverage": "Dated research candidates, including failures; listing is not confirmed access",
+            "coverage": (
+                "Packaged research candidates and local operator configurations; "
+                "neither proves current or independent access"
+            ),
         }
 
     def list(
@@ -81,7 +98,11 @@ class SourceCatalog:
         return {
             "source": source,
             "snapshot_date": self.document["snapshot_date"],
-            "research_references": self.document["references"][source["kind"]],
+            "research_references": (
+                []
+                if source.get("configuration_origin") == "local_operator"
+                else self.document["references"][source["kind"]]
+            ),
             "web_mirror_context": self.document["web_mirror_context"] if source["kind"] == "onion" else [],
             "vendor_research_references": [row for row in vendor["references"] if row["id"] in reference_ids],
             "provider_research": vendor["providers"] if source.get("vendor_evidence") else [],

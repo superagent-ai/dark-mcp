@@ -28,7 +28,8 @@ class CollectionService:
             (
                 s
                 for s in self.catalog.sources.values()
-                if s["kind"] == "onion" and urlsplit(s["locator"]).hostname == host
+                if (s["kind"] == "onion" or s.get("transport") == "tor")
+                and host in s.get("allowed_hosts", [urlsplit(s["locator"]).hostname])
             ),
             None,
         )
@@ -63,8 +64,9 @@ class CollectionService:
     async def forum_page(self, source_id: str, url: str | None = None, limit: int = 20, collection_id=None):
         if self.forums is None:
             raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
+        source_metadata = self.forums.source(source_id)
         attempt = self.store.begin_attempt(source_id, {"url": url, "limit": limit, "collection_id": collection_id})
-        cooldown_key = ("onion:" if self.catalog.get(source_id).get("transport") == "tor" else "forum:") + source_id
+        cooldown_key = ("onion:" if source_metadata.get("transport") == "tor" else "forum:") + source_id
         try:
             self.store.cooldown(cooldown_key)
             page = await self.forums.fetch(source_id, url, limit)
@@ -476,6 +478,8 @@ class CollectionService:
         exclude_pinned: bool = False,
     ) -> dict:
         source = self.store.source(source_id)
+        if source["metadata"].get("configuration_origin") == "local_operator":
+            self.catalog.get(source_id)  # Removed configurations remain historical evidence, not active collectors.
         if source["kind"] == "provider":
             raise DataAccessError("historical_evidence_only", "Legacy provider sources have no active collector")
         if not source["locator"]:

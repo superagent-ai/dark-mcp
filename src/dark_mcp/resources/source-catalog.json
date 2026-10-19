@@ -312,6 +312,21 @@
             ],
             "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
           }
+        ],
+        "additional_access_checks": [
+          {
+            "source_id": "forum:breachforums",
+            "url": "http://breach5yz2b5lepmq4gaqwcon3jippw3bislhvvdavem5git55sy2nid.onion/",
+            "checked_at": "2026-10-19T14:13:42.104642+00:00",
+            "transport": "tor",
+            "scope": "Candidate root only; no original thread access established",
+            "access_state": "tor_unavailable",
+            "observed_title": null,
+            "text_chars": 0,
+            "error_code": "tor_unavailable",
+            "identity_authenticated": false,
+            "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+          }
         ]
       }
     },
@@ -1981,7 +1996,22 @@
             "message": "Tor request failed or timed out; check the proxy and source availability"
           },
           "assessment": "Tor connection failed; this does not establish permanent source downtime."
-        }
+        },
+        "additional_access_checks": [
+          {
+            "source_id": "onion:101f1e4f7366",
+            "url": "http://rehubg7wpn5vuwttbzqrzm5epq6ta5mqm6cbfpn7wtukaskzte3ehcyd.onion/",
+            "checked_at": "2026-10-19T14:12:27.287676+00:00",
+            "transport": "tor",
+            "scope": "Candidate root only; no original thread access established",
+            "access_state": "robots_denied",
+            "observed_title": null,
+            "text_chars": 0,
+            "error_code": "robots_denied",
+            "identity_authenticated": false,
+            "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+          }
+        ]
       },
       "vendor_evidence": [
         {
@@ -2403,7 +2433,22 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
-        }
+        },
+        "additional_access_checks": [
+          {
+            "source_id": "onion:55910ea342a7",
+            "url": "https://dumpforums.to/",
+            "checked_at": "2026-10-19T14:12:26.757047+00:00",
+            "transport": "direct_https",
+            "scope": "Candidate root only; no original thread access established",
+            "access_state": "empty_document",
+            "observed_title": "",
+            "text_chars": 0,
+            "error_code": null,
+            "identity_authenticated": false,
+            "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+          }
+        ]
       }
     },
     {

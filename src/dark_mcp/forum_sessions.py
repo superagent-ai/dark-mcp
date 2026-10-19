@@ -239,6 +239,13 @@ class ForumSessions:
                 db.execute("DELETE FROM sessions WHERE source_id=? AND origin=?", (source_id, origin))
         return self.status(source_id, origin)
 
+    def remove_source_sessions(self, source_id: str) -> int:
+        """Operator cleanup before removing a local source; never logs out the remote account."""
+        if not self.path.exists():
+            return 0
+        with self.connect() as db:
+            return db.execute("DELETE FROM sessions WHERE source_id=?", (source_id,)).rowcount
+
     def update(self, source_id: str, url: str, values: list[str]):
         """Accept exact-host cookie rotation from a read response; never extend the operator's local TTL."""
         origin = self.origin(source_id, origin_of(url))

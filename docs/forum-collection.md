@@ -1,6 +1,6 @@
 # Collect original forum threads
 
-Version 0.11 uses the same two forum tools for four HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
+Version 0.12 uses the same two forum tools for four HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
 
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
@@ -125,6 +125,9 @@ Individual gated/missing threads are recorded as gaps and collection continues. 
 A real stdio MCP check on 19 October 2026 discovered two HARD-TM threads from one index and saved 22 post records across three pages, with a server restart between discovery and thread ingestion. Four posts had hidden content; 35 URLs were deferred at the chosen bounds. Exact evidence replay succeeded. This validates ingestion, not the truth or relevance of the posts, lead time, or authenticated access. A second public run on Spear collected two root posts and one reply from two discovered access-market threads, also across a restart. Earlier Tor attempts timed out; the successful run used a 90-second request deadline. It recorded 19 deferred URLs and no failed pages. Raw receipts stay private.
 
 ## Operator-owned sessions
+
+Custom MyBB/XenForo addresses can be provisioned through the local operator registry before importing their sessions; see the [operator source guide](operator-sources.md). This configuration path does not grant forum membership or bypass a challenge.
+
 
 An operator with an existing account may import a JSON cookie export containing only one exact catalog host. Supported shapes are a list or `{"cookies":[...]}`; each row needs `name` and `value`, with optional `domain`, `path`, `secure` and Unix `expires`/`expirationDate`. Exports are limited to 128 KB and 100 cookies. The CLI rejects wrong-host and malformed entries without echoing their values.
 
