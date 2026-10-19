@@ -1,0 +1,26 @@
+# In-house access acceptance
+
+Audit date: 19 October 2026. The objective is an in-house Flare alternative exposed through MCP, with useful original-source evidence before public disclosure. Source retrieval and investigation are in scope; the user deferred monitoring, scheduling and alerts. A working parser or a larger source catalog alone does not satisfy the objective.
+
+| Requirement | Current evidence | Remaining gap |
+| --- | --- | --- |
+| Standalone repository and MCP interface | Public `superagent-ai/dark-mcp`, reviewable PR #1, installed-wheel initialization and 36 tools | Changes remain on the PR branch; full product parity is unproven |
+| Collection we operate ourselves | Native HTTPS/Tor collectors, local evidence, optional operator sessions and HTML imports; no competitor intelligence adapter | The optional onion search API is still a separate discovery aid, not our original-source corpus |
+| Read original forum bodies and context | Eight configured collectors: five HTTPS and three Tor; live bounded roots/replies, author metadata, exact replay and restart checks | These are public samples, with hidden/unvisited material and unverified operators; they do not establish access to all credited upstream sources |
+| Reach high-value gated originals | Session/configuration/import paths tested; dated Exploit/XSS challenges, CryptBB login gate, PwnForums section 403 and upstream marketplace login-only responses | No operator-owned authenticated forum session or original gated listing is available in this installation |
+| Expand priority source access | Latest native candidate checks retain Breached `.st` robots denial, `.su` connection failure and DamageLib Tor failure | Zero original posts from those checks; none became a collector or authenticated successor |
+| Telegram investigation and source lineage | Existing collected posts, channel/history/update tools, forward/entity preservation, fixed cooldown deadlines and shared-session guards | Live verification of the newer metadata remains pending; the account cooldown remained active at audit time, with its exact deadline available locally through `get_status` |
+| Preserve chronology and evidence | Immutable revisions/hashes, recording-time cutoffs for saved thread/author context, bounded history, acquisition labels and explicit gaps | A displayed older source date cannot prove our system detected the post earlier |
+| Demonstrate early-warning value | Observable access claims, recruitment, buyer demand and post-compromise statements are retained with caveats | No verified company-specific pre-disclosure or pre-compromise detection has been established |
+
+The current code and packaging checks pass locally. They verify the stated collection/retrieval behavior; they do not prove access to unavailable sources or early-warning efficacy. The catalog's 174 candidates are not 174 functioning or independent feeds. The source checks are recorded in [the dated priority matrix](../sources/priority-forum-access-2026-10-19.json).
+
+## Input needed for the next access milestone
+
+An operator must supply permitted access to at least one priority original source. An authenticated HTML capture with its source URL can establish the real page structure for parser work; source identity and acquisition remain unverified assertions. A supported MyBB/XenForo source can instead use a locally provisioned exact-origin session, followed by an actual original-thread read. Account ownership alone does not override robots or source permissions. Unsupported engines/routes require inspected source material before a collector can be verified.
+
+Use the existing [operator-source](operator-sources.md), [session](forum-collection.md#operator-owned-sessions) and [HTML capture](forum-captures.md) workflows. Keep passwords, session cookies and API credentials out of chat and MCP arguments. There are currently zero local operator source configurations and no configured authenticated sessions for the eight built-in collectors.
+
+After that access exists, the acceptance test is a substantive original thread with author/permalink/date provenance, bounded replies across a restart, exact stored replay, a direct refresh, a positive query and a negative control. Gates, expiry, hidden content and omitted pages must remain explicit. Source-owned APIs need their own permitted read authorization and validation; a token requirement is not solved by a parser.
+
+After Telegram's saved wait expires, a small authorized native read is needed to validate forward headers and hidden URL entities against real returned messages. No Telegram requests were made during this audit, and its stored deadline was not cleared or shortened. These two access milestones remain separate from demonstrating prospective pre-disclosure lead time. Further implementation cannot supply forum membership or make an absent threat signal real.

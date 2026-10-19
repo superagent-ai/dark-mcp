@@ -640,6 +640,36 @@
             "error_code": "tor_unavailable",
             "identity_authenticated": false,
             "assessment": "Dated candidate request only; no new collector or independent coverage established. A failure or timeout does not prove permanent downtime."
+          },
+          {
+            "source_id": "forum:breachforums",
+            "url": "https://breached.st/",
+            "checked_at": "2026-10-19T17:05:36.879790+00:00",
+            "transport": "direct_https",
+            "scope": "One bounded native candidate-root request in an isolated local research configuration",
+            "access_state": "robots_denied",
+            "error_code": "robots_denied",
+            "identity_authenticated": false,
+            "original_posts_collected": 0,
+            "assessment": "Candidate root denied by native robots handling. This code does not identify the underlying HTTP response. No original-thread access, new collector, permission or operator identity established.",
+            "discovery_references": [
+              "https://kelacyber.com/blog/breachforums-succession-wars-2026/"
+            ]
+          },
+          {
+            "source_id": "forum:breachforums",
+            "url": "https://breached.su/",
+            "checked_at": "2026-10-19T17:05:36.315448+00:00",
+            "transport": "direct_https",
+            "scope": "One bounded native candidate-root request in an isolated local research configuration",
+            "access_state": "forum_unavailable",
+            "error_code": "forum_unavailable",
+            "identity_authenticated": false,
+            "original_posts_collected": 0,
+            "assessment": "Candidate HTTPS root failed to connect or timed out. No original-thread access, new collector, permission or operator identity established; a connection failure does not prove permanent downtime.",
+            "discovery_references": [
+              "https://kelacyber.com/blog/breachforums-succession-wars-2026/"
+            ]
           }
         ]
       }
@@ -1037,6 +1067,23 @@
               "https://malware.news/t/the-xss-is-files-discussion-on-the-july-2025-events-with-ex-moderators/97705"
             ],
             "assessment": "Historical candidate locator only. Request failed or timed out; permanent downtime and operator identity are unverified. No original thread access established."
+          }
+        ],
+        "additional_access_checks": [
+          {
+            "source_id": "forum:damagelib",
+            "url": "http://damaga377vyvydeqeuigxvl6g5sbmipoxb5nne6gpj3sisbnslbhvrqd.onion/forum/",
+            "checked_at": "2026-10-19T17:06:21.288715+00:00",
+            "transport": "tor",
+            "scope": "One bounded native candidate-root request in an isolated local research configuration",
+            "access_state": "tor_unavailable",
+            "error_code": "tor_unavailable",
+            "identity_authenticated": false,
+            "original_posts_collected": 0,
+            "assessment": "Candidate Tor root failed or timed out. No original-thread access, new collector, permission or operator identity established; this does not prove permanent downtime.",
+            "discovery_references": [
+              "https://kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/"
+            ]
           }
         ]
       }

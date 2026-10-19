@@ -87,6 +87,8 @@ An investigating agent should:
 
 The MCP supplies discovery, persistent evidence and resumable collection; the calling agent derives signals and controls further collection. There is no built-in schedule or alert service. Telegram, onion and forum content reads persist locally as evidence with revision history. See the [investigation workflow](docs/investigation-workflow.md).
 
+The [access acceptance audit](docs/access-acceptance.md) separates verified collection from missing priority-source access and unproven early-warning lead time. Current functionality is not a verified claim of Flare-level source coverage.
+
 Maintainers can update the dated research snapshots and run `uv run python scripts/build_source_catalog.py` to regenerate the distributable registry. Tests check that the packaged registry matches the research files.
 
 ## Quick start

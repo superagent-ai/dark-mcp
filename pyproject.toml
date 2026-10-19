@@ -1,6 +1,6 @@
 [project]
 name = "dark-mcp"
-version = "0.19.0"
+version = "0.19.1"
 description = "Standalone MCP server for proactive company exposure research on onion sources and Telegram"
 readme = "README.md"
 license = "MIT"
