@@ -42,6 +42,16 @@ A fresh MCP check found the cataloged DarkForums route (`onion:e51377a2216a`) re
 
 The [dated priority snapshot](../sources/priority-forum-access-2026-10-19.json) also records current Exploit/XSS challenges and the failed ReHub connection. Those requests did not establish original-thread access. See the [DarkForums guide](forum-collection.md#darkforums-access-market-context) for exact tool calls and coverage limits.
 
+## Bounded AI-service investigation
+
+A subsequent live MCP run traversed 12 access-market, buyer and web-vulnerability index pages on DarkForums and Spear. It inspected 248 listing rows (including repeated pinned entries), selected 12 title candidates, and collected four chosen discussions containing ten post records. This was a bounded investigation; the saved index jobs still have unvisited pagination. It establishes neither full forum coverage nor absence of other mentions.
+
+The review found generic API-key acquisition demand, account/session-sale advertisements and an endpoint exposure claim. A pair of similarly worded requests across the two forums was linked as a caller-asserted possible repost with both originals as support. Shared wording and a contact label do not establish common ownership or independent corroboration. No keys, credentials, proof downloads or third-party endpoints were tested.
+
+Within the saved structured-forum corpus, current literal searches returned zero `superagent.sh`/`Superagent` or `Legora` records. The 23 `Replit` hits included 19 title-only matches; the 26 `Lovable` hits included 25 title-only matches. These are matching records, including aggregate pages and replies, not counts of distinct threats. Account/session-sale and abuse-tooling claims remained unverified, with gated payloads and unclear victim scope. None established an impending attack against the test companies or pre-disclosure detection. Raw receipts and bodies remain private.
+
+The investigation exposed two collection-quality issues corrected in 0.8.1: public HTML spoiler content had been omitted, and search hits did not identify repeated-title matches. Refreshing the affected original restored its service list while preserving the earlier evidence revision. Search now reports title/body provenance and the selected revision's local recording times. This supports honest investigations without adding threat scores, scheduling or alerts to the MCP.
+
 ## Build and operate our own source access
 
 The product direction is a collection capability we operate ourselves. Competitor research identifies source gaps and validation criteria; it does not introduce competitor intelligence APIs as runtime dependencies. The optional onion search API remains a discovery aid, while original posts and our collected corpus supply evidence.

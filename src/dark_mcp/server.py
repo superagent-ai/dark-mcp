@@ -157,6 +157,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         """Search saved Telegram/onion/forum text using case-insensitive literal substring matching.
 
         Historical matches are marked is_latest_revision=false. Gates are excluded unless requested.
+        matched_fields distinguishes title/body hits. Recording times concern the selected revision, not first mention.
         """
         return local(
             evidence.search,

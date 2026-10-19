@@ -422,3 +422,52 @@ async def test_darkforums_collector_is_source_scoped_and_preserves_thread_contex
             )
         ).structured_content
         assert not blocked["ok"] and len(requests) == count
+
+
+def test_public_mybb_spoiler_text_is_collected_without_fetching_or_unlocking_gates():
+    source = SourceCatalog().get("onion:e51377a2216a")
+    public = """<div class="spoiler"><div class="spoiler_title"><span class="spoiler_button">Show Content</span></div>
+      <div class="spoiler_content" style="display: none;"><span class="spoiler_content_title">Accepted services</span>
+      Acme.example API demand<script>do_not_execute()</script></div></div>"""
+    gated = (
+        '<div class="hidden-content">You must log in to view content'
+        + public.replace("Acme.example", "Private")
+        + "</div>"
+    )
+    text = public + gated + '<div style="display:none">Unrelated hidden HTML</div>'
+    doc = darkforums_post(900, 1, text)
+    page = parse_forum(source, source["locator"] + "Thread-fixture", doc, 60000, 100)
+    post = page.posts[0]
+    assert "Acme.example API demand" in post.text and "Accepted services" in post.text
+    assert post.hidden_content is True
+    assert "Private API demand" not in post.text and "Unrelated hidden HTML" not in post.text
+    assert "do_not_execute" not in post.text
+
+
+def test_public_spoilers_respect_existing_text_bounds_and_plain_hidden_content_is_not_revealed():
+    source = SourceCatalog().get("onion:e51377a2216a")
+    doc = darkforums_post(
+        900,
+        1,
+        """<div class="spoiler"><div class="spoiler_title">
+      <span class="spoiler_button">Show Content</span></div>
+      <div class="spoiler_content" hidden>"""
+        + "A" * 2000
+        + "</div></div>",
+    )
+    page = parse_forum(source, source["locator"] + "Thread-fixture", doc, 100, 100)
+    assert page.posts[0].text == "A" * 100 and page.posts[0].truncated
+    assert not page.posts[0].hidden_content
+
+
+def test_spoiler_content_with_its_own_gate_marker_is_not_expanded():
+    source = SourceCatalog().get("onion:e51377a2216a")
+    html = darkforums_post(
+        900,
+        1,
+        """<div class="spoiler"><div class="spoiler_title">
+      <span class="spoiler_button">Show Content</span></div>
+      <div class="spoiler_content hidden-content" style="display:none">Gated payload</div></div>""",
+    )
+    post = parse_forum(source, source["locator"] + "Thread-fixture", html, 60000, 100).posts[0]
+    assert post.hidden_content and "Gated payload" not in post.text

@@ -127,3 +127,68 @@ def test_profiles_and_relations_never_assert_independent_verification(settings):
     assert store.relations(two["evidence_id"])["results"][0]["verification"] == "caller_asserted"
     with pytest.raises(ValueError):
         store.relate(one["evidence_id"], two["evidence_id"], "possible_repost", [])
+
+
+def test_search_labels_repeated_thread_title_hits_and_body_previews(settings):
+    store = setup_store(settings)
+    root = observe(store, "Superagent.sh access allegation", key="root", title="Superagent.sh thread")
+    reply = observe(store, "bump", key="reply", title="Superagent.sh thread")
+    body = observe(store, "superagent.sh mentioned here", key="body", title="Other discussion")
+    results = {r["evidence_id"]: r for r in store.search("SUPERAGENT.sh")["results"]}
+    assert results[root["evidence_id"]]["matched_fields"] == ["title", "body"]
+    assert results[reply["evidence_id"]]["matched_fields"] == ["title"]
+    assert results[reply["evidence_id"]]["excerpt_basis"] == "body_preview"
+    assert results[reply["evidence_id"]]["excerpt"] == "bump"
+    assert results[body["evidence_id"]]["matched_fields"] == ["body"]
+    assert results[body["evidence_id"]]["excerpt_basis"] == "body_match_context"
+
+
+def test_search_recording_times_do_not_backdate_new_company_text_or_refresh_from_old_publication(settings, monkeypatch):
+    store = setup_store(settings)
+    monkeypatch.setattr("dark_mcp.evidence.now", lambda: "2026-10-01T08:00:00+00:00")
+    first = observe(store, "General discussion")
+    monkeypatch.setattr("dark_mcp.evidence.now", lambda: "2026-10-19T08:00:00+00:00")
+    edited = observe(store, "Superagent.sh newly added", published_at="2026-10-01T00:00:00Z")
+    monkeypatch.setattr("dark_mcp.evidence.now", lambda: "2026-10-20T08:00:00+00:00")
+    repeated = observe(store, "Superagent.sh newly added", published_at="2026-10-01T00:00:00Z")
+    assert repeated["revision_id"] == edited["revision_id"]
+    monkeypatch.setattr("dark_mcp.evidence.now", lambda: "2026-10-21T08:00:00+00:00")
+    store.unavailable(first["evidence_id"], "Missing on direct check")
+    hit = store.search("superagent.sh")["results"][0]
+    assert hit["evidence_first_recorded_at"] == "2026-10-01T08:00:00+00:00"
+    assert hit["matched_revision_first_recorded_at"] == "2026-10-19T08:00:00+00:00"
+    assert hit["matched_revision_last_recorded_at"] == "2026-10-20T08:00:00+00:00"
+    assert hit["published_at"] == "2026-10-01T00:00:00+00:00"
+    assert hit["availability"] == "unavailable"
+
+
+def test_search_labels_a_literal_spanning_title_body_boundary_without_claiming_body_match(settings):
+    store = setup_store(settings)
+    observe(store, "root text", title="Company")
+    hit = store.search("company\nroot")["results"][0]
+    assert hit["matched_fields"] == ["title_body_boundary"]
+    assert hit["excerpt_basis"] == "body_preview"
+
+
+async def test_search_match_context_and_recorded_times_are_returned_over_real_mcp(settings):
+    from mcp import Client
+
+    from dark_mcp.server import create_server
+
+    store = setup_store(settings)
+    item = observe(store, "Reply without a company name", title="Superagent.sh claim")
+    async with Client(create_server(settings)) as client:
+        result = (await client.call_tool("search_evidence", {"query": "superagent.sh"})).structured_content
+        assert result["ok"] and len(result["results"]) == 1
+        hit = result["results"][0]
+        assert hit["evidence_id"] == item["evidence_id"] and hit["matched_fields"] == ["title"]
+        assert hit["matched_revision_first_recorded_at"] == hit["matched_revision_last_recorded_at"]
+
+
+def test_search_excerpt_offsets_follow_original_unicode_text_after_casefold_expansion(settings):
+    store = setup_store(settings)
+    observe(store, "ß" * 1000 + " MARKER.EXAMPLE matching body")
+    hit = store.search("marker.example")["results"][0]
+    assert hit["matched_fields"] == ["body"] and "MARKER.EXAMPLE" in hit["excerpt"]
+    assert len(hit["excerpt"]) <= 600
+    assert store.search("SS")["results"][0]["excerpt"].startswith("ß")

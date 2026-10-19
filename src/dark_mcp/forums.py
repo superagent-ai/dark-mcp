@@ -111,6 +111,25 @@ def reference_links(body, base_url: str) -> list[dict]:
     return links
 
 
+def expand_public_spoilers(body):
+    """Preserve MyBB spoiler text already returned in HTML; do not unlock or fetch gated content."""
+    for wrapper in body.select(".spoiler"):
+        title = wrapper.find(class_="spoiler_title", recursive=False)
+        content = wrapper.find(class_="spoiler_content", recursive=False)
+        if title is None or content is None or title.select_one(".spoiler_button") is None:
+            continue
+        gate_classes = {"hidden-content", "hideContent", "bbCodeBlock--hide"}
+        if (
+            gate_classes.intersection(content.get("class", []))
+            or content.has_attr("data-hide")
+            or content.find_parent(class_=list(gate_classes))
+            or content.find_parent(attrs={"data-hide": True})
+        ):
+            continue
+        content.unwrap()  # Drop only the collapsed presentation wrapper, retaining the returned text.
+        title.decompose()
+
+
 async def public_addresses(host: str) -> list[str]:
     records = await asyncio.get_running_loop().getaddrinfo(host, 443, type=socket.SOCK_STREAM)
     addresses = list(dict.fromkeys(row[4][0] for row in records))
@@ -250,6 +269,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 re.I,
             )
         )
+        expand_public_spoilers(body)
         quotes = []
         for quote in body.select("blockquote")[:3]:
             value = quote.get("data-source", "")

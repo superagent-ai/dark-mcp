@@ -137,7 +137,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `start_collection(source_id, mode="history", ..., max_threads=100, max_index_pages=3, max_thread_pages=3)` | Create a resumable history job, Telegram new-post cursor, or bounded forum `section` ingestion; no background process |
 | `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
-| `search_evidence(query, ...)` | Literal substring search across saved Telegram/onion/forum revisions; filter source, kind and dates |
+| `search_evidence(query, ...)` | Literal search of saved revisions; label title/body matches and local revision recording times; filter source, kind and dates |
 | `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
 | `get_collected_thread(evidence_id, as_of=null, offset=0, limit=20)` | Reconstruct saved forum posts/replies without network access; optional cutoff uses local recording time |
 | `list_evidence_changes(after_seq=0, ...)` | Cursor over new, edited, deleted, restored and unavailable observations |
@@ -260,4 +260,4 @@ uv run pytest -q
 uv build
 ```
 
-Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Tests also cover exact-origin forum sessions, expiry, redirects, restart-safe section ingestion and local thread reconstruction without later replies or edits leaking past an observation cutoff. Live authenticated access requires operator credentials and separate verification.
+Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Tests also cover exact-origin forum sessions, expiry, redirects, restart-safe section ingestion, public HTML spoilers, title/body search provenance, Unicode excerpt offsets and local thread reconstruction without later replies or edits leaking past an observation cutoff. Live authenticated access requires operator credentials and separate verification.

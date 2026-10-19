@@ -27,6 +27,20 @@ def date_value(value: str | None) -> str | None:
     return date.isoformat() if date else None
 
 
+def match_excerpt(text: str, folded_position: int) -> str:
+    """Keep offsets in the original text even when casefold expands characters such as ß."""
+    position = 0
+    if folded_position >= 0:
+        folded_length = 0
+        for index, char in enumerate(text):
+            folded_length += len(char.casefold())
+            if folded_length > folded_position:
+                position = index
+                break
+    start = max(0, position - 120)
+    return text[start : start + 600]
+
+
 class EvidenceStore:
     def __init__(self, directory: Path):
         self.path = directory / "evidence.sqlite3"
@@ -345,9 +359,11 @@ class EvidenceStore:
         fts_filter = "AND r.id IN (SELECT rowid FROM revision_search WHERE revision_search MATCH ?) " if indexed else ""
         fts_args = ('"' + term.replace('"', '""') + '"',) if indexed else ()
         with self.connect() as db:
+            db.execute("BEGIN")  # Search hits and their local observation times share a read snapshot.
             rows = db.execute(
                 "WITH matches AS (SELECT i.id AS evidence_id,i.source_id,i.kind,i.url,i.availability,"
                 "r.id AS revision_id,r.title,r.text,r.published_at,r.collected_at,r.truncated,r.access_state,"
+                "i.first_seen AS evidence_first_recorded_at,"
                 "r.content_hash,r.id=i.latest_revision_id AS is_latest_revision,"
                 "(SELECT max(o.collected_at) FROM observations o WHERE o.revision_id=r.id "
                 "AND o.change_type IN ('new','edited','unchanged','restored')) AS last_collected_at,"
@@ -378,13 +394,38 @@ class EvidenceStore:
                     offset,
                 ),
             ).fetchall()
+            revision_ids = [row["revision_id"] for row in rows[:limit]]
+            recorded = {}
+            if revision_ids:
+                placeholders = ",".join("?" for _ in revision_ids)
+                recorded = {
+                    row["revision_id"]: dict(row)
+                    for row in db.execute(
+                        "SELECT revision_id,min(observed_at) AS matched_revision_first_recorded_at,"
+                        "max(observed_at) AS matched_revision_last_recorded_at FROM observations "
+                        f"WHERE revision_id IN ({placeholders}) "
+                        "AND change_type IN ('new','edited','unchanged','restored') GROUP BY revision_id",
+                        revision_ids,
+                    ).fetchall()
+                }
         results = []
         for row in rows[:limit]:
             result = dict(row)
             text = result.pop("text")
             result.pop("n")
-            position = text.casefold().find(query.strip().casefold())
-            result["excerpt"] = text[max(0, position - 120) : max(0, position - 120) + 600]
+            position = text.casefold().find(term)
+            fields = []
+            if term in result["title"].casefold():
+                fields.append("title")
+            if position >= 0:
+                fields.append("body")
+            result["matched_fields"] = fields or ["title_body_boundary"]
+            result["excerpt_basis"] = "body_match_context" if position >= 0 else "body_preview"
+            times = recorded.get(result["revision_id"], {})
+            result.update(
+                {k: times.get(k) for k in ("matched_revision_first_recorded_at", "matched_revision_last_recorded_at")}
+            )
+            result["excerpt"] = match_excerpt(text, position)
             result["is_latest_revision"] = bool(result["is_latest_revision"])
             results.append(result)
         return {
