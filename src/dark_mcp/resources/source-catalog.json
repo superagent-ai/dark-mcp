@@ -3519,7 +3519,15 @@
       "forum_engine": "mybb",
       "feed_urls": [
         "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/syndication.php"
-      ]
+      ],
+      "native_search": {
+        "engine": "mybb_get",
+        "endpoint": "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/search.php",
+        "scope": "source_defined_full_post_search",
+        "verified_on": "2026-10-19",
+        "access": "guest",
+        "operator_identity_verified": false
+      }
     },
     {
       "id": "onion:94c961978c90",

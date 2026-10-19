@@ -617,7 +617,11 @@ class ForumConnector:
             raise DataAccessError("source_access_required", "This source has no supported forum collector")
         return source
 
-    def target(self, source: dict, value: str, *, robots=False, feed=False) -> str:
+    def target(self, source: dict, value: str, *, robots=False, feed=False, search=None) -> str:
+        if search is not None and not robots:
+            from dark_mcp.forum_search_urls import search_url
+
+            return search_url(source, value, search)
         try:
             if feed and not robots:
                 return feed_url(source, value)
@@ -643,8 +647,9 @@ class ForumConnector:
                 await asyncio.sleep(remaining)
             self.last_request[host] = time.monotonic()
 
-    async def _request(self, client, source, url, delay=4, *, feed=False):
-        url = self.target(source, url, robots=urlsplit(url).path == "/robots.txt", feed=feed)
+    async def _request(self, client, source, url, delay=4, *, feed=False, search=None):
+        mode = {"search": search} if search is not None else {}
+        url = self.target(source, url, robots=urlsplit(url).path == "/robots.txt", feed=feed, **mode)
         host = urlsplit(url).hostname
         addresses = await public_addresses(host)
         await self._pace(host, delay)
@@ -668,7 +673,7 @@ class ForumConnector:
                         if not target:
                             raise DataAccessError("invalid_redirect", "Forum returned no redirect target")
                         return self.target(
-                            source, urljoin(url, target), robots=urlsplit(url).path == "/robots.txt", feed=feed
+                            source, urljoin(url, target), robots=urlsplit(url).path == "/robots.txt", feed=feed, **mode
                         ), None
                     if response.status_code == 429:
                         wait = response.headers.get("retry-after", "60")
@@ -731,9 +736,14 @@ class ForumConnector:
         self.robots_cache[host] = (time.monotonic() + 300, parser)
         return parser
 
-    async def fetch_document(self, source_id: str, url: str | None = None, *, feed=False) -> tuple[str, str, dict]:
+    async def fetch_document(
+        self, source_id: str, url: str | None = None, *, feed=False, search=None
+    ) -> tuple[str, str, dict]:
+        if feed and search is not None:
+            raise ValueError("Choose feed or native search mode")
         source = self.source(source_id)
-        target = self.target(source, feed_url(source, url) if feed else url or source["locator"], feed=feed)
+        mode = {"search": search} if search is not None else {}
+        target = self.target(source, feed_url(source, url) if feed else url or source["locator"], feed=feed, **mode)
         self.sessions.context(source_id, target)  # Expired configured sessions fail before network access.
         if source.get("transport") == "tor":
             if self.onion is None:
@@ -747,7 +757,7 @@ class ForumConnector:
 
             options = {
                 "validate": lambda value: self.target(
-                    source, value, robots=urlsplit(value).path == "/robots.txt", feed=feed
+                    source, value, robots=urlsplit(value).path == "/robots.txt", feed=feed, **mode
                 ),
                 "headers_for": headers_for,
                 "on_response": lambda value, cookies: self.sessions.update(source_id, value, cookies),
@@ -776,7 +786,7 @@ class ForumConnector:
                                 delay = max(delay, rate.seconds / rate.requests)
                             access_context = self.sessions.context(source_id, target)
                             target, document = await self._request(
-                                client, source, target, delay, **({"feed": True} if feed else {})
+                                client, source, target, delay, **({"feed": True} if feed else {}), **mode
                             )
                             if document is not None:
                                 return target, document, access_context

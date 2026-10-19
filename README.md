@@ -20,6 +20,10 @@ Probing here means investigating sources and exposure signals. Findings should r
 
 **The MCP collects original source content into its own local corpus.** The optional Onion Search Engine API helps discover URLs; it is not the evidence corpus. Local search only covers content this installation has collected, and discovery-provider coverage and freshness are not independently verified.
 
+### Search inside original forum posts
+
+`search_forum_posts` uses a verified source-native full-post search, currently Spear over Tor. It finds mentions beyond listing titles and saves resumable, query-specific excerpts as `forum_search` evidence. Follow each matched post URL through `read_forum_thread` for original context; search excerpts do not establish a verified exposure. See the [native forum search guide](docs/forum-search.md) for cursors, coverage and source waits.
+
 ### Telegram source research
 
 The [18 October 2026 source catalog](sources/telegram-research-2026-10-18.json) records live checks of 108 public handles, including access failures, stale feeds, evidence links and source assessments. Only 18 had any visible post within 30 days; recent activity can still be a promotion or migration notice.

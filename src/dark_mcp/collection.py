@@ -409,6 +409,12 @@ class CollectionService:
 
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
+        if item["kind"] == "forum_search":
+            raise DataAccessError(
+                "forum_search_repeat_required",
+                "Repeat search_forum_posts with the saved query, or read the original post URL; "
+                "excerpts are not originals",
+            )
         if item["kind"] == "forum_feed":
             if self.forum_feeds is None:
                 raise DataAccessError("forum_feed_not_configured", "Source feed collector is unavailable")

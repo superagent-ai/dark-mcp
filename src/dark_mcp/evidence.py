@@ -441,7 +441,17 @@ class EvidenceStore:
             or len(query) > 500
             or offset < 0
             or kind
-            not in {None, "onion", "telegram", "telegram_archive", "telegram_web", "forum", "forum_feed", "provider"}
+            not in {
+                None,
+                "onion",
+                "telegram",
+                "telegram_archive",
+                "telegram_web",
+                "forum",
+                "forum_feed",
+                "forum_search",
+                "provider",
+            }
         ):
             raise ValueError("Check query, kind and pagination")
         source_id = self._source_filter(source_id)

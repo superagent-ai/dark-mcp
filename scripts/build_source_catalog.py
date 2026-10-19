@@ -161,6 +161,10 @@ def build_catalog() -> dict:
         source = next(source for source in sources if source["id"] == feed["source_id"])
         source["feed_urls"] = feed["feed_urls"]
         source["research"]["source_feed_check"] = feed
+    searches = json.loads((ROOT / "sources/forum-native-search-2026-10-19.json").read_text())
+    for row in searches["sources"]:
+        source = next(source for source in sources if source["id"] == row["source_id"])
+        source["native_search"] = row["native_search"]
     return {
         "schema_version": 2,
         "snapshot_date": "2026-10-19",

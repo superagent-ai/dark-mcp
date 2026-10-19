@@ -11,6 +11,7 @@ from dark_mcp.coverage import CorpusCoverage
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
 from dark_mcp.forum_feeds import ForumFeeds
+from dark_mcp.forum_search import ForumSearch
 from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
@@ -38,6 +39,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     forums = ForumConnector(settings, catalog, onion)
     telegram_web = TelegramWeb(settings, catalog, evidence)
     forum_feeds = ForumFeeds(settings, forums, evidence)
+    forum_search = ForumSearch(settings, forums, evidence)
     collection = CollectionService(settings, catalog, evidence, onion, telegram, forums, telegram_web, forum_feeds)
     collection.import_legacy(index)
     server = MCPServer(
@@ -90,6 +92,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             " Source-advertised RSS windows use read_forum_feed and kind=forum_feed. They are separate from "
             "original forum posts: reported pubDate is not independently verified thread creation, feed bodies "
             "may be excerpts, and older missing items do not imply deletion. Read the original thread for context."
+            " Use search_forum_posts for sources with verified native_search configuration; this searches full "
+            "posts using source semantics. Save excerpts as kind=forum_search, distinct from original forum "
+            "evidence. Continue opaque cursors and read matched original post IDs before deriving signals."
         ),
     )
 
@@ -496,6 +501,20 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         complete-history claim. Only configured endpoints use this path; source robots, sessions and waits apply.
         """
         return await run(forum_feeds.read, source_id=source_id, url=url, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def search_forum_posts(
+        source_id: str, query: str, limit: int = 20, cursor: str | None = None
+    ) -> dict[str, Any]:
+        """Search a configured forum's native full-post search and persist query-specific excerpts.
+
+        Inspect native_search in get_source for verified support. Source semantics differ from literal local
+        search. Follow next_cursor with the identical source/query; cached rows survive restarts. Each call
+        reads at most one result page. Excerpts use kind=forum_search, not original forum posts. Read each
+        original URL with read_forum_thread and check matched_post_id before attributing a claim. Native
+        flood waits, access gates, robots and cache expiry are explicit errors. No automatic query retries.
+        """
+        return await run(forum_search.search, source_id=source_id, query=query, limit=limit, cursor=cursor)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def list_forum_threads(

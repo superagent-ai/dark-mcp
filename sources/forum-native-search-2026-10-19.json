@@ -1,0 +1,18 @@
+{
+  "checked_on": "2026-10-19",
+  "purpose": "Verified source-native post search; not a claim of complete or authenticated forum coverage.",
+  "sources": [
+    {
+      "source_id": "onion:91e4e785a3af",
+      "native_search": {
+        "engine": "mybb_get",
+        "endpoint": "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/search.php",
+        "scope": "source_defined_full_post_search",
+        "verified_on": "2026-10-19",
+        "access": "guest",
+        "operator_identity_verified": false
+      },
+      "validation": "Source-advertised GET form, positive post results, explicit negative result, and a matched original post were read."
+    }
+  ]
+}
