@@ -31,6 +31,9 @@ class ForumPost(BaseModel):
     timestamp_basis: str | None = None
     is_thread_root: bool | None = None
     post_number: int | None = Field(default=None, ge=1, le=1_000_000_000)
+    post_type: str | None = None
+    reply_to_post_id: str | None = None
+    source_events: list[dict] = Field(default_factory=list)
     edited_at: str | None = None
     edited_at_raw: str | None = None
     hidden_content: bool = False

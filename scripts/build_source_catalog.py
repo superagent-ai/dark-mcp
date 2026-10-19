@@ -141,7 +141,7 @@ def build_catalog() -> dict:
             {
                 **row,
                 "collection_method": "forum_page",
-                "checked_at": tor_access["checked_at"],
+                "checked_at": row.get("checked_at", tor_access["checked_at"]),
                 "research": {**existing["research"], "tor_forum_access": row},
             }
         )

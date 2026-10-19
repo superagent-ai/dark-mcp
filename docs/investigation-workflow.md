@@ -55,6 +55,8 @@ After a forum hit, use `get_collected_thread(evidence_id, as_of=null, offset=0, 
 
 `as_of` accepts a UTC-offset timestamp and selects the latest observation per post that this store had **recorded** by that time. Source publication dates and a provider's claimed collection time do not qualify a later local observation. A cutoff before the anchor was recorded returns `evidence_not_observed`. Later edits, replies, URLs and availability changes are excluded. `first_recorded_at`, `recorded_at`, the selected observation's `collected_at`, and its revision's original `revision_collected_at` remain distinct. Without a cutoff, each post uses its latest locally recorded state; posts may have been collected at different times.
 
+Question2Answer context also returns question/answer/comment type, direct parent post IDs and labeled source events. Selected answers are not presented as independent corroboration or inferred edits.
+
 Thread membership is source-local and derived only from preserved thread IDs or exact MyBB slugs. Numeric XenForo IDs group title-slug and catalog-mirror variants within the same source; equal titles or handles do not merge unrelated threads or sources. MyBB slugs and numeric thread IDs are not merged without an explicit shared identity. Ordering prefers explicit roots, then source post numbers, known source timestamps and observation order. Unknown positions or dates remain unknown. Older snapshots gain a derived membership index without changing their hashes or manufacturing source post numbers.
 
 This cutoff is useful for testing what the investigator could have known before a disclosure. It does not prove that every relevant source had been collected, or that the system warned before compromise.

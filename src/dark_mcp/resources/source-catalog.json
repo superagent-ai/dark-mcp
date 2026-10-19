@@ -2851,14 +2851,13 @@
       "url": "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/",
       "family": "EXILIO404",
       "source_class": "forum",
-      "access_state": "public_sections",
-      "checked_at": "2026-10-18T18:57:10.817055+00:00",
-      "assessment": "Public leak and hacking category pages readable. Portuguese-language, Brazil-focused; useful for regional customer/vendor exposure, with lower direct relevance to Superagent than global access-broker forums.",
-      "collection_method": "onion_page",
+      "access_state": "public_threads_partial",
+      "checked_at": "2026-10-19T12:51:28.454918+00:00",
+      "assessment": "Public Portuguese-language Question2Answer discussions expose questions and answers with explicit timestamps. General marketplace noise is excluded from configured sections. Access requests are unverified, may concern sharing or study, and do not establish attack intent, compromise or detection lead time.",
+      "collection_method": "forum_page",
       "collection_urls": [
-        "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/",
-        "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/vazamento-de-dados",
-        "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/hacking"
+        "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/hacking",
+        "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/vazamento-de-dados"
       ],
       "research": {
         "name": "EXILIO404",
@@ -2940,6 +2939,43 @@
             "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
             "Distinguish homepage success, full thread access and API availability."
           ]
+        },
+        "tor_forum_access": {
+          "id": "onion:a9bcde64e044",
+          "transport": "tor",
+          "forum_engine": "q2a",
+          "allowed_hosts": [
+            "exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion"
+          ],
+          "section_paths": [
+            "/hacking",
+            "/vazamento-de-dados",
+            "/questions/hacking",
+            "/questions/vazamento-de-dados"
+          ],
+          "collection_urls": [
+            "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/hacking",
+            "http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/vazamento-de-dados"
+          ],
+          "checked_at": "2026-10-19T12:51:28.454918+00:00",
+          "access_state": "public_threads_partial",
+          "assessment": "Public Portuguese-language Question2Answer discussions expose questions and answers with explicit timestamps. General marketplace noise is excluded from configured sections. Access requests are unverified, may concern sharing or study, and do not establish attack intent, compromise or detection lead time.",
+          "verification": {
+            "original_threads": 2,
+            "posts": 9,
+            "posts_with_explicit_dates": 9,
+            "root_posts": 2,
+            "answer_posts": 4,
+            "comment_posts": 3,
+            "section_restart_resume": true,
+            "exact_replay": true,
+            "direct_refresh": true,
+            "selection_not_misclassified_as_edit": true,
+            "early_warning_proven": false,
+            "telegram_network_calls": 0,
+            "method": "Real stdio MCP reads over Tor, section continuation after restart, exact evidence replay, local context reconstruction and direct refresh.",
+            "raw_receipts": "Private; no raw post bodies or contact details are bundled."
+          }
         }
       },
       "vendor_evidence": [
@@ -2952,7 +2988,34 @@
         }
       ],
       "status_context": [],
-      "research_priority": "medium"
+      "research_priority": "medium",
+      "transport": "tor",
+      "forum_engine": "q2a",
+      "allowed_hosts": [
+        "exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion"
+      ],
+      "section_paths": [
+        "/hacking",
+        "/vazamento-de-dados",
+        "/questions/hacking",
+        "/questions/vazamento-de-dados"
+      ],
+      "verification": {
+        "original_threads": 2,
+        "posts": 9,
+        "posts_with_explicit_dates": 9,
+        "root_posts": 2,
+        "answer_posts": 4,
+        "comment_posts": 3,
+        "section_restart_resume": true,
+        "exact_replay": true,
+        "direct_refresh": true,
+        "selection_not_misclassified_as_edit": true,
+        "early_warning_proven": false,
+        "telegram_network_calls": 0,
+        "method": "Real stdio MCP reads over Tor, section continuation after restart, exact evidence replay, local context reconstruction and direct refresh.",
+        "raw_receipts": "Private; no raw post bodies or contact details are bundled."
+      }
     },
     {
       "id": "onion:ad7bf11815aa",

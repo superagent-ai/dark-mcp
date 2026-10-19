@@ -12,6 +12,8 @@ def thread_root(source: dict, url: str) -> str:
     key = thread_identity(url)
     if key is None:
         raise ValueError("Expected a discovered thread URL")
+    if key.startswith("q2a:"):
+        return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
     if key.startswith("tid:"):
         return urlunsplit((parts.scheme, parts.netloc, "/showthread.php", urlencode({"tid": key[4:]}), ""))
     return urlunsplit((parts.scheme, parts.netloc, key + ("/" if key.startswith("/threads/") else ""), "", ""))

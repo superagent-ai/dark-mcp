@@ -12,6 +12,8 @@ def forum_thread_key(value: str | None) -> str | None:
     """Normalize only explicit thread IDs or exact MyBB slugs, never titles or author handles."""
     if not isinstance(value, str) or len(value) > 4000:
         return None
+    if re.fullmatch(r"q2a:[1-9][0-9]{0,9}", value):
+        return value
     if re.fullmatch(r"tid:[0-9]{1,10}", value):
         return "mybb:tid:" + str(int(value[4:]))
     try:
@@ -117,6 +119,9 @@ class ThreadContext:
                     "revision_id": row["revision_id"],
                     "post_id": row["post_id"],
                     "post_number": row["post_number"],
+                    "post_type": snap.get("post_type"),
+                    "reply_to_post_id": snap.get("reply_to_post_id"),
+                    "source_events": snap.get("source_events", []),
                     "is_thread_root": bool(row["is_thread_root"]) if row["is_thread_root"] is not None else None,
                     "url": snap.get("url"),
                     "title": snap.get("title", "")[:500],

@@ -17,10 +17,18 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.6 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.7 (+https://github.com/superagent-ai/dark-mcp)"
 
 
-def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: str = "direct_https") -> str:
+def forum_url(
+    value: str,
+    hosts: list[str],
+    *,
+    robots: bool = False,
+    transport: str = "direct_https",
+    engine: str | None = None,
+    section_paths: list[str] | None = None,
+) -> str:
     try:
         if transport == "tor":
             value = onion_url(value)
@@ -28,6 +36,17 @@ def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: 
         host = parts.hostname or ""
         path = parts.path or "/"
         query = parse_qsl(parts.query, keep_blank_values=True)
+        if engine == "q2a":
+            question = bool(re.fullmatch(r"/[1-9][0-9]{0,9}(?:/[^/]+)?/?", path))
+            read_route = path in (section_paths or []) or question
+            query_keys = {"show", "start"} if question else {"start"}
+        else:
+            read_route = bool(
+                re.fullmatch(r"/(?:threads|forums)/[^/]+(?:/(?:page-[0-9]+|post-[0-9]+|unread|latest))?/?", path)
+                or re.fullmatch(r"/(?:Thread-|Forum-)[^/]+/?", path)
+                or path in {"/showthread.php", "/forumdisplay.php"}
+            )
+            query_keys = {"page", "tid", "fid", "pid"}
         if (
             (parts.scheme not in {"http", "https"} if transport == "tor" else parts.scheme != "https")
             or len(value) > 4000
@@ -40,15 +59,9 @@ def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: 
             or any(segment in {".", ".."} for segment in path.split("/"))
             or len({key for key, _ in query}) != len(query)
             or re.search(r"%(?:0[0-9a-f]|1[0-9a-f]|25|2e|2f|5c|7f)", path, re.I)
-            or any(k not in {"page", "tid", "fid", "pid"} or not re.fullmatch(r"[0-9]{1,10}", v) for k, v in query)
+            or any(k not in query_keys or not re.fullmatch(r"[0-9]{1,10}", v) for k, v in query)
             or re.search(r"/(?:reply|edit|delete|report|react|like|watch|unwatch|create-thread)(?:/|$)", path, re.I)
-            or not (
-                path == "/"
-                or (robots and path == "/robots.txt")
-                or re.fullmatch(r"/(?:threads|forums)/[^/]+(?:/(?:page-[0-9]+|post-[0-9]+|unread|latest))?/?", path)
-                or re.fullmatch(r"/(?:Thread-|Forum-)[^/]+/?", path)
-                or path in {"/showthread.php", "/forumdisplay.php"}
-            )
+            or not (path == "/" or (robots and path == "/robots.txt") or read_route)
         ):
             raise ValueError
     except (ValueError, TypeError) as exc:
@@ -60,7 +73,14 @@ def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: 
 
 
 def source_url(source: dict, value: str, *, robots: bool = False) -> str:
-    return forum_url(value, source["allowed_hosts"], robots=robots, transport=source.get("transport", "direct_https"))
+    return forum_url(
+        value,
+        source["allowed_hosts"],
+        robots=robots,
+        transport=source.get("transport", "direct_https"),
+        engine=source.get("forum_engine"),
+        section_paths=source.get("section_paths"),
+    )
 
 
 def reference_links(body, base_url: str) -> list[dict]:
@@ -105,6 +125,9 @@ async def public_addresses(host: str) -> list[str]:
 
 def thread_identity(url: str) -> str | None:
     parts = urlsplit(url)
+    question = re.fullmatch(r"/([1-9][0-9]{0,9})(?:/[^/]+)?/?", parts.path)
+    if question:
+        return "q2a:" + question[1]
     match = re.match(r"(/threads/[^/]+)(?:/|$)", parts.path)
     if match:
         return match[1]
@@ -133,6 +156,10 @@ def timestamp(node) -> tuple[str | None, str | None]:
 
 
 def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: int) -> ForumPage:
+    if source["forum_engine"] == "q2a":
+        from dark_mcp.q2a import parse_q2a
+
+        return parse_q2a(source, url, document, max_chars, limit)
     soup = BeautifulSoup(document, "html.parser")
     title = soup.title.get_text(" ", strip=True)[:500] if soup.title else ""
     identity = thread_identity(url)

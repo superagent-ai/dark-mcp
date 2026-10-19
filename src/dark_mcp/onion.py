@@ -14,7 +14,7 @@ from dark_mcp.errors import DataAccessError
 from dark_mcp.index import OnionIndex
 from dark_mcp.models import OnionPage, classify_page, limit_value, parse_date
 
-USER_AGENT = "dark-mcp/0.6 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.7 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def onion_url(value: str) -> str:

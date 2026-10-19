@@ -1,12 +1,13 @@
 # Collect original forum threads
 
-Version 0.6 uses the same two forum tools for three HTTPS sources and Spear over Tor. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
+Version 0.7 uses the same two forum tools for three HTTPS sources and two Tor sources: Spear and Exilio404. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
 
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
 | `forum:hard-tm` | Original Lovable advertisement: one author, publication timestamp, post permalink and over 3,000 characters of visible terms | Purchase/contact links require registration; no account provenance or compromise established |
 | `forum:niflheim` | AI advertisement with two posts; FAQ with 20 posts on each of two pages, authors and timestamps | Other thread bodies can require login; readable replies do not reveal hidden content or corroborate a claim |
 | `onion:91e4e785a3af` (Spear, Tor) | Access-market and buyer indexes; three threads with four visible posts, authors, root/reply markers and body references | Source dates lack explicit timezone/epoch in the tested posts; original marketplace destinations can be gated; claims unverified |
+| `onion:a9bcde64e044` (Exilio404, Tor) | Two original discussions: two questions, four answers and three comments, with authors and explicit timestamps | Portuguese-language regional coverage; sample access-sharing request says it is for studying; threat intent and lead time unverified |
 | `forum:cracked` | Staff notice and a listing with visible replies on two pages, authors and timestamps | Listing payload hidden behind registration; many replies contain little substantive text |
 
 The [access snapshot](../sources/forum-access-2026-10-19.json) records hosts, example URLs, identity caveats and verification bounds. Niflheim and separately cataloged BHF are not treated as the same source. The currently observed Cracked-branded service is not authenticated as a continuation of any historical operator.
@@ -35,6 +36,21 @@ search_evidence
 `hidden_content=true` means some content or links require access the collector does not have. A readable post may still be partial. Images, attachment contents, linked documents and link-only destinations are not collected. Returned HTML is parsed as text; scripts are never executed. Up to 50 body `links` preserve the actual URL and displayed label as untrusted references; a reference is never fetched automatically. References from quoted text can also be present and do not establish authorship.
 
 Niflheim may return a login placeholder as a post body while exposing replies publicly. Those posts are marked `hidden_content=true`; the existence of visible replies is not evidence that the underlying payload was read. When tracing reposts, compare the source's publication time with the relay time. A matching advertisement published after a relay supports a related advertising cluster, not an exact original-post attribution.
+
+## Exilio404 questions, answers and comments
+
+```text
+list_forum_threads
+{"source_id":"onion:a9bcde64e044","url":"http://exiliow4ctlzrvaglkgwqnpxdlvrxmdgvuy2hkbzqoziebfim6q5hwid.onion/hacking","query":"Codex","limit":100}
+```
+
+Use a returned question URL with `read_forum_thread` or a `history` job. Section mode also discovers these question roots and resumes after restart. The configured categories are `/hacking`, `/vazamento-de-dados` and their `/questions/` feeds. Numeric `show` and `start` parameters support post rechecks and explicit forward pagination. Login, profile, arbitrary category, search, posting, plugin and attachment routes are excluded. The source's robots URL currently redirects to its homepage; the existing Tor reader follows allowed same-host redirects and parses the returned document for robots directives.
+
+Question2Answer posts expose `post_type` (`question`, `answer`, `comment`) and `reply_to_post_id`. Only an explicit question root receives post number 1; answers can be ranked by votes/selection rather than chronology, so their numbers remain unknown. Comments present in returned HTML retain their own authors and dates; separately loaded comments are outside coverage. A parent's dates and body do not absorb nested comments.
+
+`source_events` preserves labeled changes such as answer selection. Selection is not classified as an edit. Only an explicitly labeled edit fills `edited_at`; a generic `dateModified` attribute alone is insufficient. Company names in ordinary study requests or software discussions do not establish hostile targeting.
+
+Live MCP validation on 19 October 2026 collected two root questions, four answers and three nested comments. All nine had explicit timestamps and authors. Section discovery continued after a process restart; exact evidence replay, local thread reconstruction and direct refresh succeeded. These checks establish access and parsing. They do not establish source authenticity, unauthorized access or detection before disclosure/compromise. Private receipts and raw bodies remain outside Git.
 
 ## Resume multiple pages
 
@@ -89,7 +105,7 @@ Deterministic tests exercise authenticated reads over HTTPS and Tor, expiry, coo
 
 ## Transport and coverage
 
-Cracked, Niflheim and HARD-TM use direct HTTPS. Spear uses the configured Tor SOCKS proxy and the existing bounded onion transport; it is never resolved through the direct HTTPS DNS path. Every Tor forum redirect and robots URL is restricted to that catalog host and the supported read routes. No forum credentials are needed for visible content. Only configured catalog hosts and read routes are eligible. Requests validate redirects, reject private or mixed DNS answers, connect to checked public IPs while retaining hostname TLS verification, honor robots.txt, and apply per-host pacing and response limits. Requests do not use environment proxies. Imported operator sessions are optional and exact-origin scoped; robots requests never carry account cookies. Registration, password login, challenge bypass, posting, account purchases and attachment retrieval are unsupported.
+Cracked, Niflheim and HARD-TM use direct HTTPS. Spear and Exilio404 use the configured Tor SOCKS proxy and the existing bounded onion transport; neither is resolved through the direct HTTPS DNS path. Every Tor forum redirect and robots URL is restricted to that catalog host and the supported read routes. No forum credentials are needed for visible content. Only configured catalog hosts and read routes are eligible. Requests validate redirects, reject private or mixed DNS answers, connect to checked public IPs while retaining hostname TLS verification, honor robots.txt, and apply per-host pacing and response limits. Requests do not use environment proxies. Imported operator sessions are optional and exact-origin scoped; robots requests never carry account cookies. Registration, password login, challenge bypass, posting, account purchases and attachment retrieval are unsupported.
 
 Cracked's configured host is `cracked.st`; Niflheim uses `niflheim.world` and `niflheim.top`; HARD-TM uses `hard-tm.com` and `hard-tm.su`. Observed redirects or matching branding establish routing context, not operator authenticity. Other forum catalog entries remain metadata-only until separately implemented and verified.
 

@@ -164,6 +164,11 @@ def test_vendor_leads_distinguish_collection_examples_from_current_access():
     assert ramp["access_state"] == "timeout"
     assert ramp["checked_at"].startswith("2026-10-18")
     assert ramp["status_context"][0]["state"] == "reported_seized"
+    exilio = catalog.get("onion:a9bcde64e044")
+    assert exilio["forum_engine"] == "q2a" and exilio["collection_method"] == "forum_page"
+    assert catalog.summary()["by_collection_method"]["forum_page"] == 5
+    assert exilio["verification"]["posts"] == 9
+    assert catalog.get("onion:91e4e785a3af")["checked_at"] == "2026-10-19T11:03:32.612873+00:00"
     assert catalog.get("forum:leakbase")["status_context"][0]["reference_ids"] == ["leakbase-enforcement"]
     assert not catalog.list(kind="forum", query="BHF")["results"][0]["locator"]
     assert "BFD" in catalog.get("forum:bhf")["research"]["identity_notes"][0]
