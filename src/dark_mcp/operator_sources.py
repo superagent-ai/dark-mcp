@@ -14,7 +14,7 @@ from dark_mcp.models import now
 from dark_mcp.onion import onion_url
 
 PREFIX = "operator:forum:"
-FIELDS = {"slug", "name", "locator", "forum_engine", "allowed_hosts", "collection_urls"}
+FIELDS = {"slug", "name", "locator", "forum_engine", "allowed_hosts", "collection_urls", "catalog_source_id"}
 
 
 def validate_id(source_id: str):
@@ -70,11 +70,33 @@ def normalize(document: dict) -> dict:
         if not isinstance(urls, list) or not 1 <= len(urls) <= 20:
             raise ValueError
         urls = list(dict.fromkeys(source_url(source, url) for url in urls))
-        return {"slug": slug, "name": name.strip(), "locator": locator, **source, "collection_urls": urls}
+        reference = document.get("catalog_source_id")
+        association = {}
+        if reference is not None:
+            packaged = json.loads(files("dark_mcp").joinpath("resources/source-catalog.json").read_text())
+            candidate = next((s for s in packaged["sources"] if s["id"] == reference), None)
+            if (
+                not isinstance(reference, str)
+                or candidate is None
+                or candidate["kind"] not in {"onion", "forum"}
+                or candidate["collection_method"] not in {"onion_page", "metadata_only"}
+                or not set(hosts) <= hosts_for(candidate)
+            ):
+                raise ValueError
+            association = {"catalog_source_id": reference}
+        return {
+            "slug": slug,
+            "name": name.strip(),
+            "locator": locator,
+            **source,
+            "collection_urls": urls,
+            **association,
+        }
     except (KeyError, TypeError, ValueError, AttributeError, DataAccessError):
         raise DataAccessError(
             "invalid_operator_source",
             "Use slug, name, locator, forum_engine (mybb/xenforo), and optional allowed_hosts/collection_urls. "
+            "catalog_source_id can associate a catalog candidate's existing hosts, not replace a forum collector. "
             "Only scoped HTTPS or v3 Tor read routes are supported. Credentials are not source configuration.",
         ) from None
 
@@ -142,7 +164,9 @@ class OperatorSources:
                     )
             if not previous or not previous["active"]:
                 packaged = json.loads(files("dark_mcp").joinpath("resources/source-catalog.json").read_text())
-                occupied = set().union(*(hosts_for(s) for s in packaged["sources"]))
+                occupied = set().union(
+                    *(hosts_for(s) for s in packaged["sources"] if s["id"] != config.get("catalog_source_id"))
+                )
                 for row in db.execute("SELECT document FROM configurations WHERE active=1 AND id<>?", (source_id,)):
                     occupied.update(json.loads(row[0])["allowed_hosts"])
                 if occupied.intersection(config["allowed_hosts"]):
@@ -195,6 +219,18 @@ class OperatorSources:
                         "imported_at": row["imported_at"],
                         "access_verified": False,
                         "operator_identity_authenticated": False,
+                        **(
+                            {
+                                "catalog_association": {
+                                    "source_id": config["catalog_source_id"],
+                                    "basis": "operator_assertion",
+                                    "identity_verified": False,
+                                    "independent_source": False,
+                                }
+                            }
+                            if config.get("catalog_source_id")
+                            else {}
+                        ),
                     },
                 }
             )

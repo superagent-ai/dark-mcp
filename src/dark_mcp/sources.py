@@ -17,13 +17,14 @@ class SourceCatalog:
         self.sources = {source["id"]: source for source in self.document["sources"]}
         self.operator_count = 0
         if settings is not None:
-            occupied = set().union(*(hosts_for(s) for s in self.sources.values()))
             for source in OperatorSources(settings).sources():
+                occupied = set().union(
+                    *(hosts_for(s) for s in self.sources.values() if s["id"] != source.get("catalog_source_id"))
+                )
                 if source["id"] in self.sources or occupied.intersection(hosts_for(source)):
                     raise DataAccessError(
                         "operator_source_conflict", "Local source configuration overlaps another source"
                     )
-                occupied.update(hosts_for(source))
                 self.sources[source["id"]] = source
                 self.operator_count += 1
 
@@ -44,6 +45,10 @@ class SourceCatalog:
             "snapshot_date": self.document["snapshot_date"],
             "total": len(self.sources),
             "operator_configured_sources": self.operator_count,
+            "operator_catalog_associations": sum(
+                s.get("configuration_origin") == "local_operator" and bool(s.get("catalog_source_id"))
+                for s in self.sources.values()
+            ),
             "packaged_sources": len(self.document["sources"]),
             "by_kind": dict(Counter(source["kind"] for source in self.sources.values())),
             "by_collection_method": dict(Counter(source["collection_method"] for source in self.sources.values())),

@@ -216,7 +216,14 @@ class EvidenceStore:
         with self.connect() as db:
             previous = db.execute("SELECT metadata FROM sources WHERE id=?", (source_id,)).fetchone()
             if previous and (old := json.loads(previous["metadata"])).get("configuration_origin") == "local_operator":
-                keys = ("configuration_origin", "allowed_hosts", "transport", "forum_engine", "locator")
+                keys = (
+                    "configuration_origin",
+                    "allowed_hosts",
+                    "transport",
+                    "forum_engine",
+                    "locator",
+                    "catalog_source_id",
+                )
                 if any(old.get(key) != (metadata or {}).get(key) for key in keys):
                     raise DataAccessError(
                         "source_identity_conflict", "Saved operator source identity changed; use a new slug"

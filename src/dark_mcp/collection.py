@@ -109,7 +109,10 @@ class CollectionService:
             raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
         source_metadata = self.forums.source(source_id)
         attempt = self.store.begin_attempt(source_id, {"url": url, "limit": limit, "collection_id": collection_id})
-        cooldown_key = ("onion:" if source_metadata.get("transport") == "tor" else "forum:") + source_id
+        # An associated operator collector must not bypass its catalog candidate's provider wait.
+        cooldown_key = ("onion:" if source_metadata.get("transport") == "tor" else "forum:") + source_metadata.get(
+            "catalog_source_id", source_id
+        )
         try:
             self.store.cooldown(cooldown_key)
             page = await self.forums.fetch(source_id, url, limit)
