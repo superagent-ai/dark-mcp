@@ -35,6 +35,7 @@ class CorpusCoverage:
             "telegram_archive",
             "telegram_web",
             "forum",
+            "forum_feed",
             "provider",
         }:
             raise ValueError("Check evidence kind and pagination")
@@ -125,6 +126,7 @@ class CorpusCoverage:
                 "Source publication ranges do not establish continuous collection or pre-compromise lead time. "
                 "telegram_archive items are historical third-party imports, not native Telegram observations. "
                 "telegram_web items are public HTML previews with unverified handle-based identities and media gaps. "
+                "forum_feed items are source feed copies, not original-thread depth or complete history. "
                 "Use list_collections/get_collection for job bounds and get_source_health for access attempts. "
                 "Search history, publication/collection filters and gate exclusions can narrow or change its scope."
             ),

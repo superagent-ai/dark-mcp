@@ -85,6 +85,7 @@ class OnionConnector:
         validate=None,
         headers_for=None,
         on_response=None,
+        content_types=None,
     ) -> tuple[str, str, str]:
         url = onion_url(url)
         for _ in range(6):
@@ -123,7 +124,7 @@ class OnionConnector:
                 if response.headers.get("content-encoding", "identity").lower() != "identity":
                     raise DataAccessError("unsupported_encoding", "Source must return uncompressed content")
                 kind = response.headers.get("content-type", "text/html").split(";", 1)[0].lower()
-                if kind not in {"text/html", "text/plain", "application/xhtml+xml"}:
+                if kind not in (content_types or {"text/html", "text/plain", "application/xhtml+xml"}):
                     raise DataAccessError("unsupported_content", "Only HTML and plain text are supported")
                 data = bytearray()
                 async for chunk in response.aiter_bytes(chunk_size=65536):
@@ -155,7 +156,9 @@ class OnionConnector:
         parser.parse(text.splitlines())
         return parser
 
-    async def read_document(self, url: str, validate=None, headers_for=None, on_response=None) -> tuple[str, str, str]:
+    async def read_document(
+        self, url: str, validate=None, headers_for=None, on_response=None, content_types=None
+    ) -> tuple[str, str, str]:
         """Read bounded HTML/text through Tor, optionally restricting every redirect and robots URL."""
         url = onion_url(url)
         async with self.semaphore:
@@ -169,6 +172,7 @@ class OnionConnector:
                             validate=validate,
                             headers_for=headers_for,
                             on_response=on_response,
+                            content_types=content_types,
                         )
             except (httpx.RequestError, TimeoutError) as exc:
                 raise DataAccessError(

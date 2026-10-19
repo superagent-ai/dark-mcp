@@ -1,0 +1,49 @@
+{
+  "checked_on": "2026-10-19",
+  "purpose": "Source-advertised RSS windows; not full history or gated-source access.",
+  "sources": [
+    {
+      "source_id": "onion:91e4e785a3af",
+      "feed_urls": [
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/syndication.php"
+      ],
+      "advertised_on": "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/",
+      "advertisement": "HTML link rel=alternate type=application/rss+xml",
+      "live_check": {
+        "items": 15,
+        "publication_offsets_explicit": true,
+        "newest_publication_utc": "2026-10-19T18:05:38+00:00",
+        "operator_identity_verified": false
+      }
+    },
+    {
+      "source_id": "onion:e51377a2216a",
+      "feed_urls": [
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/syndication.php?fid=82"
+      ],
+      "advertised_on": "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Access-Market",
+      "advertisement": "Section HTML link rel=alternate type=application/rss+xml",
+      "live_check": {
+        "items": 15,
+        "publication_offsets_explicit": true,
+        "newest_publication_utc": "2026-10-17T04:30:56+00:00",
+        "operator_identity_verified": false
+      }
+    },
+    {
+      "source_id": "forum:bf-st",
+      "feed_urls": [
+        "https://bf.st/syndication.php"
+      ],
+      "advertised_on": "https://bf.st/",
+      "advertisement": "HTML link rel=alternate type=application/rss+xml",
+      "live_check": {
+        "items": 15,
+        "publication_offsets_explicit": true,
+        "leading_xml_whitespace_normalized": true,
+        "operator_identity_verified": false
+      }
+    }
+  ],
+  "additional_checks": []
+}

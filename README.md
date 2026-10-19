@@ -70,6 +70,10 @@ Local `telegram-open-fetch`, `telegram-archive-import` and `telegram-directory-i
 
 To let agents try public handles from imported directories, separately enable `DARK_MCP_TELEGRAM_WEB_DIRECTORY_SOURCES`. Source listings distinguish this configured web permission from unverified live access. This setting never grants native account permissions or private/invite access.
 
+### Source-owned forum feeds
+
+`read_forum_feed` collects configured RSS windows from Spear, DarkForums' access market and bf.st. Feed items retain text, reported authors, links and explicit-offset dates as separate `forum_feed` evidence. Follow their original thread links for context. These windows are bounded, may be excerpts, and do not establish complete history or independent claims. See the [forum feed guide](docs/forum-feeds.md).
+
 ### Full source registry for agents
 
 The server bundles **174 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 19 forum records (five HTTPS collectors and 14 metadata-only leads; the onion records also include structured Spear, Exilio404 and DarkForums collectors). Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
@@ -182,6 +186,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `get_forum_access_status(source_id, origin=null)` | Sanitized local session metadata; does not test live authentication |
 | `list_forum_threads(source_id, url=null, query=null, limit=20, exclude_pinned=false)` | Discover thread rows with source creation/activity dates and pin status; optional local title and known-pin filters |
 | `read_forum_thread(source_id, url, limit=20)` | Read visible original posts/replies with authors, timestamps, permalinks, hidden-content flags and next-page links |
+| `read_forum_feed(source_id, url=null, limit=20)` | Collect one configured source-owned RSS window; separate feed evidence, reported publication offsets and original-thread references; not full history |
 | `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
 | `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
 | `crawl_onion(seeds, max_pages=5)` | Collect at most 10 pages from seed onions and same-host links |

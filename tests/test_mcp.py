@@ -41,6 +41,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "read_telegram_thread",
             "sync_telegram_changes",
             "list_forum_threads",
+            "read_forum_feed",
             "read_forum_thread",
             "fetch_onion",
             "crawl_onion",

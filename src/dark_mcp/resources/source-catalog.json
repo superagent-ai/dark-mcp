@@ -237,6 +237,20 @@
             "native_mcp_site_search_enabled": false,
             "assessment": "The observed search link returned a Cloudflare challenge in a normal browser. Readable original threads do not establish search availability."
           }
+        },
+        "source_feed_check": {
+          "source_id": "forum:bf-st",
+          "feed_urls": [
+            "https://bf.st/syndication.php"
+          ],
+          "advertised_on": "https://bf.st/",
+          "advertisement": "HTML link rel=alternate type=application/rss+xml",
+          "live_check": {
+            "items": 15,
+            "publication_offsets_explicit": true,
+            "leading_xml_whitespace_normalized": true,
+            "operator_identity_verified": false
+          }
         }
       },
       "name": "bf.st (BreachForums-branded, lineage unverified)",
@@ -385,7 +399,10 @@
         "assessment": "The observed search link returned a Cloudflare challenge in a normal browser. Readable original threads do not establish search availability."
       },
       "url": "https://bf.st/",
-      "collection_method": "forum_page"
+      "collection_method": "forum_page",
+      "feed_urls": [
+        "https://bf.st/syndication.php"
+      ]
     },
     {
       "id": "forum:bhf",
@@ -3479,13 +3496,30 @@
           ],
           "access_state": "public_threads_partial",
           "assessment": "Public MyBB thread bodies include access-sale claims and company-key demand. External marketplace origins may require login. Dates without explicit timezone/epoch remain raw; source dates do not establish collection lead time. No access, key validity or victim attribution is verified."
+        },
+        "source_feed_check": {
+          "source_id": "onion:91e4e785a3af",
+          "feed_urls": [
+            "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/syndication.php"
+          ],
+          "advertised_on": "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/",
+          "advertisement": "HTML link rel=alternate type=application/rss+xml",
+          "live_check": {
+            "items": 15,
+            "publication_offsets_explicit": true,
+            "newest_publication_utc": "2026-10-19T18:05:38+00:00",
+            "operator_identity_verified": false
+          }
         }
       },
       "transport": "tor",
       "allowed_hosts": [
         "spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion"
       ],
-      "forum_engine": "mybb"
+      "forum_engine": "mybb",
+      "feed_urls": [
+        "http://spear4h2potiyk43oilufhuq2jqbioyaizcs7xttlyw75s5ykwxpxlid.onion/syndication.php"
+      ]
     },
     {
       "id": "onion:94c961978c90",
@@ -4823,6 +4857,20 @@
             "closing_reply_assessment": "The sampled access-sale thread ends with the original poster stating the data was sold; the statement and transaction remain unverified. It is historical context rather than evidence of a currently open offer. A sold statement does not establish remediation or invalidate possible continuing exposure.",
             "raw_receipts": "Private; no raw post bodies, contact details or alleged victim names are bundled."
           }
+        },
+        "source_feed_check": {
+          "source_id": "onion:e51377a2216a",
+          "feed_urls": [
+            "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/syndication.php?fid=82"
+          ],
+          "advertised_on": "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/Forum-Access-Market",
+          "advertisement": "Section HTML link rel=alternate type=application/rss+xml",
+          "live_check": {
+            "items": 15,
+            "publication_offsets_explicit": true,
+            "newest_publication_utc": "2026-10-17T04:30:56+00:00",
+            "operator_identity_verified": false
+          }
         }
       },
       "vendor_evidence": [
@@ -4884,7 +4932,10 @@
         "closing_reply_retained": true,
         "closing_reply_assessment": "The sampled access-sale thread ends with the original poster stating the data was sold; the statement and transaction remain unverified. It is historical context rather than evidence of a currently open offer. A sold statement does not establish remediation or invalidate possible continuing exposure.",
         "raw_receipts": "Private; no raw post bodies, contact details or alleged victim names are bundled."
-      }
+      },
+      "feed_urls": [
+        "http://darkfoxaqhfpxkrbt7vxns2z2u2k72sgmqbzeorupaiottw3ecm2wgyd.onion/syndication.php?fid=82"
+      ]
     },
     {
       "id": "telegram-invite:borwitafreelogs",

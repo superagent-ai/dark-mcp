@@ -19,6 +19,7 @@ from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, pa
 from dark_mcp.onion import onion_url
 
 USER_AGENT = "dark-mcp/0.15 (+https://github.com/superagent-ai/dark-mcp)"
+FEED_CONTENT_TYPES = {"text/xml", "application/xml", "application/rss+xml", "text/html", "text/plain"}
 
 
 def forum_url(
@@ -82,6 +83,35 @@ def source_url(source: dict, value: str, *, robots: bool = False) -> str:
         engine=source.get("forum_engine"),
         section_paths=source.get("section_paths"),
     )
+
+
+def feed_url(source: dict, value: str | None = None) -> str:
+    """Only exact configured feed endpoints. Thread/action URL permissions are unchanged."""
+    configured = source.get("feed_urls", [])
+    if not configured:
+        raise DataAccessError("forum_feed_not_configured", "No verified feed endpoint is configured for this source")
+    value = value or configured[0]
+    try:
+        parts = urlsplit(value)
+        if source.get("transport") == "tor":
+            value = onion_url(value)
+        elif parts.scheme != "https" or parts.port not in {None, 443}:
+            raise ValueError
+        if (
+            value not in configured
+            or parts.hostname not in source["allowed_hosts"]
+            or parts.path != "/syndication.php"
+            or parts.username is not None
+            or parts.password is not None
+            or parts.fragment
+            or len(value) > 4000
+            or "\\" in value
+            or any(ord(c) < 33 or ord(c) == 127 for c in value)
+        ):
+            raise ValueError
+    except (ValueError, TypeError):
+        raise DataAccessError("invalid_forum_feed_url", "Use an exact configured same-source feed endpoint") from None
+    return value
 
 
 def reference_links(body, base_url: str) -> list[dict]:
@@ -587,8 +617,10 @@ class ForumConnector:
             raise DataAccessError("source_access_required", "This source has no supported forum collector")
         return source
 
-    def target(self, source: dict, value: str, *, robots=False) -> str:
+    def target(self, source: dict, value: str, *, robots=False, feed=False) -> str:
         try:
+            if feed and not robots:
+                return feed_url(source, value)
             return source_url(source, value, robots=robots)
         except DataAccessError as original:
             parts = urlsplit(value)
@@ -611,8 +643,8 @@ class ForumConnector:
                 await asyncio.sleep(remaining)
             self.last_request[host] = time.monotonic()
 
-    async def _request(self, client, source, url, delay=4):
-        url = self.target(source, url, robots=True)
+    async def _request(self, client, source, url, delay=4, *, feed=False):
+        url = self.target(source, url, robots=urlsplit(url).path == "/robots.txt", feed=feed)
         host = urlsplit(url).hostname
         addresses = await public_addresses(host)
         await self._pace(host, delay)
@@ -635,7 +667,9 @@ class ForumConnector:
                         target = response.headers.get("location")
                         if not target:
                             raise DataAccessError("invalid_redirect", "Forum returned no redirect target")
-                        return self.target(source, urljoin(url, target)), None
+                        return self.target(
+                            source, urljoin(url, target), robots=urlsplit(url).path == "/robots.txt", feed=feed
+                        ), None
                     if response.status_code == 429:
                         wait = response.headers.get("retry-after", "60")
                         raise DataAccessError(
@@ -650,7 +684,9 @@ class ForumConnector:
                     if response.headers.get("content-encoding", "identity").lower() != "identity":
                         raise DataAccessError("unsupported_encoding", "Forum must return uncompressed content")
                     kind = response.headers.get("content-type", "text/html").split(";", 1)[0].lower()
-                    if kind not in {"text/html", "text/plain", "application/xhtml+xml"}:
+                    if kind not in (
+                        FEED_CONTENT_TYPES if feed else {"text/html", "text/plain", "application/xhtml+xml"}
+                    ):
                         raise DataAccessError("unsupported_content", "Only public HTML/text pages are supported")
                     data = bytearray()
                     async for chunk in response.aiter_bytes(chunk_size=65536):
@@ -695,10 +731,9 @@ class ForumConnector:
         self.robots_cache[host] = (time.monotonic() + 300, parser)
         return parser
 
-    async def fetch(self, source_id: str, url: str | None = None, limit: int = 20) -> ForumPage:
-        limit_value(limit)
+    async def fetch_document(self, source_id: str, url: str | None = None, *, feed=False) -> tuple[str, str, dict]:
         source = self.source(source_id)
-        target = self.target(source, url or source["locator"])
+        target = self.target(source, feed_url(source, url) if feed else url or source["locator"], feed=feed)
         self.sessions.context(source_id, target)  # Expired configured sessions fail before network access.
         if source.get("transport") == "tor":
             if self.onion is None:
@@ -710,15 +745,17 @@ class ForumConnector:
                 access_context.update(self.sessions.context(source_id, value))
                 return self.sessions.headers(source_id, value)
 
-            target, document, _ = await self.onion.read_document(
-                target,
-                validate=lambda value: self.target(source, value, robots=urlsplit(value).path == "/robots.txt"),
-                headers_for=headers_for,
-                on_response=lambda value, cookies: self.sessions.update(source_id, value, cookies),
-            )
-            page = parse_forum(source, target, document, self.settings.max_text_chars, limit)
-            page.access_context = access_context
-            return page
+            options = {
+                "validate": lambda value: self.target(
+                    source, value, robots=urlsplit(value).path == "/robots.txt", feed=feed
+                ),
+                "headers_for": headers_for,
+                "on_response": lambda value, cookies: self.sessions.update(source_id, value, cookies),
+            }
+            if feed:
+                options["content_types"] = FEED_CONTENT_TYPES
+            target, document, _ = await self.onion.read_document(target, **options)
+            return target, document, access_context
         async with self.semaphore:
             try:
                 async with asyncio.timeout(self.settings.request_timeout):
@@ -738,11 +775,18 @@ class ForumConnector:
                             if rate and rate.requests > 0:
                                 delay = max(delay, rate.seconds / rate.requests)
                             access_context = self.sessions.context(source_id, target)
-                            target, document = await self._request(client, source, target, delay)
+                            target, document = await self._request(
+                                client, source, target, delay, **({"feed": True} if feed else {})
+                            )
                             if document is not None:
-                                page = parse_forum(source, target, document, self.settings.max_text_chars, limit)
-                                page.access_context = access_context
-                                return page
+                                return target, document, access_context
                         raise DataAccessError("too_many_redirects", "Forum exceeded five redirects")
             except (httpx.RequestError, OSError, TimeoutError) as exc:
                 raise DataAccessError("forum_unavailable", "Public forum connection failed or timed out") from exc
+
+    async def fetch(self, source_id: str, url: str | None = None, limit: int = 20) -> ForumPage:
+        limit_value(limit)
+        target, document, access_context = await self.fetch_document(source_id, url)
+        page = parse_forum(self.source(source_id), target, document, self.settings.max_text_chars, limit)
+        page.access_context = access_context
+        return page

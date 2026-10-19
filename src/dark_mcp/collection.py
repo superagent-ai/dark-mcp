@@ -15,12 +15,21 @@ from dark_mcp.telegram import channel_key
 
 class CollectionService:
     def __init__(
-        self, settings, catalog: SourceCatalog, store: EvidenceStore, onion, telegram, forums=None, telegram_web=None
+        self,
+        settings,
+        catalog: SourceCatalog,
+        store: EvidenceStore,
+        onion,
+        telegram,
+        forums=None,
+        telegram_web=None,
+        forum_feeds=None,
     ):
         self.settings, self.catalog, self.store = settings, catalog, store
         self.onion, self.telegram = onion, telegram
         self.forums = forums
         self.telegram_web = telegram_web
+        self.forum_feeds = forum_feeds
         for source in catalog.sources.values():
             store.register(source["id"], source["kind"], source["locator"], source["name"], source)
 
@@ -400,6 +409,15 @@ class CollectionService:
 
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
+        if item["kind"] == "forum_feed":
+            if self.forum_feeds is None:
+                raise DataAccessError("forum_feed_not_configured", "Source feed collector is unavailable")
+            result = await self.forum_feeds.read(item["source_id"], item["provenance"]["requested_url"], limit=50)
+            result["requested_evidence_id"] = evidence_id
+            result["requested_item_returned"] = any(
+                row["evidence"]["evidence_id"] == evidence_id for row in result["results"]
+            )
+            return result
         if item["kind"] == "telegram_web":
             if self.telegram_web is None:
                 raise DataAccessError("telegram_web_disabled", "Public preview connector is unavailable")

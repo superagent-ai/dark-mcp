@@ -156,6 +156,11 @@ def build_catalog() -> dict:
                 "research": {**existing["research"], "tor_forum_access": row},
             }
         )
+    feeds = json.loads((ROOT / "sources/forum-feeds-2026-10-19.json").read_text())
+    for feed in feeds["sources"]:
+        source = next(source for source in sources if source["id"] == feed["source_id"])
+        source["feed_urls"] = feed["feed_urls"]
+        source["research"]["source_feed_check"] = feed
     return {
         "schema_version": 2,
         "snapshot_date": "2026-10-19",

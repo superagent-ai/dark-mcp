@@ -10,6 +10,7 @@ from dark_mcp.config import Settings
 from dark_mcp.coverage import CorpusCoverage
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
+from dark_mcp.forum_feeds import ForumFeeds
 from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
@@ -36,7 +37,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     telegram = TelegramConnector(settings, catalog, evidence)
     forums = ForumConnector(settings, catalog, onion)
     telegram_web = TelegramWeb(settings, catalog, evidence)
-    collection = CollectionService(settings, catalog, evidence, onion, telegram, forums, telegram_web)
+    forum_feeds = ForumFeeds(settings, forums, evidence)
+    collection = CollectionService(settings, catalog, evidence, onion, telegram, forums, telegram_web, forum_feeds)
     collection.import_legacy(index)
     server = MCPServer(
         "dark-mcp",
@@ -81,6 +83,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "from the post body. Report missing media, unsupported messages and unvisited pages. Public HTML "
             "does not authenticate numeric channel IDs or source actors, or grant private-channel access. "
             "There is no automatic public-web fallback from a blocked native request."
+            " Source-advertised RSS windows use read_forum_feed and kind=forum_feed. They are separate from "
+            "original forum posts: reported pubDate is not independently verified thread creation, feed bodies "
+            "may be excerpts, and older missing items do not imply deletion. Read the original thread for context."
         ),
     )
 
@@ -452,6 +457,16 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         For mirror hosts, pass the exact catalog origin whose session you want to inspect.
         """
         return local(lambda: {"access": forums.sessions.status(source_id, origin)})
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def read_forum_feed(source_id: str, url: str | None = None, limit: int = 20) -> dict[str, Any]:
+        """Read/persist one configured source-advertised RSS window, up to 50 returned items. No scheduler.
+
+        Inspect get_source for exact feed_urls. Feed text/dates are separate forum_feed evidence, not full thread
+        context. Follow each item URL through read_forum_thread for original roots/replies. No feed pagination or
+        complete-history claim. Only configured endpoints use this path; source robots, sessions and waits apply.
+        """
+        return await run(forum_feeds.read, source_id=source_id, url=url, limit=limit)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def list_forum_threads(
