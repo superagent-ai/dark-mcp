@@ -8,6 +8,9 @@ COUNTS = (
     "indexed_forum_posts",
     "forum_page_items",
     "unindexed_forum_items",
+    "native_forum_items",
+    "operator_import_forum_items",
+    "unreported_acquisition_forum_items",
     "indexed_forum_threads",
     "threads_without_explicit_root",
     "hidden_forum_post_items",
@@ -52,6 +55,12 @@ class CorpusCoverage:
                     sum(e.kind='forum' AND json_extract(e.snapshot,'$.page_type') IS NOT NULL) forum_page_items,
                     sum(e.kind='forum' AND e.post_id IS NULL AND json_extract(e.snapshot,'$.page_type') IS NULL)
                         unindexed_forum_items,
+                    sum(e.kind='forum' AND json_extract(e.snapshot,'$.acquisition.method')='native_fetch')
+                        native_forum_items,
+                    sum(e.kind='forum' AND json_extract(e.snapshot,'$.acquisition.method')='operator_html_import')
+                        operator_import_forum_items,
+                    sum(e.kind='forum' AND coalesce(json_extract(e.snapshot,'$.acquisition.method'),'')
+                        NOT IN ('native_fetch','operator_html_import')) unreported_acquisition_forum_items,
                     coalesce(t.n,0) indexed_forum_threads,coalesce(t.missing_root,0) threads_without_explicit_root,
                     sum(e.post_id IS NOT NULL AND coalesce(json_extract(e.snapshot,'$.hidden_content'),0)=1)
                         hidden_forum_post_items,
@@ -102,6 +111,8 @@ class CorpusCoverage:
             "coverage": (
                 "Local inventory, not a search-match count or source-wide coverage. Counts include gated, "
                 "truncated and unavailable items; pages and individual posts can contain overlapping text. "
+                "Acquisition counts describe latest forum snapshots; local imports do not prove remote access. "
+                "Older unreported acquisition methods are not retroactively classified as native reads. "
                 "Thread counts require explicit saved identities; missing roots and unknown dates remain gaps. "
                 "Source publication ranges do not establish continuous collection or pre-compromise lead time. "
                 "Use list_collections/get_collection for job bounds and get_source_health for access attempts. "

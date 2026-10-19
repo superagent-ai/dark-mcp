@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.12 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.13 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(

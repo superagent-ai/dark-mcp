@@ -13,7 +13,7 @@ Probing here means investigating sources and exposure signals. Findings should r
 | Onion discovery | [Onion Search Engine API](https://onionsearchengine.com/api_documentation.php), over HTTPS | Provider API key |
 | Onion page content | Direct HTTP(S) through your Tor SOCKS proxy | Running Tor client |
 | Telegram channel posts | Telegram client API via Telethon | Your application credentials, local account login, permitted channels |
-| Original forum threads | Cracked, Niflheim, HARD-TM, Spear, Exilio404 and DarkForums; public access by default | HTTPS for the first three; Tor for Spear, Exilio404 and DarkForums; optional operator-owned session |
+| Original forum threads | Cracked, Niflheim, HARD-TM, LeakForum, Spear, Exilio404 and DarkForums; public access by default | HTTPS for the first four; Tor for Spear, Exilio404 and DarkForums; optional operator-owned session |
 | Local onion search | SQLite FTS index populated by fetches and bounded crawls | No external search key |
 
 **The MCP collects original source content into its own local corpus.** The optional Onion Search Engine API helps discover URLs; it is not the evidence corpus. Local search only covers content this installation has collected, and discovery-provider coverage and freshness are not independently verified.
@@ -53,6 +53,10 @@ A current HARD-TM Lovable advertisement matching earlier Telegram repost headlin
 ### Local operator source configuration
 
 Use `source-import` to configure an operator-provided MyBB/XenForo source locally, then restart the server and use its `operator:forum:<slug>` ID with the normal collection tools. Addresses and account sessions do not need to be published in this repository. Configuration is bounded, has separate provenance and does not verify identity or access. The packaged catalog remains unchanged; `get_status` separates its records from local configurations. See the [operator source guide](docs/operator-sources.md) for JSON input, session provisioning, removal and identity retention.
+
+### Browser-read forum content
+
+Version 0.13 adds local `forum-page-import` for UTF-8 HTML saved from an operator's accessible forum page. It uses the configured parser to preserve posts, replies, dates, references, hidden-content flags and pagination in the same evidence store. Search, saved thread context and corpus inventory distinguish these unverified operator submissions from native network reads. Imports do not run scripts, make source requests, verify membership or establish an earlier capture time. They do not solve challenges or provide access to unsupported/gated sources. See the [capture guide](docs/forum-captures.md).
 
 ### Full source registry for agents
 

@@ -122,6 +122,7 @@ class ThreadContext:
                     "post_type": snap.get("post_type"),
                     "reply_to_post_id": snap.get("reply_to_post_id"),
                     "source_events": snap.get("source_events", []),
+                    "acquisition": snap.get("acquisition", {}),
                     "is_thread_root": bool(row["is_thread_root"]) if row["is_thread_root"] is not None else None,
                     "url": snap.get("url"),
                     "title": snap.get("title", "")[:500],

@@ -47,6 +47,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Configured forum_page sources support list_forum_threads and read_forum_thread over HTTPS or Tor. "
             "Forum sessions are provisioned only through the operator CLI. "
             "Never ask for cookies or passwords in tool arguments. "
+            "Operator HTML imports are unverified local submissions; acquisition metadata distinguishes them "
+            "from native fetches. An import does not establish remote access or an earlier observation. "
             "Only visible posts are collected; hidden_content and pagination bounds must be reported. "
             "Forum listing creation dates differ from last activity; a bumped listing is not a new claim. "
             "Pin status can be unknown; exclude_pinned skips only explicit pins. "

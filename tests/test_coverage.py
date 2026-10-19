@@ -45,6 +45,8 @@ def test_inventory_does_not_inflate_posts_for_refresh_history_or_aggregate_pages
     summary = coverage["summary"]
     assert summary["sources_with_items"] == 2
     assert summary["items"] == summary["stored_revisions"] == 6
+    assert summary["unreported_acquisition_forum_items"] == 6
+    assert summary["native_forum_items"] == summary["operator_import_forum_items"] == 0
     assert summary["indexed_forum_posts"] == 4
     assert summary["forum_page_items"] == summary["unindexed_forum_items"] == 1
     assert summary["indexed_forum_threads"] == 2

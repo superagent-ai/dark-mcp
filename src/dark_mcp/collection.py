@@ -61,6 +61,36 @@ class CollectionService:
         source_id = self.onion_source(page.url)
         return self.store.observe(source_id, "onion", page.url, page.url, snapshot, page.collected_at, collection_id)
 
+    def observe_forum(self, page, collection_id=None):
+        """Save parsed forum content with its acquisition method, without implying a network read."""
+        source_id = page.source_id
+        snapshot = page.model_dump(exclude={"collected_at", "evidence"})
+        page.evidence = self.store.observe(
+            source_id, "forum", page.url, page.url, snapshot, page.collected_at, collection_id
+        )
+        for post in page.posts:
+            post_snapshot = {
+                **post.model_dump(exclude={"evidence"}),
+                "title": page.title,
+                "access_state": "content_returned_unverified",
+                "thread_url": post.url,
+                "thread_key": page.thread_key,
+                "transport": page.transport,
+                "access_context": page.access_context,
+                "acquisition": page.acquisition,
+            }
+            post.evidence = self.store.observe(
+                source_id,
+                "forum",
+                source_id + ":post:" + post.id,
+                post.url,
+                post_snapshot,
+                page.collected_at,
+                collection_id,
+                {"page_url": page.url, "observed_url": post.url, "acquisition": page.acquisition},
+            )
+        return page
+
     async def forum_page(self, source_id: str, url: str | None = None, limit: int = 20, collection_id=None):
         if self.forums is None:
             raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
@@ -70,30 +100,8 @@ class CollectionService:
         try:
             self.store.cooldown(cooldown_key)
             page = await self.forums.fetch(source_id, url, limit)
-            snapshot = page.model_dump(exclude={"collected_at", "evidence"})
-            page.evidence = self.store.observe(
-                source_id, "forum", page.url, page.url, snapshot, page.collected_at, collection_id
-            )
-            for post in page.posts:
-                post_snapshot = {
-                    **post.model_dump(exclude={"evidence"}),
-                    "title": page.title,
-                    "access_state": "content_returned_unverified",
-                    "thread_url": post.url,
-                    "thread_key": page.thread_key,
-                    "transport": page.transport,
-                    "access_context": page.access_context,
-                }
-                post.evidence = self.store.observe(
-                    source_id,
-                    "forum",
-                    source_id + ":post:" + post.id,
-                    post.url,
-                    post_snapshot,
-                    page.collected_at,
-                    collection_id,
-                    {"page_url": page.url, "observed_url": post.url},
-                )
+            page.acquisition = {"method": "native_fetch", "network_read": True, "source_identity_verified": False}
+            self.observe_forum(page, collection_id)
             self.store.finish_attempt(
                 attempt,
                 page.access_state,
@@ -389,6 +397,11 @@ class CollectionService:
         if item["kind"] == "onion":
             return {"page": (await self.fetch(item["url"])).model_dump()}
         if item["kind"] == "forum":
+            if item["snapshot"].get("acquisition", {}).get("method") == "operator_html_import":
+                raise DataAccessError(
+                    "operator_capture_reimport_required",
+                    "Reimport a newly captured page locally; this evidence came from operator-supplied HTML",
+                )
             url = item["snapshot"].get("thread_url") or item["url"]
             page = await self.forum_page(item["source_id"], url, limit=100)
             result = {

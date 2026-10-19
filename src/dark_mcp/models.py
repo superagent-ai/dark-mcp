@@ -64,6 +64,7 @@ class ForumPage(BaseModel):
     evidence: dict | None = None
     transport: str = "direct_https"
     access_context: dict = Field(default_factory=dict)
+    acquisition: dict = Field(default_factory=dict)
     coverage: str
 
 

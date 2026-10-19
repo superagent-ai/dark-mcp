@@ -370,6 +370,7 @@ class EvidenceStore:
             rows = db.execute(
                 "WITH matches AS (SELECT i.id AS evidence_id,i.source_id,i.kind,i.url,i.availability,"
                 "r.id AS revision_id,r.title,r.text,r.published_at,r.collected_at,r.truncated,r.access_state,"
+                "r.snapshot,"
                 "i.first_seen AS evidence_first_recorded_at,"
                 "r.content_hash,r.id=i.latest_revision_id AS is_latest_revision,"
                 "(SELECT max(o.collected_at) FROM observations o WHERE o.revision_id=r.id "
@@ -419,6 +420,7 @@ class EvidenceStore:
         for row in rows[:limit]:
             result = dict(row)
             text = result.pop("text")
+            result["acquisition"] = json.loads(result.pop("snapshot")).get("acquisition", {})
             result.pop("n")
             position = text.casefold().find(term)
             fields = []

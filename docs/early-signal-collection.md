@@ -1,6 +1,6 @@
 # Collect useful early-stage evidence
 
-Version 0.8 includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
+The MCP includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. Exilio404 adds original Question2Answer questions, answers and comments over Tor. Version 0.13 adds local ingestion of operator-supplied browser HTML with distinct acquisition provenance. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
 
 ## Direct original threads over Tor
 
@@ -99,6 +99,12 @@ Literal title/body searches restricted to these 108 post items found no matches 
 Three sampled access advertisements explicitly credited the same upstream marketplace and linked to its homepage. A direct native root request failed with `tor_unavailable`; no upstream listing was collected. Two `shared_upstream_reference` evidence relationships record that published reference as a caller assertion. This does not merge victims, authenticate actors or establish independent corroboration. An anonymous country/sector description cannot identify a test company. A later reply in a previously collected sale thread says the data was sold; that statement remains unverified and does not establish remediation or a currently open offer.
 
 All sampled source publication dates lacked usable offsets/epochs and remain raw. The completed collection window was 14:39:59–14:42:23 UTC; an older displayed date cannot move our observation back in time. Raw receipts, evidence references and the detailed report remain private under `data/`. No Telegram calls, actor contacts, proof downloads or advertised credential/endpoint tests were made. The next access milestone remains substantive original listings and operator-owned gated reads, rather than more relay counts or monitoring tooling.
+
+## Browser-read source ingestion (0.13)
+
+`forum-page-import` can now ingest an operator's bounded UTF-8 HTML from a configured readable forum page without making requests or running scripts. Parsed evidence retains original post identities and exact revisions alongside `operator_html_import` acquisition metadata and an input-document hash. Native forum reads now explicitly identify their acquisition method. Search, local thread reconstruction and corpus inventory preserve the distinction; older revisions without this metadata remain unreported. Import time is the local observation time. Imports do not establish source reachability, clear cooldowns or verify the supplied URL, membership or origin. Imported latest revisions require another local capture for refresh. See the [capture workflow](forum-captures.md).
+
+A real browser/import check preserved 20 LeakForum buyer-request listings and three original GCP/AI Studio request posts. This reobserved previously known content and established neither a new feed nor a verified early warning. A normal-browser Exploit check still reached a challenge/gateway page. Source access remains a separate milestone; the importer does not replace membership, support every forum engine or authenticate a captured page.
 
 ## Operator-provided source access (0.12)
 

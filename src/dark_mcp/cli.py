@@ -12,6 +12,7 @@ from telethon import TelegramClient, errors
 
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
+from dark_mcp.forum_capture import import_forum_capture
 from dark_mcp.forum_sessions import ForumSessions
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
@@ -132,6 +133,26 @@ def source_remove(source_id: str):
 def configured_forum_sessions():
     settings = Settings()
     return ForumSessions(settings, SourceCatalog(settings))
+
+
+@app.command()
+def forum_page_import(
+    source_id: str,
+    url: str,
+    html_file: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    limit: Annotated[int, typer.Option(min=1, max=100)] = 100,
+):
+    """Import an operator's saved UTF-8 forum HTML. No network, scripts or credentials; not an MCP tool."""
+    os.umask(0o077)
+    try:
+        result = import_forum_capture(Settings(), source_id, url, html_file, limit)
+    except (DataAccessError, ValueError):
+        typer.echo(
+            "Page import failed. Check source, read URL, UTF-8 size bound and supported readable forum content.",
+            err=True,
+        )
+        raise typer.Exit(1) from None
+    typer.echo(json.dumps(result, indent=2))
 
 
 @app.command()
