@@ -20,6 +20,41 @@ class OnionPage(BaseModel):
     evidence: dict | None = None
 
 
+class ForumPost(BaseModel):
+    id: str
+    url: str
+    author: str | None = None
+    text: str
+    published_at: str | None = None
+    published_at_raw: str | None = None
+    edited_at: str | None = None
+    edited_at_raw: str | None = None
+    hidden_content: bool = False
+    quotes: list[dict] = Field(default_factory=list)
+    truncated: bool = False
+    evidence: dict | None = None
+
+
+class ForumPage(BaseModel):
+    source_id: str
+    url: str
+    title: str
+    text: str
+    page_type: str
+    thread_key: str | None = None
+    posts: list[ForumPost] = Field(default_factory=list)
+    threads: list[dict] = Field(default_factory=list)
+    next_page_urls: list[str] = Field(default_factory=list)
+    access_state: str
+    truncated: bool = False
+    omitted_posts: int = 0
+    published_at: str | None = None
+    collected_at: str = Field(default_factory=now)
+    evidence: dict | None = None
+    transport: str = "direct_https"
+    coverage: str
+
+
 def classify_page(title: str, text: str) -> str:
     title, text = title.casefold(), text.casefold()
     if not text.strip():

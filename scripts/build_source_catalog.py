@@ -118,10 +118,26 @@ def build_catalog() -> dict:
                     "research": row,
                 }
             )
+    access = json.loads((ROOT / "sources/forum-access-2026-10-19.json").read_text())
+    for row in access["sources"]:
+        existing = next((source for source in sources if source["id"] == row["id"]), None)
+        if existing is None:
+            existing = {"id": row["id"], "kind": "forum", "source_class": "forum", "research": {}}
+            sources.append(existing)
+        existing.update(
+            {
+                **row,
+                "url": row["locator"],
+                "collection_method": "forum_page",
+                "access_state": row["access_state"],
+                "checked_at": access["checked_at"],
+                "research": {**existing["research"], "forum_access": row},
+            }
+        )
     return {
         "schema_version": 2,
         "snapshot_date": "2026-10-19",
-        "access_snapshot_dates": {"telegram": "2026-10-18", "onion": "2026-10-18"},
+        "access_snapshot_dates": {"telegram": "2026-10-18", "onion": "2026-10-18", "forum": "2026-10-19"},
         "sources": sorted(sources, key=lambda source: source["id"]),
         "references": {
             "telegram": telegram["research_references"],

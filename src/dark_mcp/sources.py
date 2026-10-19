@@ -87,7 +87,8 @@ class SourceCatalog:
             "provider_research": vendor["providers"] if source.get("vendor_evidence") else [],
             "coverage": (
                 "Historical checks and vendor research, not current access or API entitlement. "
-                "Forum leads with metadata_only have no collector; mirrors are research context only."
+                "Configured forum_page sources support bounded public reads. "
+                "Leads with metadata_only have no collector; mirrors are research context only."
             ),
         }
 
@@ -107,11 +108,25 @@ async def collect_source(
     limit: int = 20,
     before_id: int = 0,
     since: str | None = None,
+    forums=None,
 ) -> dict:
     source = catalog.get(source_id)
     limit_value(limit)
     context = {"source_id": source_id, "historical_access_state": source["access_state"]}
     try:
+        if source["collection_method"] == "forum_page":
+            if query is not None or before_id or since is not None:
+                raise ValueError("Use list_forum_threads for a local title filter, or search_evidence after collection")
+            if forums is None:
+                raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
+            page = await forums.forum_page(source_id, url, limit)
+            return {
+                "ok": True,
+                **context,
+                "access_state": page.access_state,
+                "page": page.model_dump(),
+                "coverage": page.coverage,
+            }
         if source["collection_method"] == "onion_page":
             if query is not None or before_id or since is not None:
                 raise ValueError("Onion collection takes a URL; search returned text or the local index separately")
@@ -127,7 +142,7 @@ async def collect_source(
                 "coverage": "One page; allegations are unverified. Collection time is not publication time.",
             }
         if url is not None:
-            raise ValueError("URL overrides are supported for onion sources only")
+            raise ValueError("URL overrides are supported for onion and configured forum sources only")
         if source["collection_method"] == "metadata_only":
             raise DataAccessError(
                 "source_access_required", "No supported collection locator is verified; inspect get_source research"

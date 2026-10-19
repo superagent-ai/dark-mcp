@@ -312,7 +312,7 @@ class EvidenceStore:
         limit: int = 20,
     ) -> dict:
         limit_value(limit)
-        if not query.strip() or len(query) > 500 or offset < 0 or kind not in {None, "onion", "telegram"}:
+        if not query.strip() or len(query) > 500 or offset < 0 or kind not in {None, "onion", "telegram", "forum"}:
             raise ValueError("Check query, kind and pagination")
         source_id = self._source_filter(source_id)
         published, collected = date_value(published_since), date_value(collected_since)

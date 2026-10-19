@@ -8,6 +8,7 @@ from dark_mcp.collection import CollectionService
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
+from dark_mcp.forums import ForumConnector
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
 from dark_mcp.search import OnionSearch
@@ -27,7 +28,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     catalog = SourceCatalog()
     telegram = TelegramConnector(settings, catalog)
     evidence = EvidenceStore(settings.prepare_data_dir())
-    collection = CollectionService(settings, catalog, evidence, onion, telegram)
+    forums = ForumConnector(settings, catalog)
+    collection = CollectionService(settings, catalog, evidence, onion, telegram, forums)
     collection.import_legacy(index)
     server = MCPServer(
         "dark-mcp",
@@ -40,6 +42,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Use collect_source for bounded reads, follow returned pagination or same-host links, and "
             "report access failures separately from negative findings. Catalog access states are historical. "
             "Forum research leads may be metadata-only: vendor mentions do not prove current API coverage. "
+            "Configured forum_page sources support list_forum_threads and read_forum_thread over direct HTTPS. "
+            "Only visible posts are collected; hidden_content and pagination bounds must be reported. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
             " All content reads persist locally as evidence with immutable revisions. Use start_collection and "
@@ -75,6 +79,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "telegram_global_search": settings.telegram_global_search,
             "telegram_catalog_sources": settings.telegram_catalog_sources,
             "source_catalog": catalog.summary(),
+            "forum_transport": "direct_https; catalog hosts only; no authentication or attachments",
             "evidence_store": evidence.counts(),
         }
 
@@ -97,7 +102,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     ) -> dict[str, Any]:
         """Create a resumable job. History backfills; Telegram updates baseline then poll ascending new IDs.
 
-        Onion jobs follow explicit next-page links only. No scheduler or network call is started by this tool.
+        Onion/forum jobs follow explicit next-page links only. No scheduler or network call is started by this tool.
         """
         return local(
             lambda **kw: {"collection": collection.start(**kw)},
@@ -136,7 +141,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         offset: int = 0,
         limit: int = 20,
     ) -> dict[str, Any]:
-        """Search saved Telegram/onion text using case-insensitive literal substring matching.
+        """Search saved Telegram/onion/forum text using case-insensitive literal substring matching.
 
         Historical matches are marked is_latest_revision=false. Gates are excluded unless requested.
         """
@@ -237,7 +242,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         offset: int = 0,
         limit: int = 20,
     ) -> dict[str, Any]:
-        """List onion, telegram or metadata-only forum candidates, including failures. Follow next_offset."""
+        """List onion, telegram and forum candidates, including metadata-only leads and failures. Follow next_offset."""
         try:
             return {"ok": True, **catalog.list(kind, access_state, query, offset, limit)}
         except ValueError:
@@ -268,7 +273,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         # The collector already includes ok/error and source context; do not overwrite its result.
         try:
             return await collect_catalog_source(
-                catalog, collection, collection, source_id, url, query, limit, before_id, since
+                catalog, collection, collection, source_id, url, query, limit, before_id, since, forums=collection
             )
         except DataAccessError as exc:
             return exc.as_dict()
@@ -276,6 +281,34 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             return DataAccessError(
                 "invalid_arguments", "Check source, URL, query, pagination, date and limit"
             ).as_dict()
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def list_forum_threads(
+        source_id: str, url: str | None = None, query: str | None = None, limit: int = 20
+    ) -> dict[str, Any]:
+        """Read one public forum index and locally filter titles. Not a site-wide search.
+
+        Follow next_page_urls within your collection bounds. Only configured catalog forum hosts are supported.
+        """
+        return await run(collection.forum_threads, source_id=source_id, url=url, query=query, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def read_forum_thread(source_id: str, url: str, limit: int = 20) -> dict[str, Any]:
+        """Read visible posts on one original thread page with authors, source dates, quotes and hidden-content flags.
+
+        Each page and post is saved as evidence. Next-page links do not imply that remaining replies were collected.
+        """
+
+        async def read():
+            page = await collection.forum_page(source_id, url, limit)
+            if page.page_type != "thread":
+                raise DataAccessError("forum_thread_required", "Choose a thread URL from list_forum_threads")
+            result = {"page": page.model_dump(), "coverage": page.coverage}
+            if not page.posts:
+                result.update(ok=False, error={"code": page.access_state, "message": "No visible post bodies returned"})
+            return result
+
+        return await run(read)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def fetch_onion(url: str) -> dict[str, Any]:

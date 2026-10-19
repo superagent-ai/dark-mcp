@@ -33,6 +33,8 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "get_evidence_relations",
             "read_telegram_thread",
             "sync_telegram_changes",
+            "list_forum_threads",
+            "read_forum_thread",
             "fetch_onion",
             "crawl_onion",
             "search_onion",
@@ -99,4 +101,4 @@ async def test_stdio_evidence_migration_and_profile_survive_process_restart(tmp_
         assert profile["document"]["identifiers"] == ["acme.example"]
         status = (await client.call_tool("get_status", {})).structured_content
         assert status["evidence_store"]["observations"] == 1
-        assert status["version"] == "0.2.0"
+        assert status["version"] == "0.3.0"

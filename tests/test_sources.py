@@ -20,8 +20,8 @@ def test_complete_research_is_packaged_without_drift():
     spec.loader.exec_module(module)
     catalog = SourceCatalog()
     assert catalog.document == module.build_catalog()
-    assert catalog.summary()["by_kind"] == {"forum": 16, "onion": 30, "telegram": 125}
-    assert len(catalog.sources) == 171
+    assert catalog.summary()["by_kind"] == {"forum": 17, "onion": 30, "telegram": 125}
+    assert len(catalog.sources) == 172
     assert len(catalog.document["web_mirror_context"]) == 8
     # Both temporary previews are retained with their original expiry and numeric locator.
     assert catalog.get("telegram-invite:bradmax-cloud")["locator"] == "-1002380538610"
@@ -40,7 +40,7 @@ def test_catalog_pagination_filters_and_provenance():
         offset = page["next_offset"]
         if offset is None:
             break
-    assert len(set(ids)) == len(ids) == 171
+    assert len(set(ids)) == len(ids) == 172
     assert catalog.list(kind="onion")["total"] == 30
     assert catalog.list(kind="telegram", access_state="unavailable_to_session")["total"] == 29
     assert catalog.list(query="breachdetect")["total"] >= 1
@@ -142,13 +142,13 @@ async def test_catalog_tools_over_mcp_preserve_structured_errors(settings):
         result = (await client.call_tool("list_sources", {"kind": "invalid"})).structured_content
         assert result["error"]["code"] == "invalid_arguments"
         serialized = json.dumps((await client.call_tool("get_status", {})).structured_content)
-        assert "171" in serialized
+        assert "172" in serialized
         assert "telegram_api_hash" not in serialized
 
 
 def test_vendor_leads_distinguish_collection_examples_from_current_access():
     catalog = SourceCatalog()
-    assert catalog.summary()["by_collection_method"]["metadata_only"] == 29
+    assert catalog.summary()["by_collection_method"]["metadata_only"] == 27
     assert catalog.summary()["vendor_research"]["providers_reviewed"] == 8
     assert catalog.summary()["access_snapshot_dates"]["onion"] == "2026-10-18"
     lead = catalog.detail("forum:damagelib")
@@ -172,13 +172,14 @@ def test_vendor_leads_distinguish_collection_examples_from_current_access():
 async def test_vendor_forum_leads_are_discoverable_but_never_sent_to_a_connector(settings):
     catalog, onion, telegram = SourceCatalog(), AsyncMock(), AsyncMock()
     for source in catalog.list(kind="forum", limit=100)["results"]:
-        result = await collect_source(catalog, onion, telegram, source["id"])
-        assert result["error"]["code"] == "source_access_required"
+        if source["collection_method"] == "metadata_only":
+            result = await collect_source(catalog, onion, telegram, source["id"])
+            assert result["error"]["code"] == "source_access_required"
     onion.fetch.assert_not_awaited()
     telegram.messages.assert_not_awaited()
     async with Client(create_server(settings)) as client:
         leads = (await client.call_tool("list_sources", {"kind": "forum"})).structured_content
-        assert leads["ok"] and leads["total"] == 16
+        assert leads["ok"] and leads["total"] == 17
         source = (await client.call_tool("get_source", {"source_id": "forum:darknetarmy"})).structured_content
         assert "not a valid Tor v3" in source["source"]["research"]["identity_notes"][0]
         result = (await client.call_tool("start_collection", {"source_id": "forum:bhf"})).structured_content

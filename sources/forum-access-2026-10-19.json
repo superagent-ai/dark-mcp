@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-19",
+  "checked_at": "2026-10-19T09:44:02.305971+00:00",
+  "purpose": "Public original-thread collection on a small host allowlist, with explicit partial and hidden-content reporting.",
+  "sources": [
+    {
+      "id": "forum:cracked",
+      "name": "Cracked",
+      "family": "cracked",
+      "locator": "https://cracked.st/Forum-Other-Leaks",
+      "allowed_hosts": [
+        "cracked.st"
+      ],
+      "forum_engine": "mybb",
+      "collection_urls": [
+        "https://cracked.st/Forum-Other-Leaks"
+      ],
+      "example_threads": [
+        "https://cracked.st/Thread-Staff-Beware-of-fake-login-pages-phishing-sites",
+        "https://cracked.st/Thread-Other-LOGS-FRESH-1-8GB-FROM-19-10-2026"
+      ],
+      "assessment": "Public thread bodies, authors and replies are exposed. Some post sections require registration and remain hidden. Source identity and claims are unverified.",
+      "identity_notes": [
+        "A currently observed Cracked-branded service; historical operators and authenticity are not authenticated."
+      ],
+      "access_state": "public_threads_partial",
+      "verification": {
+        "unique_visible_posts": 13,
+        "thread_pages": 3,
+        "samples": [
+          {
+            "url": "https://cracked.st/Thread-Staff-Beware-of-fake-login-pages-phishing-sites",
+            "checked_at": "2026-10-19T09:34:41.244348+00:00",
+            "posts": 1,
+            "posts_with_author": 1,
+            "posts_with_publication_time": 1,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1542,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://cracked.st/Thread-Other-LOGS-FRESH-1-8GB-FROM-19-10-2026",
+            "checked_at": "2026-10-19T09:34:45.265918+00:00",
+            "posts": 8,
+            "posts_with_author": 8,
+            "posts_with_publication_time": 8,
+            "posts_with_hidden_content": 1,
+            "visible_text_characters": 507,
+            "next_page_urls": [
+              "https://cracked.st/Thread-Other-LOGS-FRESH-1-8GB-FROM-19-10-2026?page=2"
+            ]
+          },
+          {
+            "url": "https://cracked.st/Thread-Other-LOGS-FRESH-1-8GB-FROM-19-10-2026?page=2",
+            "checked_at": "2026-10-19T09:34:49.191637+00:00",
+            "posts": 4,
+            "posts_with_author": 4,
+            "posts_with_publication_time": 4,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 24,
+            "next_page_urls": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "forum:niflheim",
+      "name": "Niflheim",
+      "family": "niflheim",
+      "locator": "https://niflheim.world/",
+      "allowed_hosts": [
+        "niflheim.world",
+        "niflheim.top"
+      ],
+      "forum_engine": "xenforo",
+      "collection_urls": [
+        "https://niflheim.world/"
+      ],
+      "example_threads": [
+        "https://niflheim.world/threads/frequently-asked-question.110/",
+        "https://niflheim.world/threads/%F0%9F%94%A5-apex-ai-%E2%80%94-ai-platform-without-limits-code-images-recon-%E2%80%94-no-refusals-%F0%9F%94%A5.188058/"
+      ],
+      "assessment": "Public thread bodies, author handles, explicit timestamps and replies are readable. Original Replit cookie-related headlines still need thread resolution.",
+      "identity_notes": [
+        "Both observed hosts publish the same Niflheim branding and sitemap references to niflheim.world. This does not authenticate operators.",
+        "The title includes BHF, but this is not evidence that the site is the separately researched BHF forum."
+      ],
+      "access_state": "public_threads",
+      "verification": {
+        "unique_visible_posts": 42,
+        "thread_pages": 3,
+        "samples": [
+          {
+            "url": "https://niflheim.world/threads/frequently-asked-question.110/",
+            "checked_at": "2026-10-19T09:43:48.369913+00:00",
+            "posts": 20,
+            "posts_with_author": 20,
+            "posts_with_publication_time": 20,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 2543,
+            "next_page_urls": [
+              "https://niflheim.world/threads/frequently-asked-question.110/page-2"
+            ]
+          },
+          {
+            "url": "https://niflheim.world/threads/frequently-asked-question.110/page-2",
+            "checked_at": "2026-10-19T09:43:53.686455+00:00",
+            "posts": 20,
+            "posts_with_author": 20,
+            "posts_with_publication_time": 20,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 3657,
+            "next_page_urls": [
+              "https://niflheim.world/threads/frequently-asked-question.110/page-3"
+            ]
+          },
+          {
+            "url": "https://niflheim.world/threads/%F0%9F%94%A5-apex-ai-%E2%80%94-ai-platform-without-limits-code-images-recon-%E2%80%94-no-refusals-%F0%9F%94%A5.188058/",
+            "checked_at": "2026-10-19T09:35:05.517614+00:00",
+            "posts": 2,
+            "posts_with_author": 2,
+            "posts_with_publication_time": 2,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1787,
+            "next_page_urls": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "forum:hard-tm",
+      "name": "HARD-TM",
+      "family": "hard-tm",
+      "locator": "https://hard-tm.com/forums/sell_all/",
+      "allowed_hosts": [
+        "hard-tm.com",
+        "hard-tm.su"
+      ],
+      "forum_engine": "xenforo",
+      "collection_urls": [
+        "https://hard-tm.com/forums/sell_all/",
+        "https://hard-tm.com/forums/soc_sell/"
+      ],
+      "example_threads": [
+        "https://hard-tm.com/threads/185218/"
+      ],
+      "assessment": "Original Lovable subscription-advertisement body, author and timestamp collected through MCP. Outbound links are registration-only; visible terms describe resold subscriptions and do not establish a company compromise.",
+      "identity_notes": [
+        "hard-tm.su was observed redirecting to hard-tm.com. This routing observation does not authenticate operators."
+      ],
+      "access_state": "public_threads_partial",
+      "verification": {
+        "unique_visible_posts": 1,
+        "thread_pages": 1,
+        "samples": [
+          {
+            "url": "https://hard-tm.com/threads/185218/",
+            "checked_at": "2026-10-19T09:44:02.110367+00:00",
+            "posts": 1,
+            "posts_with_author": 1,
+            "posts_with_publication_time": 1,
+            "posts_with_hidden_content": 1,
+            "visible_text_characters": 3217,
+            "next_page_urls": []
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "No authentication, registration, challenge bypass or attachment retrieval.",
+    "robots.txt search restrictions are honored; discovery uses public index links and explicit pagination.",
+    "Transport is direct HTTPS, not Tor. Only packaged source hosts are eligible.",
+    "No source-wide completeness or operator authenticity is established."
+  ],
+  "verification": {
+    "checked_at": "2026-10-19T09:44:02.305971+00:00",
+    "version": "0.3.0",
+    "tools": 31,
+    "result": "passed",
+    "original_post_chars": 3217,
+    "restart_pagination_posts": 40,
+    "telegram_network_calls": 0,
+    "method": "Real stdio MCP clients with live public HTTPS requests, then server restart and persisted evidence/pagination checks.",
+    "raw_receipts": "Retained locally, excluded from the repository."
+  }
+}

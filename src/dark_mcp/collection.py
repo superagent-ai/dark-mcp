@@ -12,9 +12,10 @@ from dark_mcp.telegram import channel_key
 
 
 class CollectionService:
-    def __init__(self, settings, catalog: SourceCatalog, store: EvidenceStore, onion, telegram):
+    def __init__(self, settings, catalog: SourceCatalog, store: EvidenceStore, onion, telegram, forums=None):
         self.settings, self.catalog, self.store = settings, catalog, store
         self.onion, self.telegram = onion, telegram
+        self.forums = forums
         for source in catalog.sources.values():
             store.register(source["id"], source["kind"], source["locator"], source["name"], source)
 
@@ -56,6 +57,67 @@ class CollectionService:
         snapshot["access_state"] = page_access_state(page)
         source_id = self.onion_source(page.url)
         return self.store.observe(source_id, "onion", page.url, page.url, snapshot, page.collected_at, collection_id)
+
+    async def forum_page(self, source_id: str, url: str | None = None, limit: int = 20, collection_id=None):
+        if self.forums is None:
+            raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
+        attempt = self.store.begin_attempt(source_id, {"url": url, "limit": limit, "collection_id": collection_id})
+        try:
+            self.store.cooldown("forum:" + source_id)
+            page = await self.forums.fetch(source_id, url, limit)
+            snapshot = page.model_dump(exclude={"collected_at", "evidence"})
+            page.evidence = self.store.observe(
+                source_id, "forum", page.url, page.url, snapshot, page.collected_at, collection_id
+            )
+            for post in page.posts:
+                post_snapshot = {
+                    **post.model_dump(exclude={"evidence"}),
+                    "title": page.title,
+                    "access_state": "content_returned_unverified",
+                    "thread_url": post.url,
+                }
+                post.evidence = self.store.observe(
+                    source_id,
+                    "forum",
+                    source_id + ":post:" + post.id,
+                    post.url,
+                    post_snapshot,
+                    page.collected_at,
+                    collection_id,
+                    {"page_url": page.url, "observed_url": post.url},
+                )
+            self.store.finish_attempt(
+                attempt,
+                page.access_state,
+                {
+                    "url": page.url,
+                    "page_type": page.page_type,
+                    "posts": len(page.posts),
+                    "hidden_posts": sum(p.hidden_content for p in page.posts),
+                    "truncated": page.truncated,
+                    "next_page_urls": page.next_page_urls,
+                    "evidence": page.evidence,
+                },
+            )
+            return page
+        except DataAccessError as exc:
+            if exc.retry_after is not None:
+                self.store.cooldown("forum:" + source_id, exc.retry_after)
+            self.store.finish_attempt(attempt, exc.code, exc.as_dict())
+            raise
+
+    async def forum_threads(self, source_id: str, url: str | None = None, query: str | None = None, limit=20):
+        limit_value(limit)
+        if query is not None and (not query.strip() or len(query) > 500):
+            raise ValueError("Use a nonempty local title filter up to 500 characters")
+        page = await self.forum_page(source_id, url, limit)
+        results = [row for row in page.threads if query is None or query.casefold().strip() in row["title"].casefold()]
+        return {
+            "page": page.model_dump(),
+            "results": results[:limit],
+            "omitted_matches": max(0, len(results) - limit),
+            "coverage": "Local title filter on one public index page; follow next_page_urls. Not a site-wide search.",
+        }
 
     def import_legacy(self, index):
         with self.store.connect() as db:
@@ -300,6 +362,19 @@ class CollectionService:
         item = self.store.get(evidence_id)
         if item["kind"] == "onion":
             return {"page": (await self.fetch(item["url"])).model_dump()}
+        if item["kind"] == "forum":
+            url = item["snapshot"].get("thread_url") or item["url"]
+            page = await self.forum_page(item["source_id"], url, limit=100)
+            result = {
+                "page": page.model_dump(),
+                "coverage": "Refetched the observed page. Absence from this page does not prove deletion.",
+            }
+            post_id = item["snapshot"].get("id")
+            if post_id and not any(post.id == post_id for post in page.posts):
+                result["availability_observation"] = self.store.unavailable(
+                    evidence_id, "Previously observed forum post was not returned; access, pagination or content change"
+                )
+            return result
         source = self.store.source(item["source_id"])
         locator = source["metadata"]["collection_locator"]
         if source["metadata"].get("thread_root"):
@@ -383,12 +458,19 @@ class CollectionService:
         if thread_id is not None and (thread_id <= 0 or query is not None):
             raise ValueError("Thread reads cannot use server-side query filtering")
         options = {"mode": mode, "query": query, "since": since, "thread_id": thread_id}
-        if source["kind"] == "onion":
+        if source["kind"] in {"onion", "forum"}:
             if mode != "history" or query is not None or since is not None or thread_id is not None:
-                raise ValueError("Onion jobs paginate explicit page links; re-fetch evidence separately for changes")
-            target = onion_url(url or source["locator"])
-            if urlsplit(target).hostname != urlsplit(source["locator"]).hostname:
-                raise DataAccessError("source_url_mismatch", "Choose a URL on this source host")
+                raise ValueError(
+                    "Onion/forum jobs paginate explicit page links; re-fetch evidence separately for changes"
+                )
+            if source["kind"] == "forum":
+                from dark_mcp.forums import forum_url
+
+                target = forum_url(url or source["locator"], source["metadata"]["allowed_hosts"])
+            else:
+                target = onion_url(url or source["locator"])
+                if urlsplit(target).hostname != urlsplit(source["locator"]).hostname:
+                    raise DataAccessError("source_url_mismatch", "Choose a URL on this source host")
             checkpoint = {"queue": [target], "visited": [], "pages_collected": 0}
         else:
             if url is not None:
@@ -410,13 +492,23 @@ class CollectionService:
         error = None
         try:
             for _ in range(max_pages):
-                if job["kind"] == "onion":
+                if job["kind"] in {"onion", "forum"}:
                     if not checkpoint["queue"]:
                         status = "complete"
                         break
                     url = checkpoint["queue"][0]
-                    page = await self.fetch(url, collection_id)
+                    page = (
+                        await self.forum_page(source["id"], url, max_items, collection_id)
+                        if job["kind"] == "forum"
+                        else await self.fetch(url, collection_id)
+                    )
                     results.append({"page": page.model_dump()})
+                    if job["kind"] == "forum" and page.omitted_posts:
+                        raise DataAccessError(
+                            "forum_page_incomplete",
+                            "Post bounds omitted visible posts; cursor retained. "
+                            "Retry with a higher max_items or text bound.",
+                        )
                     if page.access_state != "content_returned_unverified":
                         raise DataAccessError("source_gated", "Source returned a gate or empty page; cursor retained")
                     checkpoint["visited"].append(url)
@@ -430,7 +522,8 @@ class CollectionService:
                                 *(
                                     u
                                     for u in page.next_page_urls
-                                    if urlsplit(u).hostname == urlsplit(source["locator"]).hostname
+                                    if urlsplit(u).hostname
+                                    in source["metadata"].get("allowed_hosts", [urlsplit(source["locator"]).hostname])
                                     and u not in checkpoint["visited"]
                                 ),
                             ]
