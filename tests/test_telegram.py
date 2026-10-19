@@ -187,3 +187,102 @@ def test_collectible_public_alias_is_used_for_evidence_links():
     result = TelegramConnector._message(message(20, datetime(2026, 10, 18, tzinfo=UTC)), channel)
     assert result["url"] == "https://t.me/breaches/20"
     assert result["channel"]["url"] == "https://t.me/breaches"
+
+
+async def test_incremental_reads_request_oldest_new_ids_and_keep_boundary_progress(settings, monkeypatch):
+    configure(settings)
+    connector = TelegramConnector(settings)
+    calls = []
+
+    class FakeClient:
+        async def get_entity(self, target):
+            return entity()
+
+        async def iter_messages(self, target, **kwargs):
+            calls.append(kwargs)
+            for identifier, day in [(101, 16), (102, 17), (103, 18)]:
+                yield message(identifier, datetime(2026, 10, day, tzinfo=UTC))
+
+    @asynccontextmanager
+    async def session(**kwargs):
+        yield FakeClient()
+
+    monkeypatch.setattr(connector, "session", session)
+    result = await connector.messages(
+        "research", limit=2, after_id=100, oldest_first=True, since="2026-10-17T00:00:00Z"
+    )
+    assert [m["id"] for m in result["results"]] == [102]
+    assert result["next_after_id"] == 102
+    assert result["page_full"]
+    assert calls[0]["reverse"] and calls[0]["min_id"] == 100
+
+
+async def test_thread_replies_use_actual_discussion_peer_and_cannot_be_searched(settings, monkeypatch):
+    configure(settings)
+    connector = TelegramConnector(settings)
+
+    class FakeClient:
+        async def get_entity(self, target):
+            return entity()
+
+        async def iter_messages(self, target, **kwargs):
+            assert kwargs["reply_to"] == 10
+            reply = message(20, datetime(2026, 10, 18, tzinfo=UTC))
+            reply.peer_id = types.PeerChannel(999)
+            yield reply
+
+    @asynccontextmanager
+    async def session(**kwargs):
+        yield FakeClient()
+
+    monkeypatch.setattr(connector, "session", session)
+    result = await connector.messages("research", thread_id=10)
+    assert result["results"][0]["url"] == "https://t.me/c/999/20"
+    assert result["results"][0]["channel"]["id"] == "-100999"
+    assert result["thread_root"]["message_id"] == 10
+    with pytest.raises(ValueError):
+        await connector.messages("research", thread_id=10, query="Acme")
+
+
+async def test_update_cursor_uses_explicit_delete_events_and_marks_gap(settings, monkeypatch):
+    configure(settings)
+    connector = TelegramConnector(settings)
+    responses = [
+        SimpleNamespace(full_chat=SimpleNamespace(pts=100)),
+        types.updates.ChannelDifference(
+            pts=102,
+            new_messages=[],
+            other_updates=[
+                types.UpdateDeleteChannelMessages(channel_id=123, messages=[20], pts=102, pts_count=1),
+                types.UpdateDeleteChannelMessages(channel_id=999, messages=[99], pts=102, pts_count=1),
+            ],
+            chats=[],
+            users=[],
+            final=True,
+        ),
+        types.updates.ChannelDifferenceTooLong(
+            dialog=SimpleNamespace(pts=500), messages=[], chats=[], users=[], final=True
+        ),
+    ]
+
+    class FakeClient:
+        async def get_entity(self, target):
+            return entity()
+
+        async def __call__(self, request):
+            return responses.pop(0)
+
+    @asynccontextmanager
+    async def session(**kwargs):
+        yield FakeClient()
+
+    monkeypatch.setattr(connector, "session", session)
+    baseline = await connector.changes("research")
+    assert baseline["initialized"] and baseline["next_pts"] == 100
+    result = await connector.changes("research", pts=100, expected_id="-100123")
+    assert result["deleted_message_ids"] == [20]
+    gap = await connector.changes("research", pts=102, expected_id="-100123")
+    assert gap["gap_detected"] and not gap["deleted_message_ids"]
+    with pytest.raises(DataAccessError) as exc:
+        await connector.changes("research", pts=500, expected_id="-100999")
+    assert exc.value.code == "source_identity_changed"

@@ -14,6 +14,40 @@ class OnionPage(BaseModel):
     links: list[str] = Field(default_factory=list)
     collected_at: str = Field(default_factory=now)
     truncated: bool = False
+    next_page_urls: list[str] = Field(default_factory=list)
+    published_at: str | None = None
+    access_state: str = "content_returned_unverified"
+    evidence: dict | None = None
+
+
+def classify_page(title: str, text: str) -> str:
+    title, text = title.casefold(), text.casefold()
+    if not text.strip():
+        return "empty_document"
+    if any(
+        phrase in title or phrase in text[:300]
+        for phrase in (
+            "verify humanity",
+            "checking your browser",
+            "just a moment...",
+            "security check",
+            "проверка браузера",
+        )
+    ):
+        return "challenge_suspected"
+    if len(text) < 1500 and any(
+        phrase in title or phrase in text
+        for phrase in (
+            "log in",
+            "logged in",
+            "login",
+            "sign in",
+            "вход",
+            "forgot my password",
+        )
+    ):
+        return "login_gate_suspected"
+    return "content_returned_unverified"
 
 
 def limit_value(value: int, maximum: int = 100) -> int:

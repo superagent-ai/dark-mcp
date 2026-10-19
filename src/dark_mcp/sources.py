@@ -6,7 +6,7 @@ from importlib.resources import files
 from urllib.parse import urlsplit
 
 from dark_mcp.errors import DataAccessError
-from dark_mcp.models import limit_value, now
+from dark_mcp.models import classify_page, limit_value, now
 from dark_mcp.onion import onion_url
 
 
@@ -77,17 +77,7 @@ class SourceCatalog:
 
 def page_access_state(page) -> str:
     """Flag obvious gates without claiming that arbitrary page text is verified evidence."""
-    title, text = page.title.casefold(), page.text.casefold()
-    if not text.strip():
-        return "empty_document"
-    if any(
-        phrase in title or phrase in text[:300]
-        for phrase in ("verify humanity", "checking your browser", "just a moment...", "security check")
-    ):
-        return "challenge_suspected"
-    if len(text) < 1500 and any(phrase in title or phrase in text for phrase in ("log in", "login", "sign in", "вход")):
-        return "login_gate_suspected"
-    return "content_returned_unverified"
+    return classify_page(page.title, page.text)
 
 
 async def collect_source(

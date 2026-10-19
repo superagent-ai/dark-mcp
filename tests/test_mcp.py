@@ -16,6 +16,23 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "list_sources",
             "get_source",
             "collect_source",
+            "start_collection",
+            "collect_next",
+            "get_collection",
+            "list_collections",
+            "search_evidence",
+            "get_evidence",
+            "get_evidence_history",
+            "list_evidence_changes",
+            "get_exact_duplicates",
+            "refresh_evidence",
+            "get_source_health",
+            "save_company_profile",
+            "get_company_profile",
+            "add_evidence_relation",
+            "get_evidence_relations",
+            "read_telegram_thread",
+            "sync_telegram_changes",
             "fetch_onion",
             "crawl_onion",
             "search_onion",
@@ -45,3 +62,41 @@ async def test_stdio_entry_point(tmp_path):
         result = await client.call_tool("get_status", {})
         assert result.structured_content["ok"] is True
         assert result.structured_content["indexed_onion_pages"] == 0
+
+
+async def test_stdio_evidence_migration_and_profile_survive_process_restart(tmp_path, onion):
+    from pathlib import Path
+
+    from dark_mcp.index import OnionIndex
+    from dark_mcp.models import OnionPage
+
+    OnionIndex(tmp_path).put(
+        OnionPage(
+            url=onion, title="Fixture", text="Acme.example synthetic evidence", collected_at="2026-10-01T00:00:00Z"
+        )
+    )
+    env = {
+        **os.environ,
+        "DARK_MCP_DATA_DIR": str(tmp_path),
+        "DARK_MCP_TELEGRAM_ENABLED": "false",
+        "PYTHONPATH": str(Path(__file__).parents[1] / "src"),
+    }
+    params = StdioServerParameters(command=sys.executable, args=["-m", "dark_mcp", "serve"], env=env)
+    async with Client(params) as client:
+        result = (await client.call_tool("search_evidence", {"query": "acme.example"})).structured_content
+        assert result["ok"] and len(result["results"]) == 1
+        evidence_id = result["results"][0]["evidence_id"]
+        result = (
+            await client.call_tool(
+                "save_company_profile", {"profile_id": "fixture", "name": "Acme", "identifiers": ["acme.example"]}
+            )
+        ).structured_content
+        assert result["ok"]
+    async with Client(params) as client:
+        result = (await client.call_tool("get_evidence", {"evidence_id": evidence_id})).structured_content
+        assert result["evidence"]["snapshot"]["text"] == "Acme.example synthetic evidence"
+        profile = (await client.call_tool("get_company_profile", {"profile_id": "fixture"})).structured_content
+        assert profile["document"]["identifiers"] == ["acme.example"]
+        status = (await client.call_tool("get_status", {})).structured_content
+        assert status["evidence_store"]["observations"] == 1
+        assert status["version"] == "0.2.0"

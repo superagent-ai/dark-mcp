@@ -133,15 +133,23 @@ class TelegramConnector:
     @staticmethod
     def _message(message, entity) -> dict:
         text = message.message or ""
-        path = TelegramConnector._username(entity) or f"c/{entity.id}"
+        peer_id = getattr(getattr(message, "peer_id", None), "channel_id", entity.id)
+        channel = TelegramConnector._channel(entity)
+        if peer_id != entity.id:
+            channel = {"id": f"-100{peer_id}", "title": None, "username": None, "url": None}
+        path = channel["username"] or f"c/{peer_id}"
+        edited_at = getattr(message, "edit_date", None)
+        reply = getattr(message, "reply_to", None)
         return {
             "id": message.id,
-            "channel": TelegramConnector._channel(entity),
+            "channel": channel,
             "text": text[:16000],
             "truncated": len(text) > 16000,
             "published_at": message.date.isoformat() if message.date else None,
             "url": f"https://t.me/{path}/{message.id}",
             "has_media": message.media is not None,
+            "edited_at": edited_at.isoformat() if edited_at else None,
+            "reply_to_message_id": getattr(reply, "reply_to_msg_id", None),
         }
 
     async def channels(self, query: str, limit: int = 10) -> dict:
@@ -160,32 +168,136 @@ class TelegramConnector:
         before_id: int = 0,
         query: str | None = None,
         since: str | None = None,
+        after_id: int = 0,
+        oldest_first: bool = False,
+        thread_id: int | None = None,
     ) -> dict:
         self._check()
         target = self._allowed_channel(channel)
         limit_value(limit)
-        if before_id < 0:
+        if before_id < 0 or after_id < 0 or (before_id and (after_id or oldest_first)):
             raise ValueError("before_id must be zero or a positive message ID")
+        if thread_id is not None and (thread_id <= 0 or query is not None):
+            raise ValueError("Thread reads require a positive root ID; Telegram cannot search within replies")
         date = parse_date(since)
         if query is not None:
             query = query_value(query)
         async with self.session() as client:
             entity = await self._entity(client, target)
             items = []
-            async for message in client.iter_messages(
-                entity,
-                limit=limit,
-                offset_id=before_id,
-                search=query,
-            ):
+            scanned, scanned_ids, reached_since = 0, [], False
+            options = {"limit": limit, "offset_id": before_id, "search": query}
+            if after_id or oldest_first:
+                options.update(min_id=after_id, reverse=True)
+            if thread_id is not None:
+                options["reply_to"] = thread_id
+            async for message in client.iter_messages(entity, **options):
+                if scanned >= limit:
+                    break
+                scanned += 1
+                scanned_ids.append(message.id)
                 if date and message.date and message.date < date:
+                    if after_id or oldest_first:
+                        continue
+                    reached_since = True
                     break
                 items.append(self._message(message, entity))
         return {
             "results": items,
-            "next_before_id": items[-1]["id"] if len(items) == limit else None,
+            "channel": self._channel(entity),
+            "next_before_id": min(scanned_ids) if scanned == limit and not reached_since and not oldest_first else None,
+            "next_after_id": max(scanned_ids) if scanned_ids and (after_id or oldest_first) else None,
+            "page_full": scanned == limit and not reached_since,
+            "scanned_count": scanned,
+            "since_boundary_reached": reached_since,
+            "thread_root": {"channel": self._channel(entity), "message_id": thread_id} if thread_id else None,
             "coverage": "Selected channel as accessible to the configured account",
             "collected_at": now(),
+        }
+
+    async def message(self, channel: str, message_id: int) -> dict:
+        """Directly recheck a known post; absence is not proof of deletion."""
+        self._check()
+        target = self._allowed_channel(channel)
+        if message_id <= 0:
+            raise ValueError("Use a positive message ID")
+        async with self.session() as client:
+            entity = await self._entity(client, target)
+            message = await client.get_messages(entity, ids=message_id)
+            result = self._message(message, entity) if message and not isinstance(message, types.MessageEmpty) else None
+        return {
+            "results": [result] if result else [],
+            "channel": self._channel(entity),
+            "collected_at": now(),
+            "coverage": "Direct post lookup; absence can indicate deletion or changed access",
+        }
+
+    async def changes(
+        self, channel: str, pts: int | None = None, expected_id: str | None = None, limit: int = 100
+    ) -> dict:
+        """Read explicit MTProto channel updates. An unavailable difference is not inferred as deletion."""
+        self._check()
+        target = self._allowed_channel(channel)
+        limit_value(limit)
+        async with self.session() as client:
+            entity = await self._entity(client, target)
+            identity = self._channel(entity)
+            if pts is not None and expected_id != identity["id"]:
+                raise DataAccessError("source_identity_changed", "Channel identity changed; update cursor retained")
+            if pts is None:
+                full = await client(functions.channels.GetFullChannelRequest(channel=entity))
+                next_pts = getattr(full.full_chat, "pts", None)
+                if next_pts is None:
+                    raise DataAccessError(
+                        "updates_unavailable", "This account cannot initialize a channel update cursor"
+                    )
+                return {
+                    "channel": identity,
+                    "results": [],
+                    "deleted_message_ids": [],
+                    "next_pts": next_pts,
+                    "initialized": True,
+                    "gap_detected": False,
+                    "has_more": False,
+                    "collected_at": now(),
+                }
+            difference = await client(
+                functions.updates.GetChannelDifferenceRequest(
+                    channel=entity,
+                    filter=types.ChannelMessagesFilterEmpty(),
+                    pts=pts,
+                    limit=limit,
+                    force=False,
+                )
+            )
+            gap = isinstance(difference, types.updates.ChannelDifferenceTooLong)
+            next_pts = getattr(difference, "pts", None)
+            if gap:
+                next_pts = getattr(difference.dialog, "pts", None)
+            if next_pts is None:
+                raise DataAccessError("updates_unavailable", "Telegram returned no usable update cursor")
+            if next_pts < pts:
+                raise DataAccessError("updates_cursor_regressed", "Telegram returned an older cursor; state retained")
+            messages = list(getattr(difference, "new_messages", None) or getattr(difference, "messages", None) or [])
+            deleted = []
+            for update in getattr(difference, "other_updates", []):
+                if isinstance(update, types.UpdateEditChannelMessage):
+                    messages.append(update.message)
+                if isinstance(update, types.UpdateDeleteChannelMessages) and update.channel_id == entity.id:
+                    deleted.extend(update.messages)
+            results = [
+                self._message(message, entity) for message in messages if not isinstance(message, types.MessageEmpty)
+            ]
+        return {
+            "channel": identity,
+            "results": results,
+            "deleted_message_ids": list(dict.fromkeys(deleted)),
+            "next_pts": next_pts,
+            "initialized": False,
+            "gap_detected": gap,
+            "has_more": not getattr(difference, "final", True),
+            "collected_at": now(),
+            "coverage": "Server-returned updates since stored pts; a gap can omit older events",
         }
 
     async def posts(self, query: str, limit: int = 20, cursor: dict | None = None) -> dict:

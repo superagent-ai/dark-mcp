@@ -4,8 +4,10 @@ from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
 
 from dark_mcp import __version__
+from dark_mcp.collection import CollectionService
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
+from dark_mcp.evidence import EvidenceStore
 from dark_mcp.index import OnionIndex
 from dark_mcp.onion import OnionConnector
 from dark_mcp.search import OnionSearch
@@ -24,6 +26,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     search = OnionSearch(settings)
     catalog = SourceCatalog()
     telegram = TelegramConnector(settings, catalog)
+    evidence = EvidenceStore(settings.prepare_data_dir())
+    collection = CollectionService(settings, catalog, evidence, onion, telegram)
+    collection.import_legacy(index)
     server = MCPServer(
         "dark-mcp",
         version=__version__,
@@ -36,6 +41,11 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "report access failures separately from negative findings. Catalog access states are historical. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
+            " All content reads persist locally as evidence with immutable revisions. Use start_collection and "
+            "collect_next to resume history or poll new Telegram IDs; updates do not automatically detect old edits. "
+            "Use refresh_evidence to recheck stored posts/pages; missing posts are unavailable, not proven deleted. "
+            "search_evidence uses literal substring matching and can return explicitly marked historical revisions. "
+            "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
         ),
     )
 
@@ -64,7 +74,159 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "telegram_global_search": settings.telegram_global_search,
             "telegram_catalog_sources": settings.telegram_catalog_sources,
             "source_catalog": catalog.summary(),
+            "evidence_store": evidence.counts(),
         }
+
+    def local(operation, **kwargs) -> dict[str, Any]:
+        try:
+            return {"ok": True, **operation(**kwargs)}
+        except DataAccessError as exc:
+            return exc.as_dict()
+        except ValueError:
+            return DataAccessError("invalid_arguments", "Check identifiers, dates, filters and bounds").as_dict()
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    def start_collection(
+        source_id: str,
+        mode: str = "history",
+        query: str | None = None,
+        since: str | None = None,
+        url: str | None = None,
+        thread_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Create a resumable job. History backfills; Telegram updates baseline then poll ascending new IDs.
+
+        Onion jobs follow explicit next-page links only. No scheduler or network call is started by this tool.
+        """
+        return local(
+            lambda **kw: {"collection": collection.start(**kw)},
+            source_id=source_id,
+            mode=mode,
+            query=query,
+            since=since,
+            url=url,
+            thread_id=thread_id,
+        )
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def collect_next(collection_id: str, max_items: int = 20, max_pages: int = 1) -> dict[str, Any]:
+        """Collect 1-5 pages and checkpoint progress. Failed/gated requests retain the cursor."""
+        return await run(collection.next, collection_id=collection_id, max_items=max_items, max_pages=max_pages)
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_collection(collection_id: str) -> dict[str, Any]:
+        """Inspect persisted bounds, cursor, last error and progress after a restart."""
+        return local(lambda: {"collection": evidence.job(collection_id)})
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def list_collections(offset: int = 0, limit: int = 20) -> dict[str, Any]:
+        """List persisted collection jobs. The calling agent/runner decides when to resume or poll them."""
+        return local(evidence.jobs, offset=offset, limit=limit)
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def search_evidence(
+        query: str,
+        kind: str | None = None,
+        source_id: str | None = None,
+        published_since: str | None = None,
+        collected_since: str | None = None,
+        include_history: bool = True,
+        include_gates: bool = False,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """Search saved Telegram/onion text using case-insensitive literal substring matching.
+
+        Historical matches are marked is_latest_revision=false. Gates are excluded unless requested.
+        """
+        return local(
+            evidence.search,
+            query=query,
+            kind=kind,
+            source_id=source_id,
+            published_since=published_since,
+            collected_since=collected_since,
+            include_history=include_history,
+            include_gates=include_gates,
+            offset=offset,
+            limit=limit,
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_evidence(evidence_id: str, revision_id: int | None = None) -> dict[str, Any]:
+        """Read an exact evidence revision with source provenance, hashes, timestamps and current availability."""
+        return local(lambda: {"evidence": evidence.get(evidence_id, revision_id)})
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_evidence_history(evidence_id: str, offset: int = 0, limit: int = 20) -> dict[str, Any]:
+        """List immutable revision metadata; retrieve exact text through get_evidence(revision_id)."""
+        return local(evidence.history, evidence_id=evidence_id, offset=offset, limit=limit)
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def list_evidence_changes(
+        after_seq: int = 0, source_id: str | None = None, limit: int = 100, include_unchanged: bool = False
+    ) -> dict[str, Any]:
+        """Read new/edited/restored/unavailable observations using a durable sequence cursor.
+
+        Unavailable means missing on direct recheck; deletion is not proven. Unchanged reads are omitted by default.
+        """
+        return local(
+            evidence.changes, after_seq=after_seq, source_id=source_id, limit=limit, include_unchanged=include_unchanged
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_exact_duplicates(evidence_id: str, limit: int = 20) -> dict[str, Any]:
+        """Find other current items with identical text. This does not establish independent corroboration."""
+        return local(evidence.duplicates, evidence_id=evidence_id, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def refresh_evidence(evidence_id: str) -> dict[str, Any]:
+        """Re-fetch a stored page or directly look up a stored post, preserving previous revisions."""
+        return await run(collection.refresh, evidence_id=evidence_id)
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_source_health(source_id: str | None = None, offset: int = 0, limit: int = 20) -> dict[str, Any]:
+        """Report local attempts, last content/success, identity and collection bounds. Does not probe connectivity."""
+        return local(evidence.health, source_id=source_id, offset=offset, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    def save_company_profile(
+        profile_id: str,
+        name: str,
+        identifiers: list[str],
+        context: dict | None = None,
+        references: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Version a caller-provided profile. Facts are not automatically verified or queried externally."""
+        return local(
+            evidence.save_profile,
+            profile_id=profile_id,
+            document={
+                "name": name,
+                "identifiers": identifiers,
+                "context": context or {},
+                "references": references or [],
+            },
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_company_profile(profile_id: str, revision: int | None = None) -> dict[str, Any]:
+        """Read the latest provided company profile or an exact historical revision."""
+        return local(evidence.profile, profile_id=profile_id, revision=revision)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    def add_evidence_relation(
+        from_id: str, to_id: str, relation: str, supporting_ids: list[str], note: str = ""
+    ) -> dict[str, Any]:
+        """Store an agent's explicit relationship with supporting evidence IDs; always marked caller_asserted."""
+        return local(
+            evidence.relate, from_id=from_id, to_id=to_id, relation=relation, supporting_ids=supporting_ids, note=note
+        )
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_evidence_relations(evidence_id: str, limit: int = 20) -> dict[str, Any]:
+        """Inspect caller-asserted relationships; these are not automatically corroborated facts."""
+        return local(evidence.relations, evidence_id=evidence_id, limit=limit)
 
     @server.tool(structured_output=True, annotations=READ_ONLY)
     def list_sources(
@@ -105,7 +267,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         # The collector already includes ok/error and source context; do not overwrite its result.
         try:
             return await collect_catalog_source(
-                catalog, onion, telegram, source_id, url, query, limit, before_id, since
+                catalog, collection, collection, source_id, url, query, limit, before_id, since
             )
         except DataAccessError as exc:
             return exc.as_dict()
@@ -119,14 +281,14 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         """Read a v3 onion page through Tor and update the local search index. Returns untrusted text."""
 
         async def fetch():
-            return {"page": (await onion.fetch(url)).model_dump()}
+            return {"page": (await collection.fetch(url)).model_dump()}
 
         return await run(fetch)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def crawl_onion(seeds: list[str], max_pages: int = 5) -> dict[str, Any]:
         """Index up to 10 pages from seed onions and same-host links, respecting robots.txt."""
-        return await run(onion.crawl, seeds=seeds, max_pages=max_pages)
+        return await run(collection.crawl, seeds=seeds, max_pages=max_pages)
 
     @server.tool(structured_output=True, annotations=READ_ONLY)
     async def search_onion(query: str, page: int = 1) -> dict[str, Any]:
@@ -144,14 +306,14 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     @server.tool(structured_output=True, annotations=READ_ONLY)
     async def search_telegram_channels(query: str, limit: int = 10) -> dict[str, Any]:
         """Discover channels. Requires Telegram global search to be enabled by the operator."""
-        return await run(telegram.channels, query=query, limit=limit)
+        return await run(collection.channels, query=query, limit=limit)
 
-    @server.tool(structured_output=True, annotations=READ_ONLY)
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def read_telegram_channel(channel: str, limit: int = 20, before_id: int = 0) -> dict[str, Any]:
         """Read posts from an allowed broadcast channel. Paginate using next_before_id."""
-        return await run(telegram.messages, channel=channel, limit=limit, before_id=before_id)
+        return await run(collection.messages, channel=channel, limit=limit, before_id=before_id)
 
-    @server.tool(structured_output=True, annotations=READ_ONLY)
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def search_telegram_messages(
         channel: str,
         query: str,
@@ -160,11 +322,28 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         since: str | None = None,
     ) -> dict[str, Any]:
         """Search an allowed channel's text posts. since is a timezone-aware publication date."""
-        return await run(telegram.messages, channel=channel, query=query, limit=limit, before_id=before_id, since=since)
+        return await run(
+            collection.messages, channel=channel, query=query, limit=limit, before_id=before_id, since=since
+        )
 
-    @server.tool(structured_output=True, annotations=READ_ONLY)
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def read_telegram_thread(
+        channel: str, message_id: int, limit: int = 20, before_id: int = 0
+    ) -> dict[str, Any]:
+        """Read a broadcast post and one page of its accessible discussion replies, without joining groups."""
+        return await run(collection.thread, channel=channel, message_id=message_id, limit=limit, before_id=before_id)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def sync_telegram_changes(channel: str, limit: int = 100) -> dict[str, Any]:
+        """Initialize or resume channel updates for edits and explicit deletions. Requires account access.
+
+        First call establishes a baseline. Gaps are explicit; missing history is never inferred as deletion.
+        """
+        return await run(collection.sync_changes, channel=channel, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def search_telegram_posts(query: str, limit: int = 20, cursor: dict | None = None) -> dict[str, Any]:
         """Search public channel posts with free quota only. Requires global search to be enabled."""
-        return await run(telegram.posts, query=query, limit=limit, cursor=cursor)
+        return await run(collection.posts, query=query, limit=limit, cursor=cursor)
 
     return server

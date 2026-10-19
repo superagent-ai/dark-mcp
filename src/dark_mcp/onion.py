@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import hashlib
+import re
 import time
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
@@ -11,9 +12,9 @@ from bs4 import BeautifulSoup
 from dark_mcp.config import Settings
 from dark_mcp.errors import DataAccessError
 from dark_mcp.index import OnionIndex
-from dark_mcp.models import OnionPage, limit_value
+from dark_mcp.models import OnionPage, classify_page, limit_value, parse_date
 
-USER_AGENT = "dark-mcp/0.1 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.2 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def onion_url(value: str) -> str:
@@ -142,8 +143,29 @@ class OnionConnector:
                     "tor_unavailable", "Tor request failed or timed out; check the proxy and source availability"
                 ) from exc
         soup = BeautifulSoup(html, "html.parser")
-        links = []
+        links, next_pages = [], []
+        published_at = None
         if kind != "text/plain":
+            # Only explicitly typed article metadata; an arbitrary reply's <time> is not page publication time.
+            published = soup.find("meta", attrs={"property": "article:published_time"})
+            if published and published.get("content"):
+                try:
+                    published_at = parse_date(published["content"]).isoformat()
+                except ValueError:
+                    pass
+            for anchor in soup.find_all(["a", "link"], href=True):
+                label = anchor.get_text(" ", strip=True).casefold()
+                if "next" in anchor.get("rel", []) or re.fullmatch(
+                    r"next(?: page)?[ »›→]*|pr[oó]xim[oa](?: p[aá]gina)?[ »›→]*|следующая[ »›→]*|下一页[ »›→]*", label
+                ):
+                    try:
+                        target = onion_url(urljoin(final_url, anchor["href"]))
+                        if urlsplit(target).hostname == urlsplit(final_url).hostname and target not in next_pages:
+                            next_pages.append(target)
+                    except DataAccessError:
+                        continue
+                    if len(next_pages) >= 10:
+                        break
             for tag in soup(["script", "style", "noscript", "iframe", "svg"]):
                 tag.decompose()
             for anchor in soup.find_all("a", href=True):
@@ -165,6 +187,9 @@ class OnionConnector:
             text=text[: self.settings.max_text_chars],
             links=links,
             truncated=len(text) > self.settings.max_text_chars,
+            next_page_urls=next_pages,
+            published_at=published_at,
+            access_state=classify_page(title, text),
         )
         self.index.put(page)
         return page

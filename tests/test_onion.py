@@ -156,3 +156,40 @@ def test_client_requires_proxy_and_ignores_environment(settings, monkeypatch):
     assert options["proxy"].startswith("socks5h://")
     assert options["trust_env"] is False
     assert options["follow_redirects"] is False
+
+
+async def test_explicit_pagination_and_publication_metadata_are_not_arbitrary_links(settings, monkeypatch, onion):
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        return httpx.Response(
+            200,
+            text=(
+                '<title>Thread</title><meta property="article:published_time" content="2026-10-18T09:00:00+02:00">'
+                '<time datetime="2026-10-19T00:00:00Z">Reply date</time>'
+                '<a rel="next" href="?page=2">2</a><a href="/members">Members</a>'
+                '<a href="/thread?page=3">Next page »</a><p>Acme discussion</p>'
+            ),
+            headers={"content-type": "text/html"},
+        )
+
+    page = await connector_for(settings, monkeypatch, handler).fetch(onion)
+    assert page.next_page_urls == [onion + "?page=2", onion + "thread?page=3"]
+    assert page.published_at == "2026-10-18T07:00:00+00:00"
+
+
+@pytest.mark.parametrize(
+    ("title", "text"),
+    [
+        ("DarkForest", "Stay logged in for 1 hour Register I forgot my password"),
+        ("Проверка браузера…", "Это займёт всего мгновение."),
+    ],
+)
+async def test_known_gate_shapes_are_not_content_success(settings, monkeypatch, onion, title, text):
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        return httpx.Response(200, text=f"<title>{title}</title><p>{text}</p>", headers={"content-type": "text/html"})
+
+    page = await connector_for(settings, monkeypatch, handler).fetch(onion)
+    assert page.access_state in {"login_gate_suspected", "challenge_suspected"}

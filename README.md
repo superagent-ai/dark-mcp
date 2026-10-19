@@ -54,7 +54,7 @@ An investigating agent should:
 5. Derive signals from original evidence: company targeting, alleged access/data offers, credential exposure claims and supplier exposure. Cite the original URL and post ID, observed entity ID, publication time if available, collection time, matching identifiers and uncertainty. Do not equate an advertisement or allegation with a verified compromise.
 6. Separate duplicate/reposted claims, original posts and later replies. Report sources checked, collection bounds, access failures and unresolved attribution alongside any findings. No matches means no matches within that collected coverage.
 
-The MCP supplies discovery and collection; the calling agent derives signals and controls further collection. There is no built-in schedule or alert service. Telegram content is returned on demand; onion fetches update the local cache.
+The MCP supplies discovery, persistent evidence and resumable collection; the calling agent derives signals and controls further collection. There is no built-in schedule or alert service. Telegram and onion content reads now persist locally as evidence with revision history. See the [investigation workflow](docs/investigation-workflow.md).
 
 Maintainers can update the dated research snapshots and run `uv run python scripts/build_source_catalog.py` to regenerate the distributable registry. Tests check that the packaged registry matches the research files.
 
@@ -95,11 +95,14 @@ Use the absolute path to your checkout; the working directory is where `.env` is
   "mcpServers": {
     "dark-mcp": {
       "command": "uv",
-      "args": ["--directory", "/absolute/path/dark-mcp", "run", "dark-mcp", "serve"]
+      "args": ["--directory", "/absolute/path/dark-mcp", "run", "dark-mcp", "serve"],
+      "env": {"PYTHONPATH": "/absolute/path/dark-mcp/src"}
     }
   }
 }
 ```
+
+The explicit source path also supports editable checkouts where the Python installation does not load the generated `.pth` file. Installed wheels do not need it.
 
 For a client supporting local Streamable HTTP:
 
@@ -114,6 +117,17 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | Tool | Purpose |
 | --- | --- |
 | `get_status()` | Configuration and local index count; does not test connectivity |
+| `start_collection(source_id, mode="history", query=null, since=null, url=null, thread_id=null)` | Create a resumable backfill or a Telegram new-post poller; does not start a background process |
+| `collect_next(collection_id, max_items=20, max_pages=1)` | Collect up to five bounded pages and persist progress; failed/gated requests retain their cursor |
+| `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
+| `search_evidence(query, ...)` | Literal substring search across saved Telegram/onion revisions; filter source, kind and dates |
+| `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
+| `list_evidence_changes(after_seq=0, ...)` | Cursor over new, edited, deleted, restored and unavailable observations |
+| `get_exact_duplicates(evidence_id, limit=20)` | Other latest snapshots with identical text; does not imply independent corroboration |
+| `refresh_evidence(evidence_id)` | Directly recheck a stored post/page; retain older evidence |
+| `get_source_health(source_id=null, ...)` | Recorded attempts, bounds, identities, last successful read/content and errors |
+| `save_company_profile(profile_id, name, identifiers, context=null, references=null)` / `get_company_profile(profile_id, revision=null)` | Version caller-provided company context; not independently verified |
+| `add_evidence_relation(from_id, to_id, relation, supporting_ids, note="")` / `get_evidence_relations(evidence_id)` | Save explicit, evidence-backed agent assertions; not automatic factual attribution |
 | `list_sources(kind=null, access_state=null, query=null, offset=0, limit=20)` | Full candidate inventory; paginate with `next_offset` |
 | `get_source(source_id)` | Provenance, evidence links, historical checks and known section URLs |
 | `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion page or page of Telegram posts; report current result and historical access state |
@@ -123,6 +137,8 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `search_onion_cache(query, limit=10, since=null)` | Full text search of collected pages; `since` refers to collection time |
 | `search_telegram_channels(query, limit=10)` | Discover channels; requires global search to be enabled |
 | `read_telegram_channel(channel, limit=20, before_id=0)` | Read an allowed broadcast channel |
+| `read_telegram_thread(channel, message_id, limit=20, before_id=0)` | Read the root and one page of accessible discussion replies, using the actual peer IDs for citations |
+| `sync_telegram_changes(channel, limit=100)` | Establish/resume a Telegram update cursor for edits and explicit deletion events; mark server-reported gaps |
 | `search_telegram_messages(channel, query, limit=20, before_id=0, since=null)` | Search an allowed channel; `since` refers to publication time |
 | `search_telegram_posts(query, limit=20, cursor=null)` | Public post search using free quota only; requires global search to be enabled |
 
@@ -193,7 +209,9 @@ Pages are fetched through Tor, with v3 address checksums checked, redirects vali
 
 All settings use the `DARK_MCP_` prefix; see [.env.example](.env.example). Environment variables override `.env`. The default data directory is `~/.local/share/dark-mcp`; the example uses `./data`.
 
-The local SQLite database stores extracted onion content unencrypted on disk. Telegram posts are returned on demand and are not saved by the server. Clients may retain tool responses. Clear the local corpus by stopping the server and removing `onions.sqlite3` and its WAL files from your configured data directory. Back up or remove Telegram session files separately.
+Version 0.2 persists returned Telegram posts and onion pages in `evidence.sqlite3`, including prior revisions, source attempts, collection checkpoints, company profiles and explicit relationships. This local database is unencrypted and is excluded from Git and Docker build contexts. The older `onions.sqlite3` remains the compatibility cache for `search_onion_cache`. Its existing pages are imported once with their original collection dates; importing does not manufacture a fresh source-health success. Prior research JSON files are not automatically imported.
+
+To clear all collected evidence, stop the server and remove both databases and their WAL/SHM files from your configured data directory. Removing only the compatibility cache does not remove revision history. Removing `evidence.sqlite3` while retaining `onions.sqlite3` causes those compatibility pages to be imported again at the next start. Back up or remove Telegram session files separately. MCP clients may also retain responses.
 
 Search queries sent to the discovery API go to that provider over ordinary HTTPS. Direct onion fetching goes through the configured Tor proxy; it does not fall back to direct internet access. Telegram uses its normal client connection, not Tor.
 
@@ -209,4 +227,4 @@ uv run pytest -q
 uv build
 ```
 
-Tests cover MCP initialization and stdio, provider response contracts and errors, onion URL/redirect/response boundaries, indexing, and Telegram access controls/pagination/rate limits. Default tests make no live network calls. Authenticated provider search and Telegram access require operator credentials and separate live verification.
+Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Authenticated provider search and Telegram access require operator credentials and separate live verification.
