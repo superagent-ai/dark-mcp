@@ -133,6 +133,18 @@ def test_visible_advertisement_with_registration_only_links_is_partial():
     assert result.access_state == "content_returned_unverified"
 
 
+def test_niflheim_login_placeholder_is_hidden_content_even_with_public_replies():
+    source = SourceCatalog().get("forum:niflheim")
+    html = page(
+        xf_post(1, 'To view the content, you need to <a href="/login/">Sign In</a> or Register.')
+        + xf_post(2, "very helpful info", "reader")
+    )
+    result = parse_forum(source, "https://niflheim.world/threads/example.1/", html, 60000, 20)
+    assert result.posts[0].hidden_content
+    assert not result.posts[1].hidden_content
+    assert len(result.posts) == 2
+
+
 @pytest.fixture
 def public_network(monkeypatch):
     monkeypatch.setattr("dark_mcp.forums.public_addresses", AsyncMock(return_value=["8.8.8.8"]))

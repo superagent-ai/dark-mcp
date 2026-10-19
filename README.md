@@ -40,7 +40,7 @@ Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have pub
 
 The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`.
 
-The original HARD-TM Lovable advertisement behind earlier Telegram reposts was collected with its author, timestamp and visible terms. Its outbound links require registration. Niflheim exposed readable posts and multiple pages of replies; Cracked exposed visible discussion with registration-only content marked as hidden. These are bounded access checks, not verified breach claims or complete site coverage. See the [forum collection guide](docs/forum-collection.md) for concrete calls and limitations.
+A current HARD-TM Lovable advertisement matching earlier Telegram repost headlines was collected with its author, timestamp and visible terms. Matching titles and handles do not prove it is the exact post behind an older relay. Its outbound links require registration. Niflheim exposed readable posts and multiple pages of replies; other post bodies can require login. Cracked exposed visible discussion with registration-only content marked as hidden. These are bounded access checks, not verified breach claims or complete site coverage. See the [forum collection guide](docs/forum-collection.md) for concrete calls and limitations.
 
 ### Full source registry for agents
 

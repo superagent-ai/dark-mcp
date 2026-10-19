@@ -176,7 +176,8 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         hidden = hidden or bool(
             re.search(
                 r"(?:must (?:log ?in|register|reply).{0,80}to (?:view|see|reveal)|"
-                r"must be registered (?:for|to) (?:see|view) links|content is hidden)",
+                r"must be registered (?:for|to) (?:see|view) links|content is hidden|"
+                r"to (?:view|see) (?:the |this )?content.{0,80}(?:sign in|log ?in|register))",
                 body.get_text(" ", strip=True),
                 re.I,
             )

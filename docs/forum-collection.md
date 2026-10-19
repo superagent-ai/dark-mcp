@@ -5,7 +5,7 @@ Version 0.3 adds two tools for three catalog sources. They were tested through a
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
 | `forum:hard-tm` | Original Lovable advertisement: one author, publication timestamp, post permalink and over 3,000 characters of visible terms | Purchase/contact links require registration; no account provenance or compromise established |
-| `forum:niflheim` | AI advertisement with two posts; FAQ with 20 posts on each of two pages, authors and timestamps | Original Replit cookie-related thread remains unresolved; FAQ pagination validates access, not a company threat |
+| `forum:niflheim` | AI advertisement with two posts; FAQ with 20 posts on each of two pages, authors and timestamps | Other thread bodies can require login; readable replies do not reveal hidden content or corroborate a claim |
 | `forum:cracked` | Staff notice and a listing with visible replies on two pages, authors and timestamps | Listing payload hidden behind registration; many replies contain little substantive text |
 
 The [access snapshot](../sources/forum-access-2026-10-19.json) records hosts, example URLs, identity caveats and verification bounds. Niflheim and separately cataloged BHF are not treated as the same source. The currently observed Cracked-branded service is not authenticated as a continuation of any historical operator.
@@ -30,6 +30,8 @@ search_evidence
 `read_forum_thread` reads one page of posts, labeled with its source ID. Each post includes its permalink, visible text, author handle, normalized publication time where available, the raw displayed date, quoted-post references, `hidden_content`, `truncated` and a persistent evidence reference. MyBB publication epochs are parsed from post-specific UI metadata without executing scripts. Source times and author identities remain unverified. A page's first visible reply is not presented as the thread's creation time.
 
 `hidden_content=true` means some content or links require access the collector does not have. A readable post may still be partial. Images, attachment contents, linked documents and link-only destinations are not collected. Returned HTML is parsed as text; scripts are never executed.
+
+Niflheim may return a login placeholder as a post body while exposing replies publicly. Those posts are marked `hidden_content=true`; the existence of visible replies is not evidence that the underlying payload was read. When tracing reposts, compare the source's publication time with the relay time. A matching advertisement published after a relay supports a related advertising cluster, not an exact original-post attribution.
 
 ## Resume multiple pages
 
