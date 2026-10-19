@@ -1,7 +1,1231 @@
 {
-  "schema_version": 1,
-  "snapshot_date": "2026-10-18",
+  "schema_version": 2,
+  "snapshot_date": "2026-10-19",
+  "access_snapshot_dates": {
+    "telegram": "2026-10-18",
+    "onion": "2026-10-18"
+  },
   "sources": [
+    {
+      "id": "forum:altenen",
+      "kind": "forum",
+      "name": "Altenen",
+      "locator": null,
+      "url": null,
+      "family": "altenen",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Payment-fraud context is less central for this SaaS scope. Metadata only; no collector or current access verified.",
+      "research_priority": "low",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "altenen",
+        "name": "Altenen",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "low",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Payment-fraud context is less central for this SaaS scope.",
+        "signal_types": [
+          "financial_fraud_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "KELA",
+            "reference_id": "kela-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+          "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:bhf",
+      "kind": "forum",
+      "name": "BHF (Best Hack Forum)",
+      "locator": null,
+      "url": null,
+      "family": "bhf",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Broader credential and tooling discussion coverage. Metadata only; no collector or current access verified.",
+      "research_priority": "high",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "bhf",
+        "name": "BHF (Best Hack Forum)",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "high",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Broader credential and tooling discussion coverage.",
+        "signal_types": [
+          "credential_exposure_claims",
+          "phishing_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "KELA",
+            "reference_id": "kela-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "SOCRadar",
+            "reference_id": "socradar-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "BHF is not the existing BFD Forum; names alone must not be merged."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+          "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+          "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:breachforums",
+      "kind": "forum",
+      "name": "BreachForums / claimed successors",
+      "locator": null,
+      "url": null,
+      "family": "breachforums",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Track each incarnation without assuming continuity. Metadata only; no collector or current access verified.",
+      "research_priority": "high",
+      "vendor_evidence": [
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "breachforums",
+        "name": "BreachForums / claimed successors",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "high",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Track each incarnation without assuming continuity.",
+        "signal_types": [
+          "data_sale_claims",
+          "credential_exposure_claims"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "DarkOwl",
+            "reference_id": "darkowl-forums",
+            "claim_type": "monitoring_recommendation",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "Searchlight Cyber",
+            "reference_id": "searchlight-forums",
+            "claim_type": "historical_research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "No automatic match to the existing breaches linked onion: a similar name does not establish a shared operator or incarnation."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+          "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:cracked",
+      "kind": "forum",
+      "name": "Cracked",
+      "locator": null,
+      "url": null,
+      "family": "cracked",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Separate successor identities from seized originals. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "disruption_or_related_forum_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [
+        {
+          "state": "vendor_reports_disruption_and_return",
+          "event_date": "2025",
+          "reference_ids": [
+            "socradar-forums"
+          ],
+          "scope": "Do not infer continuity or access from a claimed return."
+        }
+      ],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "cracked",
+        "name": "Cracked",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Separate successor identities from seized originals.",
+        "signal_types": [
+          "credential_exposure_claims",
+          "tooling_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "SOCRadar",
+            "reference_id": "socradar-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "disruption_or_related_forum_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [
+          {
+            "state": "vendor_reports_disruption_and_return",
+            "event_date": "2025",
+            "reference_ids": [
+              "socradar-forums"
+            ],
+            "scope": "Do not infer continuity or access from a claimed return."
+          }
+        ],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:cracking-org",
+      "kind": "forum",
+      "name": "Cracking.org",
+      "locator": null,
+      "url": null,
+      "family": "cracking-org",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Resolve conflicting vendor naming before collection. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-11 through 2025-10",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "cracking-org",
+        "name": "Cracking.org",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Resolve conflicting vendor naming before collection.",
+        "signal_types": [
+          "credential_exposure_claims",
+          "tooling_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-11 through 2025-10",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "The Flare article mixes Cracking.org and Cracked.org in prose; retain separate Cracked and Nulled leads, without asserting shared operators."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:damagelib",
+      "kind": "forum",
+      "name": "DamageLib",
+      "locator": null,
+      "url": null,
+      "family": "damagelib",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Track technical discussion across the XSS split. Metadata only; no collector or current access verified.",
+      "research_priority": "high",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2025-08 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Intel 471",
+          "reference_id": "intel471-xss",
+          "claim_type": "analyst_observation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-damagelib",
+          "claim_type": "analyst_observation",
+          "collection_window": "2025-08",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "damagelib",
+        "name": "DamageLib",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "high",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Track technical discussion across the XSS split.",
+        "signal_types": [
+          "exploit_discussions",
+          "malware_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2025-08 through 2025-09",
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "Intel 471",
+            "reference_id": "intel471-xss",
+            "claim_type": "analyst_observation",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "KELA",
+            "reference_id": "kela-damagelib",
+            "claim_type": "analyst_observation",
+            "collection_window": "2025-08",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "Separate source identity from XSS; copied archives are not independent corroboration."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+          "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+          "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:darknetarmy",
+      "kind": "forum",
+      "name": "DarkNetArmy Forums",
+      "locator": null,
+      "url": null,
+      "family": "darknetarmy",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Resolve identity before any collection. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "darknetarmy",
+        "name": "DarkNetArmy Forums",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Resolve identity before any collection.",
+        "signal_types": [
+          "malware_discussions",
+          "credential_exposure_claims"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "Flare lists darknetarmy.onion, which is not a valid Tor v3 hostname. Rejected as a collection locator; no valid onion inferred."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:duty-free",
+      "kind": "forum",
+      "name": "Duty Free",
+      "locator": null,
+      "url": null,
+      "family": "duty-free",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Target announcements can precede disruption. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "duty-free",
+        "name": "Duty Free",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Target announcements can precede disruption.",
+        "signal_types": [
+          "target_announcements",
+          "actor_recruitment"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:hackforums",
+      "kind": "forum",
+      "name": "Hackforums",
+      "locator": null,
+      "url": null,
+      "family": "hackforums",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Inspect relevant tools and company mentions. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-11 through 2025-10",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "hackforums",
+        "name": "Hackforums",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Inspect relevant tools and company mentions.",
+        "signal_types": [
+          "tooling_discussions",
+          "account_sale_claims"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-11 through 2025-10",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:hydraforums",
+      "kind": "forum",
+      "name": "HydraForums",
+      "locator": null,
+      "url": null,
+      "family": "hydraforums",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Potential independent leak and discussion coverage. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-11 through 2025-10",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "hydraforums",
+        "name": "HydraForums",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Potential independent leak and discussion coverage.",
+        "signal_types": [
+          "data_sale_claims",
+          "exploit_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-11 through 2025-10",
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "DarkOwl",
+            "reference_id": "darkowl-forums",
+            "claim_type": "monitoring_recommendation",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [
+          "Do not equate this forum with the historical Hydra marketplace."
+        ],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+          "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:leakbase",
+      "kind": "forum",
+      "name": "LeakBase",
+      "locator": null,
+      "url": null,
+      "family": "leakbase",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Historical correlation and successor research only. Metadata only; no collector or current access verified.",
+      "research_priority": "historical",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [
+        {
+          "state": "official_dismantling_report",
+          "event_date": "2026-03-03/2026-03-04",
+          "reference_ids": [
+            "leakbase-enforcement"
+          ],
+          "scope": "Original platform; any later same-name site requires independent identity verification."
+        }
+      ],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "leakbase",
+        "name": "LeakBase",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "historical",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Historical correlation and successor research only.",
+        "signal_types": [
+          "data_sale_claims",
+          "credential_exposure_claims"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "KELA",
+            "reference_id": "kela-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          },
+          {
+            "provider": "DarkOwl",
+            "reference_id": "darkowl-forums",
+            "claim_type": "monitoring_recommendation",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [
+          {
+            "state": "official_dismantling_report",
+            "event_date": "2026-03-03/2026-03-04",
+            "reference_ids": [
+              "leakbase-enforcement"
+            ],
+            "scope": "Original platform; any later same-name site requires independent identity verification."
+          }
+        ],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+          "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+          "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:lolzteam",
+      "kind": "forum",
+      "name": "Lolzteam / Zelenka",
+      "locator": null,
+      "url": null,
+      "family": "lolzteam",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Prioritize company-linked accounts over general noise. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "lolzteam",
+        "name": "Lolzteam / Zelenka",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Prioritize company-linked accounts over general noise.",
+        "signal_types": [
+          "account_sale_claims",
+          "malware_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:niflheim",
+      "kind": "forum",
+      "name": "Niflheim",
+      "locator": null,
+      "url": null,
+      "family": "niflheim",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Single-vendor lead needs identity confirmation. Metadata only; no collector or current access verified.",
+      "research_priority": "low",
+      "vendor_evidence": [
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "niflheim",
+        "name": "Niflheim",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "low",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Single-vendor lead needs identity confirmation.",
+        "signal_types": [
+          "malware_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "KELA",
+            "reference_id": "kela-forums",
+            "claim_type": "research_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:nulled",
+      "kind": "forum",
+      "name": "Nulled",
+      "locator": null,
+      "url": null,
+      "family": "nulled",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Resolve disruption and any claimed successor first. Metadata only; no collector or current access verified.",
+      "research_priority": "historical",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "disruption_or_related_forum_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [
+        {
+          "state": "vendor_reports_prior_disruption",
+          "event_date": "2025-01",
+          "reference_ids": [
+            "socradar-forums"
+          ],
+          "scope": "Historical identity; current successor not established."
+        }
+      ],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "nulled",
+        "name": "Nulled",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "historical",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Resolve disruption and any claimed successor first.",
+        "signal_types": [
+          "credential_exposure_claims"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "disruption_or_related_forum_mention",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [
+          {
+            "state": "vendor_reports_prior_disruption",
+            "event_date": "2025-01",
+            "reference_ids": [
+              "socradar-forums"
+            ],
+            "scope": "Historical identity; current successor not established."
+          }
+        ],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:wwh-club",
+      "kind": "forum",
+      "name": "WWH-Club",
+      "locator": null,
+      "url": null,
+      "family": "wwh-club",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Retain fraud context without over-prioritizing it. Metadata only; no collector or current access verified.",
+      "research_priority": "low",
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "wwh-club",
+        "name": "WWH-Club",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "low",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Retain fraud context without over-prioritizing it.",
+        "signal_types": [
+          "financial_fraud_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "Flare",
+            "reference_id": "flare-forums",
+            "claim_type": "published_collection_example",
+            "collection_window": "2024-10 through 2025-09",
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
+    {
+      "id": "forum:xforums",
+      "kind": "forum",
+      "name": "XForums",
+      "locator": null,
+      "url": null,
+      "family": "xforums",
+      "source_class": "forum",
+      "access_state": "locator_and_access_unverified",
+      "checked_at": null,
+      "researched_on": "2026-10-19",
+      "assessment": "Validate smaller migration destinations. Metadata only; no collector or current access verified.",
+      "research_priority": "medium",
+      "vendor_evidence": [
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "collection_method": "metadata_only",
+      "research": {
+        "slug": "xforums",
+        "name": "XForums",
+        "source_class": "forum",
+        "existing_onion_families": [],
+        "research_priority": "medium",
+        "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+        "rationale": "Validate smaller migration destinations.",
+        "signal_types": [
+          "service_advertisements",
+          "exploit_discussions"
+        ],
+        "vendor_evidence": [
+          {
+            "provider": "DarkOwl",
+            "reference_id": "darkowl-forums",
+            "claim_type": "monitoring_recommendation",
+            "collection_window": null,
+            "current_api_coverage_verified": false
+          }
+        ],
+        "status_context": [],
+        "identity_notes": [],
+        "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+        "locator": null,
+        "url": null,
+        "access_state": "locator_and_access_unverified",
+        "researched_on": "2026-10-19",
+        "checked_at": null,
+        "discovery_references": [
+          "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/"
+        ],
+        "next_validation": [
+          "Verify current source-owned locator and incarnation.",
+          "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+          "Distinguish homepage success, full thread access and API availability."
+        ]
+      }
+    },
     {
       "id": "onion:101f1e4f7366",
       "kind": "onion",
@@ -38,8 +1262,59 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "rehub",
+          "name": "ReHub",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "REHUBCOM (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Validate migration leads after forum disruption.",
+          "signal_types": [
+            "initial_access_offers",
+            "service_advertisements"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "onion:1f11dee351f9",
@@ -149,8 +1424,59 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "dread",
+          "name": "Dread",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "DREAD"
+          ],
+          "research_priority": "medium",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Useful migration context; broad discussion scope.",
+          "signal_types": [
+            "source_migrations",
+            "underground_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "medium"
     },
     {
       "id": "onion:4e86f2fe1e5a",
@@ -189,8 +1515,164 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "xss",
+          "name": "XSS",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "XSS (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Track access offers and migration separately.",
+          "signal_types": [
+            "initial_access_offers",
+            "malware_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-iab",
+              "claim_type": "explicit_monitoring_claim",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "SOCRadar",
+              "reference_id": "socradar-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Intel 471",
+              "reference_id": "intel471-xss",
+              "claim_type": "analyst_observation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Searchlight Cyber",
+              "reference_id": "searchlight-forums",
+              "claim_type": "historical_research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-damagelib",
+              "claim_type": "analyst_observation",
+              "collection_window": "2025-08",
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/exploit-forum",
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+            "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+            "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+            "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces",
+            "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-iab",
+          "claim_type": "explicit_monitoring_claim",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Intel 471",
+          "reference_id": "intel471-xss",
+          "claim_type": "analyst_observation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-damagelib",
+          "claim_type": "analyst_observation",
+          "collection_window": "2025-08",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "onion:55910ea342a7",
@@ -279,8 +1761,164 @@
           "https://www.recordedfuture.com/research/initial-access-brokers-key-to-rise-in-ransomware-attacks"
         ],
         "depth_checks": [],
-        "access_error": null
-      }
+        "access_error": null,
+        "vendor_research": {
+          "slug": "xss",
+          "name": "XSS",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "XSS (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Track access offers and migration separately.",
+          "signal_types": [
+            "initial_access_offers",
+            "malware_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-iab",
+              "claim_type": "explicit_monitoring_claim",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "SOCRadar",
+              "reference_id": "socradar-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Intel 471",
+              "reference_id": "intel471-xss",
+              "claim_type": "analyst_observation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Searchlight Cyber",
+              "reference_id": "searchlight-forums",
+              "claim_type": "historical_research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-damagelib",
+              "claim_type": "analyst_observation",
+              "collection_window": "2025-08",
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/exploit-forum",
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+            "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+            "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+            "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces",
+            "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
+        }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-iab",
+          "claim_type": "explicit_monitoring_claim",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Intel 471",
+          "reference_id": "intel471-xss",
+          "claim_type": "analyst_observation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-damagelib",
+          "claim_type": "analyst_observation",
+          "collection_window": "2025-08",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "onion:8779af3aebf3",
@@ -316,8 +1954,149 @@
           "https://flare.io/learn/resources/initial-access-brokers-russian-hacking-forums-the-underground-corporate-access-economy"
         ],
         "depth_checks": [],
-        "access_error": null
-      }
+        "access_error": null,
+        "vendor_research": {
+          "slug": "exploit",
+          "name": "Exploit",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "EXPLOIT.IN (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Company access offers merit early follow-up.",
+          "signal_types": [
+            "initial_access_offers",
+            "exploit_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-iab",
+              "claim_type": "explicit_monitoring_claim",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "SOCRadar",
+              "reference_id": "socradar-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Intel 471",
+              "reference_id": "intel471-xss",
+              "claim_type": "analyst_observation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Searchlight Cyber",
+              "reference_id": "searchlight-forums",
+              "claim_type": "historical_research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/exploit-forum",
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+            "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+            "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+            "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
+        }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-iab",
+          "claim_type": "explicit_monitoring_claim",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Intel 471",
+          "reference_id": "intel471-xss",
+          "claim_type": "analyst_observation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "onion:888183ebc845",
@@ -605,8 +2384,124 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "ramp",
+          "name": "RAMP",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "RAMP (Dark)"
+          ],
+          "research_priority": "historical",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Use historical records and trace successor leads.",
+          "signal_types": [
+            "ransomware_recruitment",
+            "initial_access_offers"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-iab",
+              "claim_type": "explicit_monitoring_claim",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Searchlight Cyber",
+              "reference_id": "searchlight-forums",
+              "claim_type": "historical_research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [
+            {
+              "state": "reported_seized",
+              "event_date": "2026-01-28",
+              "reference_ids": [
+                "ramp-disruption",
+                "darkowl-forums"
+              ],
+              "scope": "Historical RAMP operation; no successor identity or current availability verified."
+            }
+          ],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/exploit-forum",
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-iab",
+          "claim_type": "explicit_monitoring_claim",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [
+        {
+          "state": "reported_seized",
+          "event_date": "2026-01-28",
+          "reference_ids": [
+            "ramp-disruption",
+            "darkowl-forums"
+          ],
+          "scope": "Historical RAMP operation; no successor identity or current availability verified."
+        }
+      ],
+      "research_priority": "historical"
     },
     {
       "id": "onion:a9bcde64e044",
@@ -665,8 +2560,59 @@
             "role": "public_section_check"
           }
         ],
-        "access_error": null
-      }
+        "access_error": null,
+        "vendor_research": {
+          "slug": "exilio404",
+          "name": "Exilio404",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "EXILIO404"
+          ],
+          "research_priority": "medium",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Adds Portuguese-language regional coverage.",
+          "signal_types": [
+            "phishing_discussions",
+            "malware_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "KELA",
+              "reference_id": "kela-exilio",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://kelacyber.com/blog/exilio404-brazil-cybercrime-forum/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
+        }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "KELA",
+          "reference_id": "kela-exilio",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "medium"
     },
     {
       "id": "onion:ad7bf11815aa",
@@ -1131,8 +3077,164 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "xss",
+          "name": "XSS",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "XSS (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Track access offers and migration separately.",
+          "signal_types": [
+            "initial_access_offers",
+            "malware_discussions"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-iab",
+              "claim_type": "explicit_monitoring_claim",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-10 through 2025-09",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "SOCRadar",
+              "reference_id": "socradar-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Intel 471",
+              "reference_id": "intel471-xss",
+              "claim_type": "analyst_observation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "Searchlight Cyber",
+              "reference_id": "searchlight-forums",
+              "claim_type": "historical_research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-damagelib",
+              "claim_type": "analyst_observation",
+              "collection_window": "2025-08",
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/exploit-forum",
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+            "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+            "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+            "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces",
+            "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-iab",
+          "claim_type": "explicit_monitoring_claim",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-10 through 2025-09",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Intel 471",
+          "reference_id": "intel471-xss",
+          "claim_type": "analyst_observation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "Searchlight Cyber",
+          "reference_id": "searchlight-forums",
+          "claim_type": "historical_research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-damagelib",
+          "claim_type": "analyst_observation",
+          "collection_window": "2025-08",
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "onion:d7a1b3055e20",
@@ -1263,8 +3365,104 @@
         "access_error": {
           "code": "tor_unavailable",
           "message": "Tor request failed or timed out; check the proxy and source availability"
+        },
+        "vendor_research": {
+          "slug": "darkforums",
+          "name": "DarkForums",
+          "source_class": "forum",
+          "existing_onion_families": [
+            "DARKFORUMS (Dark)"
+          ],
+          "research_priority": "high",
+          "priority_basis": "Analyst prioritization for defensive company exposure research, not a vendor score.",
+          "rationale": "Trace original company claims and sellers.",
+          "signal_types": [
+            "data_sale_claims",
+            "credential_exposure_claims"
+          ],
+          "vendor_evidence": [
+            {
+              "provider": "Flare",
+              "reference_id": "flare-forums",
+              "claim_type": "published_collection_example",
+              "collection_window": "2024-11 through 2025-10",
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "KELA",
+              "reference_id": "kela-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "DarkOwl",
+              "reference_id": "darkowl-forums",
+              "claim_type": "monitoring_recommendation",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            },
+            {
+              "provider": "SOCRadar",
+              "reference_id": "socradar-forums",
+              "claim_type": "research_mention",
+              "collection_window": null,
+              "current_api_coverage_verified": false
+            }
+          ],
+          "status_context": [],
+          "identity_notes": [],
+          "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+          "locator": null,
+          "url": null,
+          "access_state": "locator_and_access_unverified",
+          "researched_on": "2026-10-19",
+          "checked_at": null,
+          "discovery_references": [
+            "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+            "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+            "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+            "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/"
+          ],
+          "next_validation": [
+            "Verify current source-owned locator and incarnation.",
+            "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
+            "Distinguish homepage success, full thread access and API availability."
+          ]
         }
-      }
+      },
+      "vendor_evidence": [
+        {
+          "provider": "Flare",
+          "reference_id": "flare-forums",
+          "claim_type": "published_collection_example",
+          "collection_window": "2024-11 through 2025-10",
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "KELA",
+          "reference_id": "kela-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "DarkOwl",
+          "reference_id": "darkowl-forums",
+          "claim_type": "monitoring_recommendation",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        },
+        {
+          "provider": "SOCRadar",
+          "reference_id": "socradar-forums",
+          "claim_type": "research_mention",
+          "collection_window": null,
+          "current_api_coverage_verified": false
+        }
+      ],
+      "status_context": [],
+      "research_priority": "high"
     },
     {
       "id": "telegram-invite:borwitafreelogs",
@@ -7033,7 +9231,517 @@
         "url": "https://onion.torproject.org/",
         "purpose": "Officially published address for the successful Tor routing control."
       }
+    ],
+    "forum": [
+      {
+        "id": "flare-forums",
+        "publisher": "Flare",
+        "title": "Top Cybercrime Forums to Monitor",
+        "url": "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-iab",
+        "publisher": "Flare",
+        "title": "Exploit Forum, Initial Access Brokers, and Cybercrime on the Dark Web",
+        "url": "https://flare.io/learn/resources/blog/exploit-forum",
+        "published_or_updated": "2025-09-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-api",
+        "publisher": "Flare",
+        "title": "Search in All of Flare's Events",
+        "url": "https://api.docs.flare.io/guides/global-search",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-directory",
+        "publisher": "Flare",
+        "title": "Collection Overview",
+        "url": "https://docs.flare.io/collection-overview",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-mcp",
+        "publisher": "Flare",
+        "title": "API MCP (beta)",
+        "url": "https://api.docs.flare.io/sdk/api-mcp",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-forums",
+        "publisher": "KELA",
+        "title": "Top 8 Deep Web and Dark Web Forums",
+        "url": "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+        "published_or_updated": "2025-11-04",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-api",
+        "publisher": "KELA",
+        "title": "KELA Partner Program for Resellers & Distributors",
+        "url": "https://www.kelacyber.com/partners/partner-program/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-exilio",
+        "publisher": "KELA",
+        "title": "Exilio404: Inside Brazil's Cybercrime Forum",
+        "url": "https://kelacyber.com/blog/exilio404-brazil-cybercrime-forum/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-forums",
+        "publisher": "DarkOwl",
+        "title": "After RAMP: What Comes Next for the Ransomware Underground?",
+        "url": "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+        "published_or_updated": "2026-03-12",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-api",
+        "publisher": "DarkOwl",
+        "title": "Search API",
+        "url": "https://www.darkowl.com/products/search-api/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-filters",
+        "publisher": "DarkOwl",
+        "title": "Filters, Dates, and Advanced Search Options",
+        "url": "https://support.darkowl.com/knowledge-base/filters-dates-and-advanced-search-options",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "socradar-forums",
+        "publisher": "SOCRadar",
+        "title": "Top 5 Surface Web Hacker Forums in 2026",
+        "url": "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+        "published_or_updated": "2026-05-14",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "socradar-api",
+        "publisher": "SOCRadar",
+        "title": "SOCRadar APIs",
+        "url": "https://socradar.io/solutions/api.html",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intel471-xss",
+        "publisher": "Intel 471",
+        "title": "After disruption, XSS cybercrime forum faces loss of trust",
+        "url": "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intel471-api",
+        "publisher": "Intel 471",
+        "title": "TITAN Cyber Intelligence Platform",
+        "url": "https://intel471.com/titan",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "searchlight-forums",
+        "publisher": "Searchlight Cyber",
+        "title": "2023 in Review: Dark Web Marketplaces & Hacking Forums Insights",
+        "url": "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "searchlight-api",
+        "publisher": "Searchlight Cyber",
+        "title": "Dark web monitoring for the finance industry",
+        "url": "https://slcyber.io/wp-content/uploads/2023/07/Dark-web-monitoring-for-the-finance-industry-Searchlight-Cyber.pdf",
+        "published_or_updated": "2023-07",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intelx-api",
+        "publisher": "Intelligence X",
+        "title": "List of buckets",
+        "url": "https://blog.intelx.io/2022/05/05/list-of-buckets/",
+        "published_or_updated": "2022-05-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "bitsight-api",
+        "publisher": "Bitsight",
+        "title": "Adversary Intelligence Solutions",
+        "url": "https://www.bitsight.com/products/adversary-intelligence",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "bitsight-cybersixgill",
+        "publisher": "Bitsight",
+        "title": "Cybersixgill is now part of Bitsight",
+        "url": "https://www.bitsight.com/cybersixgill",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "leakbase-enforcement",
+        "publisher": "Belgian Federal Prosecutor's Office",
+        "title": "LeakBase international operation press release",
+        "url": "https://www.om-mp.be/sites/default/files/media/documents/Persbericht-05-03-2026.pdf",
+        "published_or_updated": "2026-03-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "ramp-disruption",
+        "publisher": "ZeroFox",
+        "title": "Flash Report: FBI Seizes Dark Web Forum RAMP",
+        "url": "https://www.zerofox.com/intelligence/flash-report-fbi-seizes-dark-web-forum-ramp/",
+        "published_or_updated": "2026-01-29",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-damagelib",
+        "publisher": "KELA",
+        "title": "XSS Forum After Takedown: DamageLib Emerges",
+        "url": "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/",
+        "published_or_updated": "2025-09-04",
+        "reviewed_on": "2026-10-19"
+      }
     ]
+  },
+  "vendor_research": {
+    "schema_version": 1,
+    "researched_on": "2026-10-19",
+    "scope": "Public vendor documentation and research; no provider accounts, purchases or direct forum collection.",
+    "methodology": [
+      "Use vendor product/API documentation for interface claims and vendor research for named sources.",
+      "Distinguish explicit monitoring claims, published historical collection examples and mere mentions.",
+      "Compare exact family names with the existing registry; retain uncertain identities separately.",
+      "Treat dated enforcement reports as historical events, not proof of every current mirror or successor.",
+      "No paid API was queried, no forum was joined and no full proprietary source inventory was obtained."
+    ],
+    "evidence_types": {
+      "explicit_monitoring_claim": "Vendor explicitly says it monitors named communities; current entitlement untested.",
+      "published_collection_example": "Vendor publishes a named event-count example for a dated window; not present-day coverage proof.",
+      "research_mention": "Forum discussed in vendor research; no collection guarantee.",
+      "monitoring_recommendation": "Vendor recommends a forum for monitoring; no collection guarantee.",
+      "analyst_observation": "Vendor reports observations; no current API entitlement guarantee.",
+      "historical_research_mention": "Older vendor research naming a forum.",
+      "disruption_or_related_forum_mention": "Contextual mention, not evidence that the vendor scraped this source."
+    },
+    "providers": [
+      {
+        "id": "flare",
+        "name": "Flare",
+        "api_references": [
+          "flare-api",
+          "flare-mcp",
+          "flare-directory"
+        ],
+        "source_references": [
+          "flare-forums",
+          "flare-iab"
+        ],
+        "interface": "Global search REST API; authenticated data MCP also documented.",
+        "visibility": "Named historical collection examples; account Source Directory gives source-specific status and crawl bounds.",
+        "gap": "No authenticated source directory export or current source entitlement checked."
+      },
+      {
+        "id": "darkowl",
+        "name": "DarkOwl",
+        "api_references": [
+          "darkowl-api",
+          "darkowl-filters"
+        ],
+        "source_references": [
+          "darkowl-forums"
+        ],
+        "interface": "Search API with full text and source metadata.",
+        "visibility": "Named monitoring recommendations; network/domain/forum filters documented.",
+        "gap": "Article mentions do not establish live API coverage for each forum."
+      },
+      {
+        "id": "kela",
+        "name": "KELA",
+        "api_references": [
+          "kela-api"
+        ],
+        "source_references": [
+          "kela-forums",
+          "kela-exilio",
+          "kela-damagelib"
+        ],
+        "interface": "Partner data lake API.",
+        "visibility": "Named forum research; useful geography and access context.",
+        "gap": "No public complete collector inventory or source-level API entitlement verified."
+      },
+      {
+        "id": "socradar",
+        "name": "SOCRadar",
+        "api_references": [
+          "socradar-api"
+        ],
+        "source_references": [
+          "socradar-forums"
+        ],
+        "interface": "Advanced CTI Dark Web News API describes forum posts.",
+        "visibility": "Named surface-web forum research.",
+        "gap": "Research list is not proof that each forum is available via a purchased API tier."
+      },
+      {
+        "id": "intel471",
+        "name": "Intel 471",
+        "api_references": [
+          "intel471-api"
+        ],
+        "source_references": [
+          "intel471-xss"
+        ],
+        "interface": "TITAN platform API integration.",
+        "visibility": "Direct analyst reporting on XSS and DamageLib.",
+        "gap": "No current raw-forum endpoint contract or complete inventory verified."
+      },
+      {
+        "id": "searchlight",
+        "name": "Searchlight Cyber",
+        "api_references": [
+          "searchlight-api"
+        ],
+        "source_references": [
+          "searchlight-forums"
+        ],
+        "interface": "DarkIQ API described in a 2023 vendor brochure.",
+        "visibility": "Historical named forum research.",
+        "gap": "Public research reviewed is older; current API scope and collection need vendor confirmation."
+      },
+      {
+        "id": "intelx",
+        "name": "Intelligence X",
+        "api_references": [
+          "intelx-api"
+        ],
+        "source_references": [],
+        "interface": "Search API bucket filters.",
+        "visibility": "Tor, I2P, leak and public-web bucket categories.",
+        "gap": "Bucket documentation is from 2022; no named current forum inventory established."
+      },
+      {
+        "id": "bitsight",
+        "name": "Bitsight / Cybersixgill",
+        "api_references": [
+          "bitsight-api",
+          "bitsight-cybersixgill"
+        ],
+        "source_references": [],
+        "interface": "Adversary intelligence API and STIX/TAXII.",
+        "visibility": "Broad underground forum claims.",
+        "gap": "No named forum list verified in reviewed current documentation; no source-count claim treated as confirmed coverage."
+      }
+    ],
+    "references": [
+      {
+        "id": "flare-forums",
+        "publisher": "Flare",
+        "title": "Top Cybercrime Forums to Monitor",
+        "url": "https://flare.io/learn/resources/blog/top-cybercrime-forums",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-iab",
+        "publisher": "Flare",
+        "title": "Exploit Forum, Initial Access Brokers, and Cybercrime on the Dark Web",
+        "url": "https://flare.io/learn/resources/blog/exploit-forum",
+        "published_or_updated": "2025-09-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-api",
+        "publisher": "Flare",
+        "title": "Search in All of Flare's Events",
+        "url": "https://api.docs.flare.io/guides/global-search",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-directory",
+        "publisher": "Flare",
+        "title": "Collection Overview",
+        "url": "https://docs.flare.io/collection-overview",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "flare-mcp",
+        "publisher": "Flare",
+        "title": "API MCP (beta)",
+        "url": "https://api.docs.flare.io/sdk/api-mcp",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-forums",
+        "publisher": "KELA",
+        "title": "Top 8 Deep Web and Dark Web Forums",
+        "url": "https://kelacyber.com/blog/top-deep-web-and-dark-web-forums/",
+        "published_or_updated": "2025-11-04",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-api",
+        "publisher": "KELA",
+        "title": "KELA Partner Program for Resellers & Distributors",
+        "url": "https://www.kelacyber.com/partners/partner-program/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-exilio",
+        "publisher": "KELA",
+        "title": "Exilio404: Inside Brazil's Cybercrime Forum",
+        "url": "https://kelacyber.com/blog/exilio404-brazil-cybercrime-forum/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-forums",
+        "publisher": "DarkOwl",
+        "title": "After RAMP: What Comes Next for the Ransomware Underground?",
+        "url": "https://www.darkowl.com/blog-content/after-ramp-what-comes-next-for-the-ransomware-underground/",
+        "published_or_updated": "2026-03-12",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-api",
+        "publisher": "DarkOwl",
+        "title": "Search API",
+        "url": "https://www.darkowl.com/products/search-api/",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "darkowl-filters",
+        "publisher": "DarkOwl",
+        "title": "Filters, Dates, and Advanced Search Options",
+        "url": "https://support.darkowl.com/knowledge-base/filters-dates-and-advanced-search-options",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "socradar-forums",
+        "publisher": "SOCRadar",
+        "title": "Top 5 Surface Web Hacker Forums in 2026",
+        "url": "https://socradar.io/blog/top-5-underground-hacker-forums-that-are-accessible-via-your-web-browsers-such-as-google-chrome-firefox-and-internet-explorer/",
+        "published_or_updated": "2026-05-14",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "socradar-api",
+        "publisher": "SOCRadar",
+        "title": "SOCRadar APIs",
+        "url": "https://socradar.io/solutions/api.html",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intel471-xss",
+        "publisher": "Intel 471",
+        "title": "After disruption, XSS cybercrime forum faces loss of trust",
+        "url": "https://www.intel471.com/blog/after-disruption-xss-cybercrime-forum-faces-loss-of-trust",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intel471-api",
+        "publisher": "Intel 471",
+        "title": "TITAN Cyber Intelligence Platform",
+        "url": "https://intel471.com/titan",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "searchlight-forums",
+        "publisher": "Searchlight Cyber",
+        "title": "2023 in Review: Dark Web Marketplaces & Hacking Forums Insights",
+        "url": "https://www.slcyber.io/blog/2023-in-review-hacking-forums-and-dark-web-marketplaces",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "searchlight-api",
+        "publisher": "Searchlight Cyber",
+        "title": "Dark web monitoring for the finance industry",
+        "url": "https://slcyber.io/wp-content/uploads/2023/07/Dark-web-monitoring-for-the-finance-industry-Searchlight-Cyber.pdf",
+        "published_or_updated": "2023-07",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "intelx-api",
+        "publisher": "Intelligence X",
+        "title": "List of buckets",
+        "url": "https://blog.intelx.io/2022/05/05/list-of-buckets/",
+        "published_or_updated": "2022-05-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "bitsight-api",
+        "publisher": "Bitsight",
+        "title": "Adversary Intelligence Solutions",
+        "url": "https://www.bitsight.com/products/adversary-intelligence",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "bitsight-cybersixgill",
+        "publisher": "Bitsight",
+        "title": "Cybersixgill is now part of Bitsight",
+        "url": "https://www.bitsight.com/cybersixgill",
+        "published_or_updated": null,
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "leakbase-enforcement",
+        "publisher": "Belgian Federal Prosecutor's Office",
+        "title": "LeakBase international operation press release",
+        "url": "https://www.om-mp.be/sites/default/files/media/documents/Persbericht-05-03-2026.pdf",
+        "published_or_updated": "2026-03-05",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "ramp-disruption",
+        "publisher": "ZeroFox",
+        "title": "Flash Report: FBI Seizes Dark Web Forum RAMP",
+        "url": "https://www.zerofox.com/intelligence/flash-report-fbi-seizes-dark-web-forum-ramp/",
+        "published_or_updated": "2026-01-29",
+        "reviewed_on": "2026-10-19"
+      },
+      {
+        "id": "kela-damagelib",
+        "publisher": "KELA",
+        "title": "XSS Forum After Takedown: DamageLib Emerges",
+        "url": "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/",
+        "published_or_updated": "2025-09-04",
+        "reviewed_on": "2026-10-19"
+      }
+    ],
+    "limitations": [
+      "No complete current competitor collection inventory was publicly established.",
+      "Source descriptions and dates can conflict, contain naming errors, or survive a takedown.",
+      "Research priority is our judgment for a SaaS exposure investigation, not a verified threat score.",
+      "New forum leads have no collection locator until independently validated.",
+      "Ordinary-web forum collection and commercial API adapters are not implemented by this research update."
+    ],
+    "forum_families_reviewed": 23
   },
   "web_mirror_context": [
     {

@@ -32,6 +32,14 @@ class SourceCatalog:
             "snapshot_date": self.document["snapshot_date"],
             "total": len(self.sources),
             "by_kind": dict(Counter(source["kind"] for source in self.sources.values())),
+            "by_collection_method": dict(Counter(source["collection_method"] for source in self.sources.values())),
+            "access_snapshot_dates": self.document["access_snapshot_dates"],
+            "vendor_research": {
+                "researched_on": self.document["vendor_research"]["researched_on"],
+                "providers_reviewed": len(self.document["vendor_research"]["providers"]),
+                "forum_families_reviewed": self.document["vendor_research"]["forum_families_reviewed"],
+                "current_provider_coverage_verified": False,
+            },
             "coverage": "Dated research candidates, including failures; listing is not confirmed access",
         }
 
@@ -44,7 +52,7 @@ class SourceCatalog:
         limit: int = 20,
     ) -> dict:
         limit_value(limit, 100)
-        if offset < 0 or kind not in {None, "onion", "telegram"}:
+        if offset < 0 or kind not in {None, "onion", "telegram", "forum"}:
             raise ValueError("Check offset and source kind")
         if query is not None and (not query.strip() or len(query) > 500):
             raise ValueError("Use a nonempty query up to 500 characters")
@@ -66,12 +74,21 @@ class SourceCatalog:
 
     def detail(self, source_id: str) -> dict:
         source = self.get(source_id)
+        vendor = self.document["vendor_research"]
+        reference_ids = {row["reference_id"] for row in source.get("vendor_evidence", [])}
+        for event in source.get("status_context", []):
+            reference_ids.update(event["reference_ids"])
         return {
             "source": source,
             "snapshot_date": self.document["snapshot_date"],
             "research_references": self.document["references"][source["kind"]],
             "web_mirror_context": self.document["web_mirror_context"] if source["kind"] == "onion" else [],
-            "coverage": "Historical checks; re-collect to establish current access. Mirrors are research context only.",
+            "vendor_research_references": [row for row in vendor["references"] if row["id"] in reference_ids],
+            "provider_research": vendor["providers"] if source.get("vendor_evidence") else [],
+            "coverage": (
+                "Historical checks and vendor research, not current access or API entitlement. "
+                "Forum leads with metadata_only have no collector; mirrors are research context only."
+            ),
         }
 
 
@@ -112,7 +129,9 @@ async def collect_source(
         if url is not None:
             raise ValueError("URL overrides are supported for onion sources only")
         if source["collection_method"] == "metadata_only":
-            raise DataAccessError("source_access_required", "No durable locator is known; inspect get_source")
+            raise DataAccessError(
+                "source_access_required", "No supported collection locator is verified; inspect get_source research"
+            )
         result = await telegram.messages(
             channel=source["locator"],
             query=query,

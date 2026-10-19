@@ -29,13 +29,19 @@ The [18 October 2026 onion catalog](sources/onion-research-2026-10-18.json) reco
 
 [onion-starter.json](sources/onion-starter.json) contains five public seed pages across PwnForums, Spear and Exilio404. Fetch selected URLs with `fetch_onion` to populate the local index. PwnForums was limited to its public homepage; tested deeper sections returned HTTP 403. [onion-disclosure-context.json](sources/onion-disclosure-context.json) separately lists a readable ransomware victim-claim page. These snapshots establish limited access, not complete forum coverage, authenticated identities or evidence that a particular incident could have been detected early.
 
+### Comparable API and forum research
+
+The [19 October vendor research](docs/vendor-source-research.md) compares eight providers and 23 forum families, including Flare, DarkOwl, KELA, SOCRadar, Intel 471, Searchlight Cyber, Intelligence X and Bitsight/Cybersixgill. The [evidence matrix](sources/vendor-source-research-2026-10-19.json) distinguishes explicit monitoring claims, dated collection examples and research mentions. It also records disruption reports and uncertain identities.
+
+Use `list_sources(kind="forum")` to inspect 16 new metadata-only leads, including DamageLib, BHF, Duty Free, Lolzteam and HydraForums. Existing onion entries gain vendor provenance without changing their original access checks. These leads have no verified collector; ordinary-web forum collection and commercial API adapters remain future work. Neither a vendor mention nor a historical collection chart proves present-day API access. `get_status` separates collection methods from source counts.
+
 ### Full source registry for agents
 
-The server bundles **155 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles and 17 invite-derived leads. Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
+The server bundles **171 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 16 metadata-only forum leads. Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
 
 `list_sources` exposes the complete registry with stable source IDs, filtering and pagination. `get_source` returns assessments, discovery references, evidence links, historical access checks and known forum section URLs. The catalog is packaged with the server, so an installed wheel or Docker image does not depend on this checkout's `sources/` directory.
 
-`collect_source` reads one onion page or a bounded page of Telegram posts. For onion sources, provide a known section or discovered same-host URL to explore deeper. For Telegram, use `query`, `since` and `next_before_id` to search and paginate. Metadata-only invite records return `source_access_required`; numeric IDs can only be read if the account can resolve and access them. Collection does not join channels, renew invite previews or solve login/browser challenges. Obvious onion gates are flagged; other returned text remains unverified.
+`collect_source` reads one onion page or a bounded page of Telegram posts. For onion sources, provide a known section or discovered same-host URL to explore deeper. For Telegram, use `query`, `since` and `next_before_id` to search and paginate. Metadata-only invite and forum records return `source_access_required`; numeric IDs can only be read if the account can resolve and access them. Collection does not join channels, renew invite previews or solve login/browser challenges. Obvious onion gates are flagged; other returned text remains unverified.
 
 To permit Telegram reads across all locatable catalog records, enable the following alongside your authenticated Telegram configuration:
 

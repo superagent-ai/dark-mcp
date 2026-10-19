@@ -39,6 +39,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             " Use list_sources and get_source to inspect the full dated source inventory and provenance. "
             "Use collect_source for bounded reads, follow returned pagination or same-host links, and "
             "report access failures separately from negative findings. Catalog access states are historical. "
+            "Forum research leads may be metadata-only: vendor mentions do not prove current API coverage. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
             " All content reads persist locally as evidence with immutable revisions. Use start_collection and "
@@ -236,7 +237,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         offset: int = 0,
         limit: int = 20,
     ) -> dict[str, Any]:
-        """List the full research inventory, including inaccessible candidates. Follow next_offset."""
+        """List onion, telegram or metadata-only forum candidates, including failures. Follow next_offset."""
         try:
             return {"ok": True, **catalog.list(kind, access_state, query, offset, limit)}
         except ValueError:

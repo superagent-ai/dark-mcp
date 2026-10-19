@@ -82,11 +82,56 @@ def build_catalog() -> dict:
                 "research": row,
             }
         )
+    vendor = json.loads((ROOT / "sources/vendor-source-research-2026-10-19.json").read_text())
+    for row in vendor["forums"]:
+        matches = [
+            source
+            for source in sources
+            if source["kind"] == "onion" and source["family"] in row["existing_onion_families"]
+        ]
+        if row["existing_onion_families"] and not matches:
+            raise ValueError(f"Unmatched existing forum family: {row['slug']}")
+        for source in matches:
+            # Preserve the original access check and timestamps; vendor research is not a new fetch.
+            source["research"] = {**source["research"], "vendor_research": row}
+            source["vendor_evidence"] = row["vendor_evidence"]
+            source["status_context"] = row["status_context"]
+            source["research_priority"] = row["research_priority"]
+        if not matches:
+            sources.append(
+                {
+                    "id": "forum:" + row["slug"],
+                    "kind": "forum",
+                    "name": row["name"],
+                    "locator": None,
+                    "url": None,
+                    "family": row["slug"],
+                    "source_class": row["source_class"],
+                    "access_state": row["access_state"],
+                    "checked_at": None,
+                    "researched_on": row["researched_on"],
+                    "assessment": row["rationale"] + " Metadata only; no collector or current access verified.",
+                    "research_priority": row["research_priority"],
+                    "vendor_evidence": row["vendor_evidence"],
+                    "status_context": row["status_context"],
+                    "collection_method": "metadata_only",
+                    "research": row,
+                }
+            )
     return {
-        "schema_version": 1,
-        "snapshot_date": "2026-10-18",
+        "schema_version": 2,
+        "snapshot_date": "2026-10-19",
+        "access_snapshot_dates": {"telegram": "2026-10-18", "onion": "2026-10-18"},
         "sources": sorted(sources, key=lambda source: source["id"]),
-        "references": {"telegram": telegram["research_references"], "onion": onion["research_references"]},
+        "references": {
+            "telegram": telegram["research_references"],
+            "onion": onion["research_references"],
+            "forum": vendor["references"],
+        },
+        "vendor_research": {
+            **{key: value for key, value in vendor.items() if key != "forums"},
+            "forum_families_reviewed": len(vendor["forums"]),
+        },
         "web_mirror_context": onion["public_web_mirror_checks"],
     }
 
