@@ -364,9 +364,46 @@ def darkforums_post(pid, number, text, author="fixture-author"):
       <div class="post_body">{text}</div></div></div></div>"""
 
 
+def test_header_counters_after_scroll_and_share_links_preserve_roots_and_later_replies():
+    source = SourceCatalog().get("forum:niflheim")
+    url = source["locator"] + "threads/fixture.123/"
+
+    def markup(pid, number):
+        return f'''<article class="message--post" data-content="post-{pid}">
+        <header class="message-attribution"><div class="message-attribution-main">
+        <a href="{url}post-{pid}"><time datetime="2026-10-19T12:00:00Z">Today</time></a></div>
+        <ul class="message-attribution-opposite"><li><a href="#top">↑</a></li>
+        <li><a href="{url}post-{pid}" data-xf-init="share-tooltip">Share</a></li>
+        <li><a href="{url}post-{pid}">#{number}</a></li></ul></header>
+        <div class="message-body"><div class="bbWrapper">Claim
+        <blockquote><span class="posturl"><a href="#fake">#1</a></span></blockquote>
+        </div></div></article>'''
+
+    root = parse_forum(source, url, markup(900, 1), 60000, 100)
+    assert root.posts[0].is_thread_root is True and root.posts[0].post_number == 1
+    assert root.published_at == "2026-10-19T12:00:00+00:00"
+    reply = parse_forum(source, url + "page-2", markup(901, 22), 60000, 100)
+    assert reply.posts[0].is_thread_root is False and reply.posts[0].post_number == 22
+    assert reply.published_at is None
+    unknown = parse_forum(source, url, markup(902, 0), 60000, 100)
+    assert unknown.posts[0].post_number is None and unknown.posts[0].is_thread_root is None
+    conflict = parse_forum(source, url, markup(903, 1).replace(">↑</a>", ">#2</a>"), 60000, 100)
+    assert conflict.posts[0].post_number is None and conflict.posts[0].is_thread_root is None
+
+
+def test_mybb_posturl_share_link_before_source_counter_does_not_hide_post_number():
+    source = SourceCatalog().get("forum:cracked")
+    url = "https://cracked.st/Thread-fixture"
+    doc = """<div id="post_123"><span class="posturl"><a href="#share">Share</a>
+    <strong><a href="Thread-fixture?pid=123">#1</a></strong></span><div class="post_body">Claim</div></div>"""
+    page = parse_forum(source, url, doc, 60000, 100)
+    assert page.posts[0].post_number == 1 and page.posts[0].is_thread_root is True
+    assert page.posts[0].url == url + "?pid=123"
+
+
 def test_darkforums_theme_preserves_header_author_counters_and_permalinks_without_guessing_dates():
     source = SourceCatalog().get("onion:e51377a2216a")
-    url = source["locator"] + "Thread-fixture"
+    url = source["locator"].rstrip("/") + "/Thread-fixture"
     doc = darkforums_post(900, 1, "Unverified company access claim")
     doc += darkforums_post(
         901, 2, '<blockquote data-source="post:900">Quoted claim</blockquote>Request for evidence', "reply-author"
@@ -389,7 +426,7 @@ async def test_darkforums_collector_is_source_scoped_and_preserves_thread_contex
     from dark_mcp.onion import OnionConnector
 
     source = SourceCatalog().get("onion:e51377a2216a")
-    url = source["locator"] + "Thread-fixture"
+    url = source["locator"].rstrip("/") + "/Thread-fixture"
     requests = []
 
     def handler(request):

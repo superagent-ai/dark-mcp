@@ -6,7 +6,7 @@ The MCP collects and preserves evidence. The agent develops hypotheses, resolves
 
 1. Call `get_status`, then paginate `list_sources`. Historical catalog checks are not current access guarantees.
 2. Save company identifiers and context using `save_company_profile`, citing references. Profiles are versioned caller-provided information; they are never sent to sources automatically. Retrieve previous versions through `get_company_profile(profile_id, revision)`.
-3. Inspect `get_source` and `get_source_health`. Health reports actual local requests and their limits, not a global coverage percentage. An empty search is recorded separately from a successful content read.
+3. Inspect `get_source`, `get_source_health` and `get_corpus_coverage`. Health reports actual local requests and their limits, not a global coverage percentage. An empty search is recorded separately from a successful content read.
 
 ## Collect history and resume after a restart
 
@@ -68,6 +68,12 @@ This cutoff is useful for testing what the investigator could have known before 
 Use `get_exact_duplicates` for identical text across different items. It does not determine semantic claim equivalence or independence. `add_evidence_relation` stores an explicit agent assertion with 1–20 supporting evidence IDs; `get_evidence_relations` returns these as `caller_asserted`. The agent must explain and revisit such relationships.
 
 ## Track change and report coverage
+
+`get_corpus_coverage(source_id=null, kind=null, offset=0, limit=20)` reports the locally saved inventory without making network requests. The summary covers the entire selected inventory regardless of row pagination. Each response uses one database read snapshot and returns a store-wide `observations_through_seq` watermark; collection between calls can change the inventory while you paginate. By default it lists sources with saved items; requesting an exact registered source also returns an explicit zero-item row. `kind` filters evidence kind, so `kind="forum"` includes structured Tor forum posts even when their catalog kind is onion.
+
+Counts use each item's latest revision. `stored_revisions` separately includes its older snapshots. `indexed_forum_posts` and `indexed_forum_threads` require an explicit saved thread identity; legacy items without one remain in `unindexed_forum_items`. Aggregate pages and individual posts overlap in text and must not be added together as independent evidence. `threads_without_explicit_root` means no saved post is explicitly marked as the root; it does not prove that the source has no root. Hidden post counts omit aggregate-page copies. Truncated items, currently unavailable/deleted items, unknown publication dates and items excluded by the default search access-state filter are reported separately and can overlap.
+
+`first_recorded_at` and `last_positive_recorded_at` bound local positive recording times. Oldest/newest publication dates describe only known dates in the selected latest snapshots. Neither range proves continuous collection. The inventory is **not a search denominator**: historical matches, publication/collection filters and gate exclusions can change search scope. Search responses return those filters in `corpus_scope` and point to this tool. Consult `list_collections`/`get_collection` for exact visited/queued/deferred URLs and configured section bounds, and source health for failed requests. Coverage does not establish threat absence or detection before compromise.
 
 `list_evidence_changes(after_seq)` returns a persistent observation sequence for new, edited, deleted, restored and unavailable items. Save `next_after_seq` in the runner. Unchanged observations remain stored but are omitted by default. Snapshot changes can include metadata or parser extraction improvements, so an `edited` observation is not itself proof that an attacker changed a claim.
 

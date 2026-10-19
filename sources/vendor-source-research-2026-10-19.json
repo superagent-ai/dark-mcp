@@ -1,13 +1,14 @@
 {
   "schema_version": 1,
   "researched_on": "2026-10-19",
-  "scope": "Public vendor documentation and research; no provider accounts, purchases or direct forum collection.",
+  "scope": "Public vendor documentation and research, with separately dated native candidate-root access checks; no provider accounts or purchases.",
   "methodology": [
     "Use vendor product/API documentation for interface claims and vendor research for named sources.",
     "Distinguish explicit monitoring claims, published historical collection examples and mere mentions.",
     "Compare exact family names with the existing registry; retain uncertain identities separately.",
     "Treat dated enforcement reports as historical events, not proof of every current mirror or successor.",
-    "No paid API was queried, no forum was joined and no full proprietary source inventory was obtained."
+    "No paid API was queried, no forum was joined and no full proprietary source inventory was obtained.",
+    "Candidate root checks do not authenticate source identities or activate a collector; failures and domain-sale pages are retained separately from verified locators."
   ],
   "evidence_types": {
     "explicit_monitoring_claim": "Vendor explicitly says it monitors named communities; current entitlement untested.",
@@ -195,7 +196,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -290,7 +291,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -368,7 +369,7 @@
         }
       ],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -432,7 +433,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -475,7 +476,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -515,7 +516,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -555,7 +556,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -609,7 +610,7 @@
       "identity_notes": [
         "Separate source identity from XSS; copied archives are not independent corroboration."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -624,6 +625,21 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "http://damaga377vyvydeqeuigxvl6g5sbmipoxb5nne6gpj3sisbnslbhvrqd.onion/forum/",
+          "checked_at": "2026-10-19T13:35:20.243503+00:00",
+          "scope": "One public root request through the native MCP Tor fetcher",
+          "transport": "tor",
+          "access_state": "connection_failed",
+          "error_code": "tor_unavailable",
+          "discovery_references": [
+            "https://www.kelacyber.com/blog/xss-forum-after-takedown-damagelib-emerges/",
+            "https://malware.news/t/the-xss-is-files-discussion-on-the-july-2025-events-with-ex-moderators/97705"
+          ],
+          "assessment": "Historical candidate locator only. Request failed or timed out; permanent downtime and operator identity are unverified. No original thread access established."
+        }
       ]
     },
     {
@@ -665,7 +681,7 @@
       "identity_notes": [
         "BHF is not the existing BFD Forum; names alone must not be merged."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -680,6 +696,47 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://bhf.pro/",
+          "checked_at": "2026-10-19T13:35:07.893687+00:00",
+          "scope": "One public root request using the native bounded HTTPS forum transport",
+          "transport": "direct_https",
+          "access_state": "connection_failed",
+          "error_code": "forum_unavailable",
+          "observed_title": null,
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "Candidate from a community directory, not authenticated source identity. No original thread access established."
+        },
+        {
+          "url": "https://bhf.gg/",
+          "checked_at": "2026-10-19T13:35:08.233021+00:00",
+          "scope": "One public root request using the native bounded HTTPS forum transport",
+          "transport": "direct_https",
+          "access_state": "http_error",
+          "error_code": "http_530",
+          "observed_title": null,
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "Candidate from a community directory, not authenticated source identity. No original thread access established."
+        },
+        {
+          "url": "https://bhf.im/",
+          "checked_at": "2026-10-19T13:35:12.608477+00:00",
+          "scope": "One public root request using the native bounded HTTPS forum transport",
+          "transport": "direct_https",
+          "access_state": "domain_sale_page",
+          "error_code": null,
+          "observed_title": "bhf.im - Domain For Sale",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "Candidate from a community directory, not authenticated source identity. No original thread access established."
+        }
       ]
     },
     {
@@ -728,7 +785,7 @@
         }
       ],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -768,7 +825,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -806,7 +863,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -850,7 +907,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -888,7 +945,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -928,7 +985,7 @@
       "identity_notes": [
         "Flare lists darknetarmy.onion, which is not a valid Tor v3 hostname. Rejected as a collection locator; no valid onion inferred."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -966,7 +1023,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1006,7 +1063,7 @@
       "identity_notes": [
         "The Flare article mixes Cracking.org and Cracked.org in prose; retain separate Cracked and Nulled leads, without asserting shared operators."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1053,7 +1110,7 @@
       "identity_notes": [
         "Do not equate this forum with the historical Hydra marketplace."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1092,7 +1149,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1129,7 +1186,7 @@
       ],
       "status_context": [],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1183,7 +1240,7 @@
         }
       ],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1230,7 +1287,7 @@
         }
       ],
       "identity_notes": [],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",
@@ -1277,7 +1334,7 @@
       "identity_notes": [
         "No automatic match to the existing breaches linked onion: a similar name does not establish a shared operator or incarnation."
       ],
-      "collection_plan": "Resolve source-owned current locator and permitted access; validate bounded thread reads or request licensed source-specific API coverage.",
+      "collection_plan": "Resolve source-owned current locator and permitted access; implement and verify bounded native thread reads. Retain explicit coverage gaps where access is unavailable.",
       "locator": null,
       "url": null,
       "access_state": "locator_and_access_unverified",

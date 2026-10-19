@@ -6,6 +6,7 @@ from mcp.types import ToolAnnotations
 from dark_mcp import __version__
 from dark_mcp.collection import CollectionService
 from dark_mcp.config import Settings
+from dark_mcp.coverage import CorpusCoverage
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
 from dark_mcp.forums import ForumConnector
@@ -53,6 +54,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "collect_next to resume history or poll new Telegram IDs; updates do not automatically detect old edits. "
             "Use refresh_evidence to recheck stored posts/pages; missing posts are unavailable, not proven deleted. "
             "search_evidence uses literal substring matching and can return explicitly marked historical revisions. "
+            "Use get_corpus_coverage to inspect saved inventory before treating a negative search as meaningful. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
         ),
     )
@@ -225,6 +227,17 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     def get_source_health(source_id: str | None = None, offset: int = 0, limit: int = 20) -> dict[str, Any]:
         """Report local attempts, last content/success, identity and collection bounds. Does not probe connectivity."""
         return local(evidence.health, source_id=source_id, offset=offset, limit=limit)
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_corpus_coverage(
+        source_id: str | None = None, kind: str | None = None, offset: int = 0, limit: int = 20
+    ) -> dict[str, Any]:
+        """Inventory saved evidence, explicit forum threads, missing roots and collection limits without network.
+
+        kind filters evidence kind, including Tor forum posts under kind=forum. Counts use latest revisions;
+        historical revisions are counted separately. This is not a search denominator or full-source coverage.
+        """
+        return local(CorpusCoverage(evidence).get, source_id=source_id, kind=kind, offset=offset, limit=limit)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     def save_company_profile(

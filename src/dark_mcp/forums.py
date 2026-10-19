@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.8 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.9 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(
@@ -291,17 +291,31 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             ".message-attribution-main a[href], .posturl a[href], .postbit-number a[href], "
             ".post_head > .float_right > strong > a[href]"
         )
-        counter = node.select_one(
+        counters = node.select(
             ".postbit-number a, .posturl a, .message-attribution-opposite a, "
             ".post_head > .float_right > strong > a[href]"
         )
         position = node.get("data-position")
         number = int(position) + 1 if position and re.fullmatch(r"[0-9]{1,9}", position) else None
         root = number == 1 if number is not None else None
-        if counter and re.fullmatch(r"#[0-9]+", counter.get_text(strip=True)):
-            counter_text = counter.get_text(strip=True)
-            root = counter_text == "#1"
-            number = int(counter_text[1:]) if len(counter_text) <= 10 and int(counter_text[1:]) > 0 else None
+        # Themes often put scroll/share links before the numbered permalink. Inspect every
+        # header candidate; body/quoted links must not become source post-position metadata.
+        numbers = set()
+        numbered_links = []
+        for counter in counters:
+            if counter.find_parent(class_=["post_body", "bbWrapper"]):
+                continue
+            match = re.fullmatch(r"#([1-9][0-9]{0,8})", counter.get_text(strip=True))
+            if match:
+                numbers.add(int(match[1]))
+                if counter.has_attr("href"):
+                    numbered_links.append(counter)
+        if len(numbers) == 1:
+            number = numbers.pop()
+            root = number == 1
+            permalink = next(iter(numbered_links), permalink)
+        elif numbers:
+            number, root = None, None  # Conflicting source counters do not establish a position.
         fallback = urlunsplit((urlsplit(url).scheme, urlsplit(url).netloc, identity + f"/post-{pid}", "", ""))
         if source["forum_engine"] == "mybb":
             params = {k: v for k, v in parse_qsl(urlsplit(url).query) if k == "tid"}

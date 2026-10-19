@@ -433,6 +433,16 @@ class EvidenceStore:
             "next_offset": offset + limit if len(rows) > limit else None,
             "match_mode": "casefolded_literal_substring",
             "includes_history": include_history,
+            "corpus_scope": {
+                "source_id": source_id,
+                "evidence_kind": kind,
+                "published_since": published,
+                "collected_since": collected,
+                "include_history": include_history,
+                "include_gates": include_gates,
+                "inventory_tool": "get_corpus_coverage",
+                "inventory_is_search_denominator": False,
+            },
             "coverage": "Stored evidence only; historical matches are explicitly marked, gates excluded by default",
         }
 

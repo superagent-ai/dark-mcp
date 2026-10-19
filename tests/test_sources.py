@@ -154,6 +154,8 @@ def test_vendor_leads_distinguish_collection_examples_from_current_access():
     lead = catalog.detail("forum:damagelib")
     assert lead["source"]["locator"] is None
     assert lead["source"]["checked_at"] is None
+    candidate = lead["source"]["research"]["candidate_access_checks"][0]
+    assert candidate["access_state"] == "connection_failed" and candidate["transport"] == "tor"
     assert lead["source"]["researched_on"] == "2026-10-19"
     assert lead["vendor_research_references"]
     assert any(row["id"] == "flare" for row in lead["provider_research"])
@@ -181,6 +183,8 @@ def test_vendor_leads_distinguish_collection_examples_from_current_access():
     assert catalog.get("forum:leakbase")["status_context"][0]["reference_ids"] == ["leakbase-enforcement"]
     assert not catalog.list(kind="forum", query="BHF")["results"][0]["locator"]
     assert "BFD" in catalog.get("forum:bhf")["research"]["identity_notes"][0]
+    assert len(catalog.get("forum:bhf")["research"]["candidate_access_checks"]) == 3
+    assert catalog.get("forum:bhf")["collection_method"] == "metadata_only"
 
 
 async def test_vendor_forum_leads_are_discoverable_but_never_sent_to_a_connector(settings):

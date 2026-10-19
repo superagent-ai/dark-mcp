@@ -30,6 +30,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "get_exact_duplicates",
             "refresh_evidence",
             "get_source_health",
+            "get_corpus_coverage",
             "save_company_profile",
             "get_company_profile",
             "add_evidence_relation",
