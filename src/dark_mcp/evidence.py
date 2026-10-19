@@ -11,6 +11,7 @@ from pathlib import Path
 
 from dark_mcp.errors import DataAccessError
 from dark_mcp.models import limit_value, now, parse_date
+from dark_mcp.thread_context import index_forum_revision
 
 
 def encoded(value) -> str:
@@ -57,6 +58,11 @@ class EvidenceStore:
                 CREATE TRIGGER IF NOT EXISTS revision_search_insert AFTER INSERT ON revisions BEGIN
                     INSERT INTO revision_search(rowid,search_text) VALUES(new.id,new.search_text);
                 END;
+                CREATE TABLE IF NOT EXISTS forum_thread_members (
+                    revision_id INTEGER PRIMARY KEY REFERENCES revisions(id), source_id TEXT NOT NULL,
+                    thread_key TEXT NOT NULL, post_id TEXT NOT NULL, post_number INTEGER, is_thread_root INTEGER
+                );
+                CREATE INDEX IF NOT EXISTS forum_thread_lookup ON forum_thread_members(source_id,thread_key);
                 CREATE TABLE IF NOT EXISTS observations (
                     seq INTEGER PRIMARY KEY AUTOINCREMENT, evidence_id TEXT NOT NULL REFERENCES items(id),
                     revision_id INTEGER NOT NULL REFERENCES revisions(id), observed_at TEXT NOT NULL,
@@ -68,6 +74,7 @@ class EvidenceStore:
                 );
                 CREATE INDEX IF NOT EXISTS attempt_source ON attempts(source_id,started_at);
                 CREATE INDEX IF NOT EXISTS observation_revision ON observations(revision_id,collected_at);
+                CREATE INDEX IF NOT EXISTS observation_item ON observations(evidence_id,seq);
                 CREATE TABLE IF NOT EXISTS cooldowns (kind TEXT PRIMARY KEY, retry_at TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS telegram_state (source_id TEXT PRIMARY KEY, pts INTEGER NOT NULL);
                 CREATE TABLE IF NOT EXISTS jobs (
@@ -89,6 +96,17 @@ class EvidenceStore:
             """)
             if not search_exists:
                 db.execute("INSERT INTO revision_search(revision_search) VALUES('rebuild')")
+            if not db.in_transaction:
+                db.execute("BEGIN IMMEDIATE")
+            if not db.execute("SELECT 1 FROM migrations WHERE name='forum-context-v1'").fetchone():
+                cursor = db.execute(
+                    "SELECT r.id,i.source_id,r.snapshot FROM revisions r JOIN items i ON i.id=r.evidence_id "
+                    "WHERE i.kind='forum'"
+                )
+                while rows := cursor.fetchmany(500):
+                    for row in rows:
+                        index_forum_revision(db, row["id"], row["source_id"], "forum", json.loads(row["snapshot"]))
+                db.execute("INSERT INTO migrations VALUES('forum-context-v1',?)", (now(),))
         self.path.chmod(0o600)
 
     @contextmanager
@@ -185,6 +203,7 @@ class EvidenceStore:
                     ),
                 )
                 revision_id = cursor.lastrowid
+                index_forum_revision(db, revision_id, source_id, kind, snapshot)
             else:
                 revision_id = previous["id"]
             db.execute(

@@ -30,6 +30,7 @@ class ForumPost(BaseModel):
     published_at_hint: str | None = None
     timestamp_basis: str | None = None
     is_thread_root: bool | None = None
+    post_number: int | None = Field(default=None, ge=1, le=1_000_000_000)
     edited_at: str | None = None
     edited_at_raw: str | None = None
     hidden_content: bool = False

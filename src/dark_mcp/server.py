@@ -15,6 +15,7 @@ from dark_mcp.search import OnionSearch
 from dark_mcp.sources import SourceCatalog
 from dark_mcp.sources import collect_source as collect_catalog_source
 from dark_mcp.telegram import TelegramConnector
+from dark_mcp.thread_context import ThreadContext
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=True)
 INDEX_WRITE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=True)
@@ -128,7 +129,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def collect_next(collection_id: str, max_items: int = 20, max_pages: int = 1) -> dict[str, Any]:
-        """Collect 1-5 pages and checkpoint progress. Failed/gated requests retain the cursor."""
+        """Collect 1-5 pages and checkpoint progress. Section jobs record inaccessible threads as gaps."""
         return await run(collection.next, collection_id=collection_id, max_items=max_items, max_pages=max_pages)
 
     @server.tool(structured_output=True, annotations=READ_ONLY)
@@ -174,6 +175,23 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     def get_evidence(evidence_id: str, revision_id: int | None = None) -> dict[str, Any]:
         """Read an exact evidence revision with source provenance, hashes, timestamps and current availability."""
         return local(lambda: {"evidence": evidence.get(evidence_id, revision_id)})
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_collected_thread(
+        evidence_id: str, as_of: str | None = None, offset: int = 0, limit: int = 20
+    ) -> dict[str, Any]:
+        """Reconstruct a saved forum thread without network access; return bounded bodies and evidence references.
+
+        as_of filters this store's recording time, never source publication dates. It excludes later replies/edits.
+        Only saved posts are covered; a missing root or inaccessible replies remain gaps. No author attribution.
+        """
+        return local(
+            ThreadContext(evidence, settings.max_text_chars).get,
+            evidence_id=evidence_id,
+            as_of=as_of,
+            offset=offset,
+            limit=limit,
+        )
 
     @server.tool(structured_output=True, annotations=READ_ONLY)
     def get_evidence_history(evidence_id: str, offset: int = 0, limit: int = 20) -> dict[str, Any]:

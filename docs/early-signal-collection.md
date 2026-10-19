@@ -1,6 +1,6 @@
 # Collect useful early-stage evidence
 
-Version 0.5 adds native section ingestion and operator-owned sessions. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
+Version 0.6 includes native section ingestion, operator-owned sessions and saved-thread reconstruction with local observation cutoffs. The calling agent assesses relevance and uncertainty; scheduling, alerts and response remain outside the MCP.
 
 ## Direct original threads over Tor
 
@@ -19,6 +19,8 @@ The catalog also supplies buyer, seller and database-discussion section URLs. In
 Each collected post retains its visible body, author, permalink, root/reply marker when explicitly available, dates, quoted references, hidden-content status, body links and persistent evidence ID. Actual outbound URLs are retained even when the displayed link is shortened. References are metadata, not verified source identities, and are not automatically followed. A public forum repost of an access offer does not establish access to the marketplace it credits.
 
 For uncertain dates, `published_at` remains null. `published_at_raw` preserves the displayed date/time; `published_at_hint` may preserve an absolute date in a tooltip. `timestamp_basis="unresolved_source_text"` explicitly reports the lack of a usable offset or source Unix epoch. Never turn a displayed September date collected in October into proof that our system detected an incident in September.
+
+Use `get_collected_thread` to inspect saved roots/replies without re-fetching. Its optional `as_of` cutoff excludes content recorded later, even when a source displays an earlier publication date. This prevents later-collected evidence from becoming a claimed earlier warning.
 
 Use `start_collection` / `collect_next` to resume an index or thread across restarts. Post-limit omissions retain the current page cursor. Use `get_evidence`, `refresh_evidence`, `get_source_health` and `list_evidence_changes` as for other collectors. Tor reads honor robots, pacing, text/response bounds and redirect validation. Optional exact-origin sessions can be provisioned through the operator CLI. Registration, password login, challenge solving and downloads are not implemented; live authenticated access remains unverified.
 

@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.5 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.6 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: str = "direct_https") -> str:
@@ -241,9 +241,12 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         permalink = node.select_one(".message-attribution-main a[href], .posturl a[href], .postbit-number a[href]")
         counter = node.select_one(".postbit-number a, .posturl a, .message-attribution-opposite a")
         position = node.get("data-position")
-        root = (position == "0") if position is not None else None
+        number = int(position) + 1 if position and re.fullmatch(r"[0-9]{1,9}", position) else None
+        root = number == 1 if number is not None else None
         if counter and re.fullmatch(r"#[0-9]+", counter.get_text(strip=True)):
-            root = counter.get_text(strip=True) == "#1"
+            counter_text = counter.get_text(strip=True)
+            root = counter_text == "#1"
+            number = int(counter_text[1:]) if len(counter_text) <= 10 and int(counter_text[1:]) > 0 else None
         fallback = urlunsplit((urlsplit(url).scheme, urlsplit(url).netloc, identity + f"/post-{pid}", "", ""))
         if source["forum_engine"] == "mybb":
             params = {k: v for k, v in parse_qsl(urlsplit(url).query) if k == "tid"}
@@ -264,6 +267,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 published_at_hint=hint,
                 timestamp_basis=basis,
                 is_thread_root=root,
+                post_number=number,
                 links=links,
                 edited_at=edited,
                 edited_at_raw=raw_edit,

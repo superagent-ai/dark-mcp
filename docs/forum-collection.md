@@ -1,6 +1,6 @@
 # Collect original forum threads
 
-Version 0.5 uses the same two forum tools for three HTTPS sources and Spear over Tor. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
+Version 0.6 uses the same two forum tools for three HTTPS sources and Spear over Tor. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
 
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
@@ -28,7 +28,9 @@ search_evidence
 
 `list_forum_threads` inspects one accessible index page, extracting up to 100 thread links before applying the local title filter. Follow its `next_page_urls`, returned `sections`, or inspect another `collection_urls` section from `get_source`. An empty filtered index does not mean the forum has no matching posts. Automated search routes are not supported.
 
-`read_forum_thread` reads one page of posts, labeled with its source ID. Each post includes its permalink, visible text, author handle, normalized publication time where available, the raw displayed date, quoted-post references, `hidden_content`, `truncated` and a persistent evidence reference. MyBB publication epochs are parsed from post-specific UI metadata without executing scripts. Source times and author identities remain unverified. A page's first visible reply is not presented as the thread's creation time. `is_thread_root` uses an explicit source post counter or position; when absent it remains null. A page publication time is only taken from an explicitly identified root. `timestamp_basis`, `published_at_raw` and `published_at_hint` distinguish explicit timestamps from unresolved displayed dates. No timezone is inferred from collection time.
+`get_collected_thread` reconstructs saved posts and replies without fetching the source again, optionally as of a local recording-time cutoff; see the [investigation workflow](investigation-workflow.md#search-and-inspect-exact-evidence).
+
+`read_forum_thread` reads one page of posts, labeled with its source ID. Each post includes its permalink, visible text, author handle, normalized publication time where available, the raw displayed date, quoted-post references, `hidden_content`, `truncated` and a persistent evidence reference. MyBB publication epochs are parsed from post-specific UI metadata without executing scripts. Source times and author identities remain unverified. A page's first visible reply is not presented as the thread's creation time. `post_number` preserves an explicit source counter or position when available. `is_thread_root` uses that source counter or position; when absent it remains null. A page publication time is only taken from an explicitly identified root. `timestamp_basis`, `published_at_raw` and `published_at_hint` distinguish explicit timestamps from unresolved displayed dates. No timezone is inferred from collection time.
 
 `hidden_content=true` means some content or links require access the collector does not have. A readable post may still be partial. Images, attachment contents, linked documents and link-only destinations are not collected. Returned HTML is parsed as text; scripts are never executed. Up to 50 body `links` preserve the actual URL and displayed label as untrusted references; a reference is never fetched automatically. References from quoted text can also be present and do not establish authorship.
 
