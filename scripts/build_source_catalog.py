@@ -130,7 +130,7 @@ def build_catalog() -> dict:
                 "url": row["locator"],
                 "collection_method": "forum_page",
                 "access_state": row["access_state"],
-                "checked_at": access["checked_at"],
+                "checked_at": row.get("checked_at", access["checked_at"]),
                 "research": {**existing["research"], "forum_access": row},
             }
         )

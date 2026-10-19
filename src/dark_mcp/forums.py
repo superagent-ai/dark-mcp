@@ -17,7 +17,7 @@ from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.9 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.10 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(
@@ -289,11 +289,11 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         cap = min(16000, remaining)
         permalink = node.select_one(
             ".message-attribution-main a[href], .posturl a[href], .postbit-number a[href], "
-            ".post_head > .float_right > strong > a[href]"
+            ".post_head > .float_right > strong > a[href], .pagnum a[href]"
         )
         counters = node.select(
             ".postbit-number a, .posturl a, .message-attribution-opposite a, "
-            ".post_head > .float_right > strong > a[href]"
+            ".post_head > .float_right > strong > a[href], .pagnum a[href]"
         )
         position = node.get("data-position")
         number = int(position) + 1 if position and re.fullmatch(r"[0-9]{1,9}", position) else None

@@ -298,6 +298,20 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
+        ],
+        "candidate_access_checks": [
+          {
+            "url": "https://pwnforums.ms/",
+            "checked_at": "2026-10-19T13:47:23.902174+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through the bounded native HTTPS forum transport",
+            "access_state": "connection_failed",
+            "error_code": "forum_unavailable",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+            ],
+            "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+          }
         ]
       }
     },
@@ -571,6 +585,20 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
+        ],
+        "candidate_access_checks": [
+          {
+            "url": "https://cracking.org/",
+            "checked_at": "2026-10-19T13:46:27.271293+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through the bounded native HTTPS forum transport",
+            "access_state": "robots_denied",
+            "error_code": "robots_denied",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+            ],
+            "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+          }
         ]
       }
     },
@@ -809,6 +837,20 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
+        ],
+        "candidate_access_checks": [
+          {
+            "url": "https://forum.duty-free.cc/",
+            "checked_at": "2026-10-19T13:48:02.650047+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through the bounded native HTTPS forum transport",
+            "access_state": "connection_failed",
+            "error_code": "forum_unavailable",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+            ],
+            "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+          }
         ]
       }
     },
@@ -1037,6 +1079,20 @@
           "Verify current source-owned locator and incarnation.",
           "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
           "Distinguish homepage success, full thread access and API availability."
+        ],
+        "candidate_access_checks": [
+          {
+            "url": "https://hydraforums.io/",
+            "checked_at": "2026-10-19T13:48:02.653375+00:00",
+            "transport": "direct_https",
+            "scope": "One candidate root through the bounded native HTTPS forum transport",
+            "access_state": "connection_failed",
+            "error_code": "forum_unavailable",
+            "discovery_references": [
+              "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+            ],
+            "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+          }
         ]
       }
     },
@@ -1150,6 +1206,238 @@
           "Distinguish homepage success, full thread access and API availability."
         ]
       }
+    },
+    {
+      "id": "forum:leakforum",
+      "kind": "forum",
+      "source_class": "forum",
+      "research": {
+        "forum_access": {
+          "id": "forum:leakforum",
+          "name": "LeakForum",
+          "family": "leakforum",
+          "locator": "https://leakforum.io/Forum-Buyer-Requests",
+          "allowed_hosts": [
+            "leakforum.io"
+          ],
+          "forum_engine": "mybb",
+          "transport": "direct_https",
+          "collection_urls": [
+            "https://leakforum.io/Forum-Buyer-Requests",
+            "https://leakforum.io/Forum-Services",
+            "https://leakforum.io/Forum-Services--58"
+          ],
+          "example_threads": [
+            "https://leakforum.io/Thread-WTB-Google-GCP-AI-Studio-Accounts-%E2%80%94-T2-T3-Only-%E2%80%94-Daily-Bulk-%E2%80%94-Long-Term",
+            "https://leakforum.io/Thread-Breaching-Service",
+            "https://leakforum.io/Thread-RAVEN-CLOUD-Private-URL-LOG-PASS-ULP-Cloud"
+          ],
+          "checked_at": "2026-10-19T13:52:51.181849+00:00",
+          "assessment": "Public buyer requests and service advertisements expose original bodies, authors, explicit source epochs and replies. Allegations, operator identity and early-warning value remain unverified.",
+          "identity_notes": [
+            "A separately observed LeakForum-branded service, not LeakBase, Cracked or an authenticated BreachForums successor.",
+            "Homepage advertises leakforum.st as a mirror; that host has not been validated and is not in the collector allowlist."
+          ],
+          "access_state": "public_threads_partial",
+          "research_priority": "medium",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md",
+            "https://leakforum.io/"
+          ],
+          "verification": {
+            "method": "Real stdio MCP public reads; bounded section discovery and thread pagination across server restarts",
+            "unique_visible_posts": 35,
+            "thread_pages": 5,
+            "threads": 4,
+            "posts_with_author": 35,
+            "posts_with_publication_time": 35,
+            "posts_with_source_number": 35,
+            "explicit_roots": 4,
+            "section_resumed_after_restart": true,
+            "thread_pagination_resumed_after_restart": true,
+            "exact_evidence_replay": true,
+            "direct_refresh": true,
+            "local_search": true,
+            "unvisited_pagination": true,
+            "source_identity_authenticated": false,
+            "early_warning_proven": false,
+            "attachments_fetched": 0,
+            "samples": [
+              {
+                "url": "https://leakforum.io/Thread-WTB-Google-GCP-AI-Studio-Accounts-%E2%80%94-T2-T3-Only-%E2%80%94-Daily-Bulk-%E2%80%94-Long-Term",
+                "checked_at": "2026-10-19T13:52:28.540127+00:00",
+                "posts": 3,
+                "posts_with_author": 3,
+                "posts_with_publication_time": 3,
+                "posts_with_source_number": 3,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 661,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://leakforum.io/Thread-Breaching-Service",
+                "checked_at": "2026-10-19T13:52:32.534978+00:00",
+                "posts": 9,
+                "posts_with_author": 9,
+                "posts_with_publication_time": 9,
+                "posts_with_source_number": 9,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 664,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://leakforum.io/Thread-RAVEN-CLOUD-Private-URL-LOG-PASS-ULP-Cloud",
+                "checked_at": "2026-10-19T13:52:36.485781+00:00",
+                "posts": 3,
+                "posts_with_author": 3,
+                "posts_with_publication_time": 3,
+                "posts_with_source_number": 3,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 1730,
+                "next_page_urls": []
+              },
+              {
+                "url": "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI",
+                "checked_at": "2026-10-19T13:52:44.827948+00:00",
+                "posts": 10,
+                "posts_with_author": 10,
+                "posts_with_publication_time": 10,
+                "posts_with_source_number": 10,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 1248,
+                "next_page_urls": [
+                  "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=2"
+                ]
+              },
+              {
+                "url": "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=2",
+                "checked_at": "2026-10-19T13:52:50.210632+00:00",
+                "posts": 10,
+                "posts_with_author": 10,
+                "posts_with_publication_time": 10,
+                "posts_with_source_number": 10,
+                "posts_with_hidden_content": 0,
+                "visible_text_characters": 197,
+                "next_page_urls": [
+                  "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=3"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "name": "LeakForum",
+      "family": "leakforum",
+      "locator": "https://leakforum.io/Forum-Buyer-Requests",
+      "allowed_hosts": [
+        "leakforum.io"
+      ],
+      "forum_engine": "mybb",
+      "transport": "direct_https",
+      "collection_urls": [
+        "https://leakforum.io/Forum-Buyer-Requests",
+        "https://leakforum.io/Forum-Services",
+        "https://leakforum.io/Forum-Services--58"
+      ],
+      "example_threads": [
+        "https://leakforum.io/Thread-WTB-Google-GCP-AI-Studio-Accounts-%E2%80%94-T2-T3-Only-%E2%80%94-Daily-Bulk-%E2%80%94-Long-Term",
+        "https://leakforum.io/Thread-Breaching-Service",
+        "https://leakforum.io/Thread-RAVEN-CLOUD-Private-URL-LOG-PASS-ULP-Cloud"
+      ],
+      "checked_at": "2026-10-19T13:52:51.181849+00:00",
+      "assessment": "Public buyer requests and service advertisements expose original bodies, authors, explicit source epochs and replies. Allegations, operator identity and early-warning value remain unverified.",
+      "identity_notes": [
+        "A separately observed LeakForum-branded service, not LeakBase, Cracked or an authenticated BreachForums successor.",
+        "Homepage advertises leakforum.st as a mirror; that host has not been validated and is not in the collector allowlist."
+      ],
+      "access_state": "public_threads_partial",
+      "research_priority": "medium",
+      "discovery_references": [
+        "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md",
+        "https://leakforum.io/"
+      ],
+      "verification": {
+        "method": "Real stdio MCP public reads; bounded section discovery and thread pagination across server restarts",
+        "unique_visible_posts": 35,
+        "thread_pages": 5,
+        "threads": 4,
+        "posts_with_author": 35,
+        "posts_with_publication_time": 35,
+        "posts_with_source_number": 35,
+        "explicit_roots": 4,
+        "section_resumed_after_restart": true,
+        "thread_pagination_resumed_after_restart": true,
+        "exact_evidence_replay": true,
+        "direct_refresh": true,
+        "local_search": true,
+        "unvisited_pagination": true,
+        "source_identity_authenticated": false,
+        "early_warning_proven": false,
+        "attachments_fetched": 0,
+        "samples": [
+          {
+            "url": "https://leakforum.io/Thread-WTB-Google-GCP-AI-Studio-Accounts-%E2%80%94-T2-T3-Only-%E2%80%94-Daily-Bulk-%E2%80%94-Long-Term",
+            "checked_at": "2026-10-19T13:52:28.540127+00:00",
+            "posts": 3,
+            "posts_with_author": 3,
+            "posts_with_publication_time": 3,
+            "posts_with_source_number": 3,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 661,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://leakforum.io/Thread-Breaching-Service",
+            "checked_at": "2026-10-19T13:52:32.534978+00:00",
+            "posts": 9,
+            "posts_with_author": 9,
+            "posts_with_publication_time": 9,
+            "posts_with_source_number": 9,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 664,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://leakforum.io/Thread-RAVEN-CLOUD-Private-URL-LOG-PASS-ULP-Cloud",
+            "checked_at": "2026-10-19T13:52:36.485781+00:00",
+            "posts": 3,
+            "posts_with_author": 3,
+            "posts_with_publication_time": 3,
+            "posts_with_source_number": 3,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1730,
+            "next_page_urls": []
+          },
+          {
+            "url": "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI",
+            "checked_at": "2026-10-19T13:52:44.827948+00:00",
+            "posts": 10,
+            "posts_with_author": 10,
+            "posts_with_publication_time": 10,
+            "posts_with_source_number": 10,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 1248,
+            "next_page_urls": [
+              "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=2"
+            ]
+          },
+          {
+            "url": "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=2",
+            "checked_at": "2026-10-19T13:52:50.210632+00:00",
+            "posts": 10,
+            "posts_with_author": 10,
+            "posts_with_publication_time": 10,
+            "posts_with_source_number": 10,
+            "posts_with_hidden_content": 0,
+            "visible_text_characters": 197,
+            "next_page_urls": [
+              "https://leakforum.io/Thread-DISCORD-NITRO%E2%9C%85-SPOTIFY-%E2%AD%90-YOUTUBE%E2%9C%85DISNEY%E2%AD%90-DUOLINGO%E2%9C%85ADOBE-CC-%E2%AD%90-CHAT-GPT%E2%9C%85-AND-MORE%E2%AD%90-AI?page=3"
+            ]
+          }
+        ]
+      },
+      "url": "https://leakforum.io/Forum-Buyer-Requests",
+      "collection_method": "forum_page"
     },
     {
       "id": "forum:lolzteam",

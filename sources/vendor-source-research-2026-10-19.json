@@ -838,6 +838,20 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://forum.duty-free.cc/",
+          "checked_at": "2026-10-19T13:48:02.650047+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through the bounded native HTTPS forum transport",
+          "access_state": "connection_failed",
+          "error_code": "forum_unavailable",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+        }
       ]
     },
     {
@@ -1076,6 +1090,20 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://cracking.org/",
+          "checked_at": "2026-10-19T13:46:27.271293+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through the bounded native HTTPS forum transport",
+          "access_state": "robots_denied",
+          "error_code": "robots_denied",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+        }
       ]
     },
     {
@@ -1124,6 +1152,20 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://hydraforums.io/",
+          "checked_at": "2026-10-19T13:48:02.653375+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through the bounded native HTTPS forum transport",
+          "access_state": "connection_failed",
+          "error_code": "forum_unavailable",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+        }
       ]
     },
     {
@@ -1348,6 +1390,20 @@
         "Verify current source-owned locator and incarnation.",
         "Record exact public/authenticated section coverage, oldest/newest post and collection time.",
         "Distinguish homepage success, full thread access and API availability."
+      ],
+      "candidate_access_checks": [
+        {
+          "url": "https://pwnforums.ms/",
+          "checked_at": "2026-10-19T13:47:23.902174+00:00",
+          "transport": "direct_https",
+          "scope": "One candidate root through the bounded native HTTPS forum transport",
+          "access_state": "connection_failed",
+          "error_code": "forum_unavailable",
+          "discovery_references": [
+            "https://github.com/fastfire/deepdarkCTI/blob/main/forum.md"
+          ],
+          "assessment": "No original thread fetched. Candidate locator and operator identity remain unverified; this check does not activate a collector. Failure or timeout does not prove permanent source downtime."
+        }
       ]
     }
   ],

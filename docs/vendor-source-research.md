@@ -78,3 +78,5 @@ That research snapshot expanded source discovery only. Subsequent native collect
 5. **Bring accepted originals into dark-mcp evidence:** retain source post IDs, original URLs, publication dates, local recording times and exact revisions. Match mirrors and copied archives without treating copies as independent corroboration. Report unavailable sources, hidden content and bounded coverage alongside findings.
 
 A commercial provider may supply access that our public collectors lack. Adding its forum names to a registry cannot reproduce its corpus, subscriptions or historical archives.
+
+A further native access check added LeakForum as a separately scoped HTTPS source, bringing the registry to 173 records and seven configured forum collectors. This is new direct collection, not an assertion of vendor coverage for LeakForum. Cracking.org, PwnForums HTTPS, HydraForums and Duty Free candidate checks established no original-thread access; the dated failures are available in each record's research. See the [current guide](forum-collection.md#leakforum-buyer-requests-and-services) for the verified 35-post sample and its remaining pagination limits.

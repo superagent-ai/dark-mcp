@@ -1,6 +1,6 @@
 # Collect original forum threads
 
-Version 0.9 uses the same two forum tools for three HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
+Version 0.10 uses the same two forum tools for four HTTPS sources and three Tor sources: Spear, Exilio404 and DarkForums. They were tested through a real stdio MCP client on 19 October 2026; these are dated, bounded access checks.
 
 | Source ID | Tested access | Material limitation |
 | --- | --- | --- |
@@ -9,6 +9,7 @@ Version 0.9 uses the same two forum tools for three HTTPS sources and three Tor 
 | `onion:91e4e785a3af` (Spear, Tor) | Access-market and buyer indexes; three threads with four visible posts, authors, root/reply markers and body references | Source dates lack explicit timezone/epoch in the tested posts; original marketplace destinations can be gated; claims unverified |
 | `onion:a9bcde64e044` (Exilio404, Tor) | Two original discussions: two questions, four answers and three comments, with authors and explicit timestamps | Portuguese-language regional coverage; sample access-sharing request says it is for studying; threat intent and lead time unverified |
 | `onion:e51377a2216a` (DarkForums, Tor) | Access-market and buyer indexes; 13 posts across two discussions, authors and explicit post numbers | Raw dates lack timezone/epoch; sampled sale thread ends with a claimed sold update; source identities and transactions unverified |
+| `forum:leakforum` | Buyer and service discussions: 35 post items across four threads, authors, source epochs, explicit numbers and replies | Two advertisement pages sampled; more remain. Identity, access-sale claims and early-warning value unverified |
 | `forum:cracked` | Staff notice and a listing with visible replies on two pages, authors and timestamps | Listing payload hidden behind registration; many replies contain little substantive text |
 
 The [access snapshot](../sources/forum-access-2026-10-19.json) records hosts, example URLs, identity caveats and verification bounds. Niflheim and separately cataloged BHF are not treated as the same source. The currently observed Cracked-branded service is not authenticated as a continuation of any historical operator.
@@ -68,6 +69,22 @@ A real stdio MCP run checked two indexes and collected 13 posts across two discu
 
 The [priority access check](../sources/priority-forum-access-2026-10-19.json) separates this newly readable route from Exploit/XSS challenge pages and a failed ReHub connection. Original 18 October checks remain preserved in the catalog's research history. Current site branding and a successful read do not authenticate the operators or historical incarnation.
 
+## LeakForum buyer requests and services
+
+```text
+list_forum_threads
+{"source_id":"forum:leakforum","url":"https://leakforum.io/Forum-Buyer-Requests","query":"Google GCP","limit":100}
+
+start_collection
+{"source_id":"forum:leakforum","url":"https://leakforum.io/Forum-Buyer-Requests","mode":"section","query":"Google GCP","max_threads":1,"max_index_pages":1,"max_thread_pages":2}
+```
+
+Use returned thread URLs with `read_forum_thread`, or call `collect_next` to advance the bounded section job. The configured discovery sections are buyer requests and the two distinct service sections. The public MyBB theme places numbered permalinks in `.pagnum`; those source counters identify roots and reply positions. Explicit post-specific quote epochs supply timestamps without executing source code. Dates remain source claims.
+
+Live stdio MCP validation on 19 October 2026 collected 35 unique post items across four original discussions: a Google GCP/AI Studio account request, a claimed breaching service, a log-search service advertisement, and two pages of an account-resale advertisement. All sampled posts retained authors, timestamps and numbers. Section discovery and reply pagination resumed across server restarts; exact evidence replay, local reconstruction, direct refresh, corpus search and a negative control passed. The two-page history job still has unvisited pagination and remains `ready`; it has no background runner.
+
+The requested cloud accounts and advertised services provide investigative leads. They do not verify stolen access, identify a targeted company or establish detection before compromise/disclosure. No keys, advertised services, attachments or third-party endpoints were tested. Current public access is not a guarantee of other sections or authenticated content. `leakforum.io` is the only configured host. Its homepage advertises `leakforum.st` as a mirror, but that host remains unvalidated and outside this collector. This source is distinct from LeakBase and is not authenticated as a BreachForums successor.
+
 ## Resume multiple pages
 
 ```text
@@ -121,8 +138,8 @@ Deterministic tests exercise authenticated reads over HTTPS and Tor, expiry, coo
 
 ## Transport and coverage
 
-Cracked, Niflheim and HARD-TM use direct HTTPS. Spear, Exilio404 and DarkForums use the configured Tor SOCKS proxy and the existing bounded onion transport; none is resolved through the direct HTTPS DNS path. Every Tor forum redirect and robots URL is restricted to that catalog host and the supported read routes. No forum credentials are needed for visible content. Only configured catalog hosts and read routes are eligible. Requests validate redirects, reject private or mixed DNS answers, connect to checked public IPs while retaining hostname TLS verification, honor robots.txt, and apply per-host pacing and response limits. Requests do not use environment proxies. Imported operator sessions are optional and exact-origin scoped; robots requests never carry account cookies. Registration, password login, challenge bypass, posting, account purchases and attachment retrieval are unsupported.
+Cracked, Niflheim, HARD-TM and LeakForum use direct HTTPS. Spear, Exilio404 and DarkForums use the configured Tor SOCKS proxy and the existing bounded onion transport; none is resolved through the direct HTTPS DNS path. Every Tor forum redirect and robots URL is restricted to that catalog host and the supported read routes. No forum credentials are needed for visible content. Only configured catalog hosts and read routes are eligible. Requests validate redirects, reject private or mixed DNS answers, connect to checked public IPs while retaining hostname TLS verification, honor robots.txt, and apply per-host pacing and response limits. Requests do not use environment proxies. Imported operator sessions are optional and exact-origin scoped; robots requests never carry account cookies. Registration, password login, challenge bypass, posting, account purchases and attachment retrieval are unsupported.
 
-Cracked's configured host is `cracked.st`; Niflheim uses `niflheim.world` and `niflheim.top`; HARD-TM uses `hard-tm.com` and `hard-tm.su`. Observed redirects or matching branding establish routing context, not operator authenticity. Other forum catalog entries remain metadata-only until separately implemented and verified.
+Cracked's configured host is `cracked.st`; Niflheim uses `niflheim.world` and `niflheim.top`; HARD-TM uses `hard-tm.com` and `hard-tm.su`; LeakForum uses `leakforum.io`. Observed redirects or matching branding establish routing context, not operator authenticity. Other forum catalog entries remain metadata-only until separately implemented and verified.
 
 The MCP supplies original evidence and access diagnostics. The investigating agent decides whether a claim concerns the company, whether it is original or reposted, and whether it merits action. A subscription resale advertisement alone is not evidence that the platform was breached.
