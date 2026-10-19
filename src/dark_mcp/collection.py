@@ -14,10 +14,13 @@ from dark_mcp.telegram import channel_key
 
 
 class CollectionService:
-    def __init__(self, settings, catalog: SourceCatalog, store: EvidenceStore, onion, telegram, forums=None):
+    def __init__(
+        self, settings, catalog: SourceCatalog, store: EvidenceStore, onion, telegram, forums=None, telegram_web=None
+    ):
         self.settings, self.catalog, self.store = settings, catalog, store
         self.onion, self.telegram = onion, telegram
         self.forums = forums
+        self.telegram_web = telegram_web
         for source in catalog.sources.values():
             store.register(source["id"], source["kind"], source["locator"], source["name"], source)
 
@@ -397,6 +400,10 @@ class CollectionService:
 
     async def refresh(self, evidence_id: str) -> dict:
         item = self.store.get(evidence_id)
+        if item["kind"] == "telegram_web":
+            if self.telegram_web is None:
+                raise DataAccessError("telegram_web_disabled", "Public preview connector is unavailable")
+            return await self.telegram_web.read(item["snapshot"]["handle"], message_id=item["snapshot"]["message_id"])
         if item["kind"] == "telegram_archive":
             raise DataAccessError(
                 "archive_reimport_required",

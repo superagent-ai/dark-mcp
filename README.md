@@ -64,6 +64,12 @@ Version 0.13 adds local `forum-page-import` for UTF-8 HTML saved from an operato
 
 Local `telegram-open-fetch`, `telegram-archive-import` and `telegram-directory-import` commands add checksum-pinned DarkGram messages, deepdarkCTI source leads and bounded TGDataset JSON data. Agents use `list_open_telegram_sources` and `search_evidence(kind="telegram_archive")` to investigate the imported corpus without Telegram requests. Historical imports retain attribution and dates and stay separate from native evidence; directory imports never extend channel permissions. See the [open Telegram guide](docs/open-telegram.md) for coverage, licensing, import bounds and provenance.
 
+### Public Telegram previews
+
+`read_telegram_public_preview` collects visible public channel text and individual post embeds without an account. Enable `DARK_MCP_TELEGRAM_WEB_ENABLED` and configure permitted public handles through the existing allowlist/catalog opt-in. Posts retain body/quote separation, dates, links, pagination and exact evidence, using kind `telegram_web`. Media and private content remain gaps. This collector respects web rate limits and does not reset or automatically replace native account reads. See the [public Telegram guide](docs/public-telegram.md).
+
+To let agents try public handles from imported directories, separately enable `DARK_MCP_TELEGRAM_WEB_DIRECTORY_SOURCES`. Source listings distinguish this configured web permission from unverified live access. This setting never grants native account permissions or private/invite access.
+
 ### Full source registry for agents
 
 The server bundles **174 research records**: 30 onion addresses across 27 source families, 108 public Telegram handles, 17 invite-derived leads and 19 forum records (five HTTPS collectors and 14 metadata-only leads; the onion records also include structured Spear, Exilio404 and DarkForums collectors). Temporary previews are included in those invite records. These are candidates, including stale, gated, unavailable and low-relevance sources; the count is not a count of working or independent feeds. Eight ordinary-web mirror checks are included as research context in `get_source`; they do not have a collector.
@@ -182,6 +188,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `search_onion_cache(query, limit=10, since=null)` | Full text search of collected pages; `since` refers to collection time |
 | `search_telegram_channels(query, limit=10)` | Discover channels; requires global search to be enabled |
 | `read_telegram_channel(channel, limit=20, before_id=0)` | Read an allowed broadcast channel |
+| `read_telegram_public_preview(channel, limit=20, before_id=0, message_id=null)` | Collect one public HTML page or explicit post embed without an account; separate `telegram_web` evidence, visible-text/media gaps and web rate limits |
 | `read_telegram_thread(channel, message_id, limit=20, before_id=0)` | Read the root and one page of accessible discussion replies, using the actual peer IDs for citations |
 | `sync_telegram_changes(channel, limit=100)` | Establish/resume a Telegram update cursor for edits and explicit deletion events; mark server-reported gaps |
 | `search_telegram_messages(channel, query, limit=20, before_id=0, since=null)` | Search an allowed channel; `since` refers to publication time |

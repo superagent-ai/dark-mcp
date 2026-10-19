@@ -48,6 +48,7 @@ async def test_real_mcp_initialization_tools_and_structured_errors(settings):
             "search_onion_cache",
             "search_telegram_channels",
             "read_telegram_channel",
+            "read_telegram_public_preview",
             "search_telegram_messages",
             "search_telegram_posts",
         }

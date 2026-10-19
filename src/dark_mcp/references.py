@@ -53,7 +53,7 @@ def reference_host(url) -> str | None:
 def index_reference_revision(db, revision_id: int, kind: str, snapshot: dict):
     """Derived metadata only. Do not expand nested page copies, infer links from text or mutate snapshots."""
     links = snapshot.get("links")
-    if kind not in {"forum", "onion", "telegram"} or not isinstance(links, list):
+    if kind not in {"forum", "onion", "telegram", "telegram_web"} or not isinstance(links, list):
         return
     seen = set()
     for ordinal, link in enumerate(links[:200]):
@@ -91,7 +91,7 @@ class ReferenceSearch:
         limit: int = 20,
     ) -> dict:
         limit_value(limit)
-        if offset < 0 or kind not in {None, "forum", "onion", "telegram"}:
+        if offset < 0 or kind not in {None, "forum", "onion", "telegram", "telegram_web"}:
             raise ValueError("Check evidence kind and pagination")
         if query is None and host is None:
             raise ValueError("Supply a reference query or host")

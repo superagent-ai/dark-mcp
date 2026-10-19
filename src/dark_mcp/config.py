@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     telegram_api_id: int | None = Field(default=None, gt=0)
     telegram_api_hash: SecretStr | None = None
     telegram_enabled: bool = False
+    telegram_web_enabled: bool = False
+    telegram_web_directory_sources: bool = False
     telegram_channels: list[str] = []
     telegram_catalog_sources: bool = False
     telegram_global_search: bool = False

@@ -319,7 +319,7 @@ class EvidenceStore:
                 (revision_id or item["latest_revision_id"], evidence_id),
             ).fetchone()
             observation = db.execute(
-                "SELECT detail FROM observations WHERE evidence_id=? AND revision_id=? "
+                "SELECT detail,observed_at,collected_at FROM observations WHERE evidence_id=? AND revision_id=? "
                 "AND detail IS NOT NULL AND change_type IN ('new','edited','unchanged','restored') "
                 "ORDER BY seq DESC LIMIT 1",
                 (evidence_id, revision_id or item["latest_revision_id"]),
@@ -336,6 +336,8 @@ class EvidenceStore:
             "snapshot": json.loads(revision["snapshot"]),
         }
         result["provenance"] = json.loads(observation["detail"]) if observation else None
+        result["provenance_recorded_at"] = observation["observed_at"] if observation else None
+        result["provenance_collected_at"] = observation["collected_at"] if observation else None
         return result
 
     def unavailable(self, evidence_id: str, reason: str, collection_id: str | None = None) -> dict:
@@ -408,7 +410,7 @@ class EvidenceStore:
             not query.strip()
             or len(query) > 500
             or offset < 0
-            or kind not in {None, "onion", "telegram", "telegram_archive", "forum", "provider"}
+            or kind not in {None, "onion", "telegram", "telegram_archive", "telegram_web", "forum", "provider"}
         ):
             raise ValueError("Check query, kind and pagination")
         source_id = self._source_filter(source_id)

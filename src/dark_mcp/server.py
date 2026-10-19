@@ -19,6 +19,7 @@ from dark_mcp.search import OnionSearch
 from dark_mcp.sources import SourceCatalog
 from dark_mcp.sources import collect_source as collect_catalog_source
 from dark_mcp.telegram import TelegramConnector
+from dark_mcp.telegram_web import TelegramWeb
 from dark_mcp.thread_context import ThreadContext
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=True)
@@ -34,7 +35,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     evidence = EvidenceStore(settings.prepare_data_dir())
     telegram = TelegramConnector(settings, catalog, evidence)
     forums = ForumConnector(settings, catalog, onion)
-    collection = CollectionService(settings, catalog, evidence, onion, telegram, forums)
+    telegram_web = TelegramWeb(settings, catalog, evidence)
+    collection = CollectionService(settings, catalog, evidence, onion, telegram, forums, telegram_web)
     collection.import_legacy(index)
     server = MCPServer(
         "dark-mcp",
@@ -74,6 +76,11 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "or obfuscated. Directory VALID/EXPIRED labels are upstream reports, not live checks; source labels "
             "do not authenticate actors. Directory imports do not enable collection or join channels. "
             "Inspect acquisition, published_at_raw and timestamp_basis; timezone-free dates remain unresolved."
+            " Use read_telegram_public_preview for an enabled, permitted public handle's visible HTML posts. "
+            "These use kind=telegram_web, separate from native API and archive observations. Quotes are separate "
+            "from the post body. Report missing media, unsupported messages and unvisited pages. Public HTML "
+            "does not authenticate numeric channel IDs or source actors, or grant private-channel access. "
+            "There is no automatic public-web fallback from a blocked native request."
         ),
     )
 
@@ -98,6 +105,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "onion_search_provider": "onionsearchengine.com",
             "onion_search_configured": bool(settings.onion_search_api_key),
             "telegram_enabled": settings.telegram_enabled,
+            "telegram_web_enabled": settings.telegram_web_enabled,
+            "telegram_web_directory_sources": settings.telegram_web_directory_sources,
+            "telegram_web_access": evidence.connector_status("telegram_web"),
             "telegram_access": evidence.connector_status("telegram"),
             "telegram_configured": telegram.configured(),
             "telegram_global_search": settings.telegram_global_search,
@@ -131,9 +141,22 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         These are separate from the live collection catalog and never extend Telegram permissions.
         Use search_evidence(kind='telegram_archive') and get_evidence for imported message bodies.
         """
-        return local(
-            list_open_sources, store=evidence, kind=kind, dataset=dataset, query=query, offset=offset, limit=limit
-        )
+
+        def inspect_sources():
+            result = list_open_sources(evidence, kind, dataset, query, offset, limit)
+            for source in result["results"]:
+                if source["kind"] != "telegram_directory":
+                    continue
+                permitted = False
+                try:
+                    telegram_web.allowed(source["metadata"]["locator"])
+                    permitted = True
+                except (DataAccessError, ValueError):
+                    pass
+                source["public_web_permission"] = {"permitted_by_configuration": permitted, "access_verified": False}
+            return result
+
+        return local(inspect_sources)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     def start_collection(
@@ -501,6 +524,20 @@ def create_server(settings: Settings | None = None) -> MCPServer:
     async def search_telegram_channels(query: str, limit: int = 10) -> dict[str, Any]:
         """Discover channels. Requires Telegram global search to be enabled by the operator."""
         return await run(collection.channels, query=query, limit=limit)
+
+    @server.tool(structured_output=True, annotations=INDEX_WRITE)
+    async def read_telegram_public_preview(
+        channel: str, limit: int = 20, before_id: int = 0, message_id: int | None = None
+    ) -> dict[str, Any]:
+        """Read/persist one public HTML preview page or an explicit public post embed. No Telegram account.
+
+        Requires telegram_web_enabled and an allowed public handle. Directory leads need their separate web opt-in.
+        Follow next_before_id. Imported directory status is not a live-access claim.
+        No joins, attachments, script execution or native-API fallback; web rate limits are honored separately.
+        Visible bodies, quoted previews, timestamps, references and access gaps are explicitly separated.
+        Search retained evidence with kind=telegram_web. message_id cannot be combined with before_id.
+        """
+        return await run(telegram_web.read, channel=channel, limit=limit, before_id=before_id, message_id=message_id)
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def read_telegram_channel(channel: str, limit: int = 20, before_id: int = 0) -> dict[str, Any]:
