@@ -14,7 +14,7 @@ from dark_mcp.errors import DataAccessError
 from dark_mcp.index import OnionIndex
 from dark_mcp.models import OnionPage, classify_page, limit_value, parse_date
 
-USER_AGENT = "dark-mcp/0.4 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.5 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def onion_url(value: str) -> str:
@@ -77,24 +77,44 @@ class OnionConnector:
             self.last_request[host] = time.monotonic()
 
     async def _get(
-        self, client: httpx.AsyncClient, url: str, *, respect_robots: bool = False, validate=None
+        self,
+        client: httpx.AsyncClient,
+        url: str,
+        *,
+        respect_robots: bool = False,
+        validate=None,
+        headers_for=None,
+        on_response=None,
     ) -> tuple[str, str, str]:
         url = onion_url(url)
         for _ in range(6):
             if validate:
                 url = validate(url)
+            if headers_for:
+                client.cookies.clear()  # Never send a previous content response cookie to robots.
             if respect_robots:
                 rules = await self._robots(client, url, validate=validate)
                 if not rules.can_fetch(USER_AGENT, url):
                     raise DataAccessError("robots_denied", "Source robots.txt disallows this path")
                 await self._pace(url, rules)
-            async with client.stream("GET", url) as response:
+            request_headers = headers_for(url) if headers_for else None
+            if headers_for:
+                client.cookies.clear()
+            async with client.stream("GET", url, headers=request_headers) as response:
+                if on_response:
+                    on_response(url, response.headers.get_list("set-cookie"))
                 if response.is_redirect:
                     location = response.headers.get("location")
                     if not location:
                         raise DataAccessError("invalid_redirect", "Source returned no redirect target")
                     url = onion_url(urljoin(url, location))
                     continue
+                if response.status_code == 429:
+                    raw = response.headers.get("retry-after", "60")
+                    wait = int(raw) if raw.isdigit() and len(raw) <= 8 else 60
+                    raise DataAccessError(
+                        "onion_rate_limited", "Onion source requires a wait", retry_after=max(1, wait)
+                    )
                 if response.status_code >= 400:
                     raise DataAccessError(
                         f"http_{response.status_code}",
@@ -135,14 +155,21 @@ class OnionConnector:
         parser.parse(text.splitlines())
         return parser
 
-    async def read_document(self, url: str, validate=None) -> tuple[str, str, str]:
+    async def read_document(self, url: str, validate=None, headers_for=None, on_response=None) -> tuple[str, str, str]:
         """Read bounded HTML/text through Tor, optionally restricting every redirect and robots URL."""
         url = onion_url(url)
         async with self.semaphore:
             try:
                 async with asyncio.timeout(self.settings.request_timeout):
                     async with self.client() as client:
-                        return await self._get(client, url, respect_robots=True, validate=validate)
+                        return await self._get(
+                            client,
+                            url,
+                            respect_robots=True,
+                            validate=validate,
+                            headers_for=headers_for,
+                            on_response=on_response,
+                        )
             except (httpx.RequestError, TimeoutError) as exc:
                 raise DataAccessError(
                     "tor_unavailable", "Tor request failed or timed out; check the proxy and source availability"

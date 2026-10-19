@@ -5,8 +5,10 @@ from urllib.parse import urlsplit
 
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore, identifier
+from dark_mcp.forums import thread_identity
 from dark_mcp.models import OnionPage, limit_value, parse_date
 from dark_mcp.onion import onion_url
+from dark_mcp.sections import SectionPlan
 from dark_mcp.sources import SourceCatalog, page_access_state
 from dark_mcp.telegram import channel_key
 
@@ -62,8 +64,9 @@ class CollectionService:
         if self.forums is None:
             raise DataAccessError("forum_not_configured", "Public forum collector is unavailable")
         attempt = self.store.begin_attempt(source_id, {"url": url, "limit": limit, "collection_id": collection_id})
+        cooldown_key = ("onion:" if self.catalog.get(source_id).get("transport") == "tor" else "forum:") + source_id
         try:
-            self.store.cooldown("forum:" + source_id)
+            self.store.cooldown(cooldown_key)
             page = await self.forums.fetch(source_id, url, limit)
             snapshot = page.model_dump(exclude={"collected_at", "evidence"})
             page.evidence = self.store.observe(
@@ -77,6 +80,7 @@ class CollectionService:
                     "thread_url": post.url,
                     "thread_key": page.thread_key,
                     "transport": page.transport,
+                    "access_context": page.access_context,
                 }
                 post.evidence = self.store.observe(
                     source_id,
@@ -104,7 +108,7 @@ class CollectionService:
             return page
         except DataAccessError as exc:
             if exc.retry_after is not None:
-                self.store.cooldown("forum:" + source_id, exc.retry_after)
+                self.store.cooldown(cooldown_key, exc.retry_after)
             self.store.finish_attempt(attempt, exc.code, exc.as_dict())
             raise
 
@@ -138,6 +142,7 @@ class CollectionService:
         source_id = self.onion_source(url)
         attempt = self.store.begin_attempt(source_id, {"url": url, "collection_id": collection_id})
         try:
+            self.store.cooldown("onion:" + source_id)
             page = await self.onion.fetch(url)
             page.access_state = page_access_state(page)
             page.evidence = self.observe_onion(page, collection_id)
@@ -156,6 +161,8 @@ class CollectionService:
             )
             return page
         except DataAccessError as exc:
+            if exc.retry_after is not None:
+                self.store.cooldown("onion:" + source_id, exc.retry_after)
             self.store.finish_attempt(attempt, exc.code, {"url": url, **exc.as_dict()})
             raise
 
@@ -453,21 +460,49 @@ class CollectionService:
         since: str | None = None,
         url: str | None = None,
         thread_id: int | None = None,
+        max_threads: int = 100,
+        max_index_pages: int = 3,
+        max_thread_pages: int = 3,
     ) -> dict:
         source = self.store.source(source_id)
         if source["kind"] == "provider":
             raise DataAccessError("historical_evidence_only", "Legacy provider sources have no active collector")
         if not source["locator"]:
             raise DataAccessError("source_access_required", "This source has no durable collection locator")
-        if mode not in {"history", "updates"}:
-            raise ValueError("Choose history or updates")
+        if mode not in {"history", "updates", "section"}:
+            raise ValueError("Choose history, updates or section")
+        limit_value(max_threads, 500)
+        limit_value(max_index_pages, 50)
+        limit_value(max_thread_pages, 20)
+        if mode != "section" and (max_threads, max_index_pages, max_thread_pages) != (100, 3, 3):
+            raise ValueError("Thread discovery bounds require section mode")
         parse_date(since)
         if query is not None and (not query.strip() or len(query) > 500):
             raise ValueError("Check query")
         if thread_id is not None and (thread_id <= 0 or query is not None):
             raise ValueError("Thread reads cannot use server-side query filtering")
         options = {"mode": mode, "query": query, "since": since, "thread_id": thread_id}
-        if source["kind"] in {"onion", "forum"}:
+        if mode == "section":
+            if source["metadata"].get("collection_method") != "forum_page":
+                raise DataAccessError(
+                    "section_mode_requires_forum", "Section discovery requires a structured forum collector"
+                )
+            from dark_mcp.forums import source_url
+
+            target = source_url(source["metadata"], url or source["locator"])
+            if thread_identity(target) is not None or since is not None or thread_id is not None:
+                raise ValueError(
+                    "Section mode needs an index URL; query is a local title filter and dates are not filtered"
+                )
+            options.update(
+                max_threads=max_threads,
+                max_index_pages=max_index_pages,
+                max_thread_pages=max_thread_pages,
+                max_total_pages=max_index_pages + max_threads * max_thread_pages,
+            )
+            checkpoint = {"queue": [target], "visited": [], "pages_collected": 0}
+            SectionPlan(source["metadata"], options, checkpoint)
+        elif source["kind"] in {"onion", "forum"}:
             if mode != "history" or query is not None or since is not None or thread_id is not None:
                 raise ValueError(
                     "Onion/forum jobs paginate explicit page links; re-fetch evidence separately for changes"
@@ -493,7 +528,15 @@ class CollectionService:
         limit_value(max_pages, 5)
         existing = self.store.job(collection_id)
         if existing["status"] == "complete":
-            return {"collection": existing, "results": [], "coverage": "Previously exhausted observed pagination"}
+            return {
+                "collection": existing,
+                "results": [],
+                "coverage": (
+                    "Previously finished section bounds; inspect failed_pages and deferred_urls for gaps"
+                    if existing["options"]["mode"] == "section"
+                    else "Previously exhausted observed pagination"
+                ),
+            }
         job, token = self.store.claim(collection_id, (self.settings.request_timeout + 15) * 2 * max_pages + 30)
         source = self.store.source(job["source_id"])
         checkpoint, options = job["checkpoint"], job["options"]
@@ -506,11 +549,50 @@ class CollectionService:
                         status = "complete"
                         break
                     url = checkpoint["queue"][0]
-                    page = (
-                        await self.forum_page(source["id"], url, max_items, collection_id)
-                        if source["metadata"].get("collection_method") == "forum_page"
-                        else await self.fetch(url, collection_id)
+                    planner = (
+                        SectionPlan(source["metadata"], options, checkpoint) if options["mode"] == "section" else None
                     )
+                    if planner is not None and checkpoint["pages_collected"] >= options["max_total_pages"]:
+                        for pending in checkpoint["queue"]:
+                            planner.deferred(pending, "total_page_bound")
+                        checkpoint["queue"] = []
+                        planner.state["thread_owners"] = {}
+                        status = "complete"
+                        break
+                    try:
+                        page = (
+                            await self.forum_page(source["id"], url, max_items, collection_id)
+                            if source["metadata"].get("collection_method") == "forum_page"
+                            else await self.fetch(url, collection_id)
+                        )
+                    except DataAccessError as exc:
+                        if (
+                            planner is None
+                            or thread_identity(url) is None
+                            or exc.retry_after is not None
+                            or exc.code
+                            in {
+                                "forum_session_expired",
+                                "forum_session_unavailable",
+                                "invalid_forum_session",
+                                "forum_auth_required",
+                                "forum_unavailable",
+                                "tor_unavailable",
+                                "robots_unavailable",
+                                "http_500",
+                                "http_502",
+                                "http_503",
+                                "http_504",
+                            }
+                        ):
+                            raise
+                        planner.failure(url, exc.as_dict()["error"])
+                        results.append({"failed_url": url, **exc.as_dict()})
+                        checkpoint["pages_collected"] += 1
+                        status = "ready" if checkpoint["queue"] else "complete"
+                        if status == "complete":
+                            break
+                        continue
                     results.append({"page": page.model_dump()})
                     if source["metadata"].get("collection_method") == "forum_page" and page.omitted_posts:
                         raise DataAccessError(
@@ -519,25 +601,41 @@ class CollectionService:
                             "Retry with a higher max_items or text bound.",
                         )
                     if page.access_state != "content_returned_unverified":
-                        raise DataAccessError("source_gated", "Source returned a gate or empty page; cursor retained")
-                    checkpoint["visited"].append(url)
-                    if page.url not in checkpoint["visited"]:
-                        checkpoint["visited"].append(page.url)
-                    checkpoint["queue"].pop(0)
-                    checkpoint["queue"] = list(
-                        dict.fromkeys(
-                            [
-                                *checkpoint["queue"],
-                                *(
-                                    u
-                                    for u in page.next_page_urls
-                                    if urlsplit(u).hostname
-                                    in source["metadata"].get("allowed_hosts", [urlsplit(source["locator"]).hostname])
-                                    and u not in checkpoint["visited"]
-                                ),
-                            ]
+                        if planner is None or thread_identity(url) is None:
+                            raise DataAccessError(
+                                "source_gated", "Source returned a gate or empty page; cursor retained"
+                            )
+                        planner.failure(
+                            url,
+                            {
+                                "code": page.access_state,
+                                "message": "Source body unavailable; retained as a coverage gap",
+                            },
                         )
-                    )
+                    elif planner is not None:
+                        checkpoint["visited"].append(url)
+                        planner.advance(page)
+                    else:
+                        checkpoint["visited"].append(url)
+                        if page.url not in checkpoint["visited"]:
+                            checkpoint["visited"].append(page.url)
+                        checkpoint["queue"].pop(0)
+                        checkpoint["queue"] = list(
+                            dict.fromkeys(
+                                [
+                                    *checkpoint["queue"],
+                                    *(
+                                        u
+                                        for u in page.next_page_urls
+                                        if urlsplit(u).hostname
+                                        in source["metadata"].get(
+                                            "allowed_hosts", [urlsplit(source["locator"]).hostname]
+                                        )
+                                        and u not in checkpoint["visited"]
+                                    ),
+                                ]
+                            )
+                        )
                     status = "ready" if checkpoint["queue"] else "complete"
                 else:
                     args = {
@@ -583,7 +681,12 @@ class CollectionService:
         result = {
             "collection": self.store.job(collection_id),
             "results": results,
-            "coverage": "Only recorded pages/posts; complete means observed cursor exhausted, not all-source coverage",
+            "coverage": (
+                "Section collection completed or resumed within configured bounds; inspect section failed_pages and "
+                "deferred_urls for uncollected material. Hidden posts remain partial evidence."
+                if options["mode"] == "section"
+                else "Only recorded pages/posts; complete means observed cursor exhausted, not all-source coverage"
+            ),
         }
         if error:
             result.update(ok=False, error=error)

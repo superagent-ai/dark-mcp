@@ -1,6 +1,6 @@
 # dark-mcp
 
-Standalone MCP server for proactive company exposure research on onion pages, Telegram channels and original public forum threads.
+Standalone MCP server for proactive company exposure research on onion pages, Telegram channels and original forum threads.
 
 Search existing indexes for company names, domains, and aliases; inspect matching onion pages through Tor; retrieve relevant Telegram posts with source links and timestamps. Investigate early warning signals such as company targeting, exposed information, alleged data sales, and threat activity before an incident is known. The same tools can be called repeatedly by a monitoring agent or scheduled workflow.
 
@@ -13,7 +13,7 @@ Probing here means investigating sources and exposure signals. Findings should r
 | Onion discovery | [Onion Search Engine API](https://onionsearchengine.com/api_documentation.php), over HTTPS | Provider API key |
 | Onion page content | Direct HTTP(S) through your Tor SOCKS proxy | Running Tor client |
 | Telegram channel posts | Telegram client API via Telethon | Your application credentials, local account login, permitted channels |
-| Original forum threads | Public pages on Cracked, Niflheim, HARD-TM and Spear | HTTPS for the first three; Tor for Spear; gated content remains hidden |
+| Original forum threads | Cracked, Niflheim, HARD-TM and Spear; public access by default | HTTPS for the first three; Tor for Spear; optional operator-owned session |
 | Local onion search | SQLite FTS index populated by fetches and bounded crawls | No external search key |
 
 **The MCP collects original source content into its own local corpus.** The optional Onion Search Engine API helps discover URLs; it is not the evidence corpus. Local search only covers content this installation has collected, and discovery-provider coverage and freshness are not independently verified.
@@ -38,7 +38,7 @@ Use `list_sources(kind="forum")` to inspect 17 forum records. Three now have pub
 
 ### Original forum access
 
-The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`. Version 0.4 also supports structured Spear threads over Tor: access-market and buyer indexes, original bodies, authors, root/reply markers, raw source dates, referenced URLs and resumable pagination. See the [early-signal collection guide](docs/early-signal-collection.md) for verified access bounds and priorities for our own collection.
+The [19 October access checks](sources/forum-access-2026-10-19.json) document actual MCP reads on all three configured forums. `list_forum_threads` discovers links on a public section page; `read_forum_thread` returns visible post bodies, author handles, publication timestamps, post permalinks, hidden-content flags and explicit pagination. Posts persist individually as evidence and can be searched locally with `search_evidence(kind="forum")`. Structured Spear collection over Tor includes: access-market and buyer indexes, original bodies, authors, root/reply markers, raw source dates, referenced URLs and resumable pagination. Version 0.5 adds bounded section-to-thread ingestion and operator-provisioned forum sessions. See the [early-signal collection guide](docs/early-signal-collection.md) for verified access bounds and priorities for our own collection.
 
 A current HARD-TM Lovable advertisement matching earlier Telegram repost headlines was collected with its author, timestamp and visible terms. Matching titles and handles do not prove it is the exact post behind an older relay. Its outbound links require registration. Niflheim exposed readable posts and multiple pages of replies; other post bodies can require login. Cracked exposed visible discussion with registration-only content marked as hidden. These are bounded access checks, not verified breach claims or complete site coverage. See the [forum collection guide](docs/forum-collection.md) for concrete calls and limitations.
 
@@ -130,8 +130,8 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | Tool | Purpose |
 | --- | --- |
 | `get_status()` | Configuration and local index count; does not test connectivity |
-| `start_collection(source_id, mode="history", query=null, since=null, url=null, thread_id=null)` | Create a resumable backfill or a Telegram new-post poller; does not start a background process |
-| `collect_next(collection_id, max_items=20, max_pages=1)` | Collect up to five bounded pages and persist progress; failed/gated requests retain their cursor |
+| `start_collection(source_id, mode="history", ..., max_threads=100, max_index_pages=3, max_thread_pages=3)` | Create a resumable history job, Telegram new-post cursor, or bounded forum `section` ingestion; no background process |
+| `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
 | `search_evidence(query, ...)` | Literal substring search across saved Telegram/onion/forum revisions; filter source, kind and dates |
 | `get_evidence(evidence_id, revision_id=null)` / `get_evidence_history(evidence_id, ...)` | Retrieve exact snapshots, provenance, hashes and revision history |
@@ -144,7 +144,8 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | `list_sources(kind=null, access_state=null, query=null, offset=0, limit=20)` | Full candidate inventory; paginate with `next_offset` |
 | `get_source(source_id)` | Provenance, evidence links, historical checks and known section URLs |
 | `collect_source(source_id, url=null, query=null, limit=20, before_id=0, since=null)` | Read one onion/forum page or page of Telegram posts; report current result and historical access state |
-| `list_forum_threads(source_id, url=null, query=null, limit=20)` | Discover thread links on one public index; optional local title filter, not a site-wide search |
+| `get_forum_access_status(source_id, origin=null)` | Sanitized local session metadata; does not test live authentication |
+| `list_forum_threads(source_id, url=null, query=null, limit=20)` | Discover thread links on one accessible index; optional local title filter, not a site-wide search |
 | `read_forum_thread(source_id, url, limit=20)` | Read visible original posts/replies with authors, timestamps, permalinks, hidden-content flags and next-page links |
 | `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
 | `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
@@ -196,6 +197,18 @@ Global channel discovery and public post search are disabled separately. Where y
 
 Private channels require the account to already have access. Read/search tools accept broadcast channels only. Credentials and the account session stay server-side; login is never exposed as an MCP tool. Treat the session file as an account credential. Revoke a session through Telegram's Devices settings if compromised.
 
+## Optional forum sessions
+
+Public reads need no account. If you already have membership and read permissions, provision a session locally using a JSON cookie export containing only that exact forum host. No passwords, cookie values or cookie files are accepted through MCP tools.
+
+```sh
+uv run dark-mcp forum-session-import forum:hard-tm /private/path/forum-cookies.json --ttl-hours 24
+uv run dark-mcp forum-session-status forum:hard-tm
+uv run dark-mcp forum-session-remove forum:hard-tm
+```
+
+See the [session setup and validation guide](docs/forum-collection.md#operator-owned-sessions) for the export format, mirror origins and limits. Importing a session reports `configured`, with `authentication_verified=false`; a successful original-thread read is required to establish its actual access. No live authenticated forum reads have been verified yet. The operator obtains accounts and signs in separately; the MCP does not register accounts or solve challenges.
+
 ## Docker-only usage
 
 ```sh
@@ -226,9 +239,9 @@ All settings use the `DARK_MCP_` prefix; see [.env.example](.env.example). Envir
 
 Version 0.3 persists returned Telegram posts, onion pages and individual forum posts in `evidence.sqlite3`, including prior revisions, source attempts, collection checkpoints, company profiles and explicit relationships. This local database is unencrypted and is excluded from Git and Docker build contexts. The older `onions.sqlite3` remains the compatibility cache for `search_onion_cache`. Its existing pages are imported once with their original collection dates; importing does not manufacture a fresh source-health success. Prior research JSON files are not automatically imported.
 
-To clear all collected evidence, stop the server and remove both databases and their WAL/SHM files from your configured data directory. Removing only the compatibility cache does not remove revision history. Removing `evidence.sqlite3` while retaining `onions.sqlite3` causes those compatibility pages to be imported again at the next start. Back up or remove Telegram session files separately. MCP clients may also retain responses.
+To clear all collected evidence, stop the server and remove both databases and their WAL/SHM files from your configured data directory. Removing only the compatibility cache does not remove revision history. Removing `evidence.sqlite3` while retaining `onions.sqlite3` causes those compatibility pages to be imported again at the next start. Back up or remove Telegram session files and the separate `forum-sessions/` secret store separately. Local forum-session removal does not revoke the remote account session; revoke it through the source where supported. MCP clients may also retain responses.
 
-Search queries sent to the discovery API go to that provider over ordinary HTTPS. Direct onion fetching goes through the configured Tor proxy; it does not fall back to direct internet access. Telegram uses its normal client connection, not Tor. Public forums use direct HTTPS on packaged host allowlists, with public DNS checks, pinned connection addresses, robots.txt rules and per-host pacing. Forum requests use no account cookies or authentication.
+Search queries sent to the discovery API go to that provider over ordinary HTTPS. Direct onion fetching goes through the configured Tor proxy; it does not fall back to direct internet access. Telegram uses its normal client connection, not Tor. HTTPS forums use packaged host allowlists, public DNS checks, pinned connection addresses, robots.txt rules and per-host pacing. Spear uses Tor. Optional imported cookies are scoped to an exact catalog origin, with path, Secure, source expiry and local TTL checks. Cookies are excluded from robots requests and cleared between HTTP requests before applying the exact-origin session. The local forum secret store is unencrypted, with a private directory (0700) and database (0600); request headers and cookie-store contents are not included in evidence snapshots.
 
 All retrieved text is untrusted data. HTML scripts are stripped, but this does not eliminate prompt injection. The calling agent must treat source text as evidence, never instructions.
 
@@ -242,4 +255,4 @@ uv run pytest -q
 uv build
 ```
 
-Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Authenticated Telegram access requires operator credentials and separate live verification.
+Tests cover MCP initialization/stdio, actual MCP collection/search calls with deterministic source fixtures, restart recovery, ascending new-post backlogs, leases, persisted cooldowns, revision/deletion/duplicate semantics, legacy import, source health, onion pagination/redirect/response boundaries, and Telegram access/thread/update behavior. Default tests make no live network calls. Tests also cover exact-origin forum sessions, expiry, redirects and restart-safe section ingestion. Live authenticated access requires operator credentials and separate verification.

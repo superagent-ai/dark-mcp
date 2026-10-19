@@ -43,6 +43,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "report access failures separately from negative findings. Catalog access states are historical. "
             "Forum research leads may be metadata-only: vendor mentions do not prove current API coverage. "
             "Configured forum_page sources support list_forum_threads and read_forum_thread over HTTPS or Tor. "
+            "Forum sessions are provisioned only through the operator CLI. "
+            "Never ask for cookies or passwords in tool arguments. "
             "Only visible posts are collected; hidden_content and pagination bounds must be reported. "
             "Derive signals from cited evidence, distinguishing original claims from reposts and "
             "publication dates from collection dates. Forum gates and challenges are not collected discussions."
@@ -79,7 +81,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "telegram_global_search": settings.telegram_global_search,
             "telegram_catalog_sources": settings.telegram_catalog_sources,
             "source_catalog": catalog.summary(),
-            "forum_transport": "direct_https or tor as configured per catalog source; no authentication or attachments",
+            "forum_transport": (
+                "direct_https or tor per catalog source; optional operator-owned exact-origin sessions; no attachments"
+            ),
             "evidence_store": evidence.counts(),
         }
 
@@ -99,10 +103,15 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         since: str | None = None,
         url: str | None = None,
         thread_id: int | None = None,
+        max_threads: int = 100,
+        max_index_pages: int = 3,
+        max_thread_pages: int = 3,
     ) -> dict[str, Any]:
         """Create a resumable job. History backfills; Telegram updates baseline then poll ascending new IDs.
 
-        Onion/forum jobs follow explicit next-page links only. No scheduler or network call is started by this tool.
+        History jobs follow pagination. Section mode also enters discovered original threads within explicit bounds.
+        Section query filters titles locally; failures and unvisited bounds remain in the checkpoint.
+        No scheduler is started.
         """
         return local(
             lambda **kw: {"collection": collection.start(**kw)},
@@ -112,6 +121,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             since=since,
             url=url,
             thread_id=thread_id,
+            max_threads=max_threads,
+            max_index_pages=max_index_pages,
+            max_thread_pages=max_thread_pages,
         )
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
@@ -281,6 +293,15 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             return DataAccessError(
                 "invalid_arguments", "Check source, URL, query, pagination, date and limit"
             ).as_dict()
+
+    @server.tool(structured_output=True, annotations=READ_ONLY)
+    def get_forum_access_status(source_id: str, origin: str | None = None) -> dict[str, Any]:
+        """Report local forum session metadata, never secrets. Does not verify live authentication.
+
+        Sessions are provisioned/renewed through the operator CLI, never through agent tool arguments.
+        For mirror hosts, pass the exact catalog origin whose session you want to inspect.
+        """
+        return local(lambda: {"access": forums.sessions.status(source_id, origin)})
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)
     async def list_forum_threads(

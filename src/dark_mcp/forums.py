@@ -13,10 +13,11 @@ import httpx
 from bs4 import BeautifulSoup
 
 from dark_mcp.errors import DataAccessError
+from dark_mcp.forum_sessions import ForumSessions, origin_of
 from dark_mcp.models import ForumPage, ForumPost, classify_page, limit_value, parse_date
 from dark_mcp.onion import onion_url
 
-USER_AGENT = "dark-mcp/0.4 (+https://github.com/superagent-ai/dark-mcp)"
+USER_AGENT = "dark-mcp/0.5 (+https://github.com/superagent-ai/dark-mcp)"
 
 
 def forum_url(value: str, hosts: list[str], *, robots: bool = False, transport: str = "direct_https") -> str:
@@ -296,7 +297,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         published_at=next((p.published_at for p in posts if p.is_thread_root is True), None),
         transport=source.get("transport", "direct_https"),
         coverage=(
-            "One public page. Hidden content and unvisited pages are not collected. "
+            "One accessible page. Hidden content and unvisited pages are not collected. "
             "Author names and source claims are unverified."
         ),
     )
@@ -307,12 +308,30 @@ class ForumConnector:
         self.settings, self.catalog, self.onion = settings, catalog, onion
         self.semaphore, self.pace_lock = asyncio.Semaphore(2), asyncio.Lock()
         self.last_request, self.robots_cache = {}, {}
+        self.sessions = ForumSessions(settings, catalog)
 
     def source(self, source_id: str) -> dict:
         source = self.catalog.get(source_id)
         if source["collection_method"] != "forum_page":
-            raise DataAccessError("source_access_required", "This source has no supported public forum collector")
+            raise DataAccessError("source_access_required", "This source has no supported forum collector")
         return source
+
+    def target(self, source: dict, value: str, *, robots=False) -> str:
+        try:
+            return source_url(source, value, robots=robots)
+        except DataAccessError as original:
+            parts = urlsplit(value)
+            if (
+                not robots
+                and parts.hostname in source["allowed_hosts"]
+                and re.match(r"/(?:login|sign-?in|member\.php)(?:/|$)", parts.path, re.I)
+            ):
+                state = self.sessions.status(source["id"], origin_of(value))
+                if state["state"] != "public":
+                    raise DataAccessError(
+                        "forum_auth_required", "Source requires sign-in; renew the local operator session"
+                    ) from original
+            raise
 
     async def _pace(self, host: str, delay: float = 4):
         async with self.pace_lock:
@@ -322,7 +341,7 @@ class ForumConnector:
             self.last_request[host] = time.monotonic()
 
     async def _request(self, client, source, url, delay=4):
-        url = forum_url(url, source["allowed_hosts"], robots=True)
+        url = self.target(source, url, robots=True)
         host = urlsplit(url).hostname
         addresses = await public_addresses(host)
         await self._pace(host, delay)
@@ -334,13 +353,18 @@ class ForumConnector:
             try:
                 client.cookies.clear()
                 async with client.stream(
-                    "GET", pinned, headers={"Host": host}, extensions={"sni_hostname": host}
+                    "GET",
+                    pinned,
+                    headers={"Host": host, **self.sessions.headers(source["id"], url)},
+                    extensions={"sni_hostname": host},
                 ) as response:
+                    if urlsplit(url).path != "/robots.txt":
+                        self.sessions.update(source["id"], url, response.headers.get_list("set-cookie"))
                     if response.is_redirect:
                         target = response.headers.get("location")
                         if not target:
                             raise DataAccessError("invalid_redirect", "Forum returned no redirect target")
-                        return forum_url(urljoin(url, target), source["allowed_hosts"], robots=True), None
+                        return self.target(source, urljoin(url, target)), None
                     if response.status_code == 429:
                         wait = response.headers.get("retry-after", "60")
                         raise DataAccessError(
@@ -403,14 +427,27 @@ class ForumConnector:
     async def fetch(self, source_id: str, url: str | None = None, limit: int = 20) -> ForumPage:
         limit_value(limit)
         source = self.source(source_id)
-        target = source_url(source, url or source["locator"])
+        target = self.target(source, url or source["locator"])
+        self.sessions.context(source_id, target)  # Expired configured sessions fail before network access.
         if source.get("transport") == "tor":
             if self.onion is None:
                 raise DataAccessError("tor_unavailable", "Tor forum transport is unavailable")
+            access_context = {}
+
+            def headers_for(value):
+                access_context.clear()
+                access_context.update(self.sessions.context(source_id, value))
+                return self.sessions.headers(source_id, value)
+
             target, document, _ = await self.onion.read_document(
-                target, validate=lambda value: source_url(source, value, robots=True)
+                target,
+                validate=lambda value: self.target(source, value, robots=urlsplit(value).path == "/robots.txt"),
+                headers_for=headers_for,
+                on_response=lambda value, cookies: self.sessions.update(source_id, value, cookies),
             )
-            return parse_forum(source, target, document, self.settings.max_text_chars, limit)
+            page = parse_forum(source, target, document, self.settings.max_text_chars, limit)
+            page.access_context = access_context
+            return page
         async with self.semaphore:
             try:
                 async with asyncio.timeout(self.settings.request_timeout):
@@ -429,9 +466,12 @@ class ForumConnector:
                             rate = rules.request_rate(USER_AGENT) or rules.request_rate("*")
                             if rate and rate.requests > 0:
                                 delay = max(delay, rate.seconds / rate.requests)
+                            access_context = self.sessions.context(source_id, target)
                             target, document = await self._request(client, source, target, delay)
                             if document is not None:
-                                return parse_forum(source, target, document, self.settings.max_text_chars, limit)
+                                page = parse_forum(source, target, document, self.settings.max_text_chars, limit)
+                                page.access_context = access_context
+                                return page
                         raise DataAccessError("too_many_redirects", "Forum exceeded five redirects")
             except (httpx.RequestError, OSError, TimeoutError) as exc:
                 raise DataAccessError("forum_unavailable", "Public forum connection failed or timed out") from exc
