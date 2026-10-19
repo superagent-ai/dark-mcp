@@ -194,6 +194,72 @@ def mybb_pin_status(row) -> bool | None:
     return None
 
 
+def last_thread_page(source: dict, url: str, soup) -> dict:
+    """Use explicit same-thread pagination only. Never manufacture a page URL from a count."""
+    from dark_mcp.thread_context import forum_thread_key
+
+    key = forum_thread_key(url)
+    result = {"last_page_url": None, "last_page_number": None, "last_page_basis": None, "last_page_conflict": False}
+    if not key or source["forum_engine"] not in {"mybb", "xenforo"}:
+        return result
+    candidates, declarations = [], set()
+    for nav in soup.select(".pagination, .pageNav-main, .pageNav"):
+        if nav.find_parent(
+            class_=["post_body", "message-body", "bbWrapper", "signature", "message-signature", "bbCodeBlock--quote"]
+        ) is not None or any(
+            re.fullmatch(r"post_[0-9]+", parent.get("id", "")) or parent.get("data-content", "").startswith("post-")
+            for parent in nav.parents
+        ):
+            continue
+        totals = []
+        if source["forum_engine"] == "mybb":
+            pages = nav.select_one(".pages")
+            match = (
+                re.fullmatch(r"Pages\s*\(([1-9][0-9]{0,9})\)\s*:?", pages.get_text(" ", strip=True)) if pages else None
+            )
+            if match:
+                totals.append((int(match[1]), "mybb_declared_page_count"))
+        else:
+            for field in nav.select("input.js-pageJumpPage[max]"):
+                maximum = field.get("max", "")
+                if re.fullmatch(r"[1-9][0-9]{0,9}", maximum):
+                    totals.append((int(maximum), "xenforo_declared_page_maximum"))
+        totals = [(n, basis) for n, basis in totals if 1 <= n <= 1_000_000_000]
+        declarations.update(n for n, _ in totals)
+        for n, basis in totals:
+            if n == page_number(url):
+                candidates.append((n, url, basis + "_current_page"))
+        for anchor in nav.select("a[href]"):
+            try:
+                target = source_url(source, urljoin(url, anchor["href"]))
+            except DataAccessError:
+                continue
+            if forum_thread_key(target) != key or urlsplit(target).hostname != urlsplit(url).hostname:
+                continue
+            if any(key not in {"page", "tid"} for key, _ in parse_qsl(urlsplit(target).query)):
+                continue
+            number = page_number(target)
+            if number < page_number(url) or not 1 <= number <= 1_000_000_000:
+                continue
+            explicit = "last" in anchor.get("rel", []) or any(
+                name in anchor.get("class", []) for name in ("pagination_last", "pageNav-jump--last")
+            )
+            if explicit and number > 1:
+                declarations.add(number)
+                candidates.append((number, target, "explicit_last_page_link"))
+            for total, basis in totals:
+                if number == total and number > 1:
+                    candidates.append((number, target, basis + "_matching_link"))
+    if len(declarations) > 1 or any(n < page_number(url) for n in declarations):
+        result["last_page_conflict"] = True
+    elif candidates:
+        number, target, basis = candidates[0]
+        result.update(last_page_url=target, last_page_number=number, last_page_basis=basis)
+    elif declarations:
+        result.update(last_page_number=next(iter(declarations)), last_page_basis="declared_total_without_read_link")
+    return result
+
+
 def thread_listings(source: dict, url: str, soup) -> tuple[list[dict], str, int]:
     """Prefer explicit thread-title rows; a general navigation link carries no listing metadata."""
     candidates = []
@@ -495,6 +561,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         omitted_threads=omitted_threads,
         sections=sections if not is_thread else [],
         next_page_urls=next_pages[:1],
+        **last_thread_page(source, url, soup),
         access_state=access,
         truncated=bool(omitted or omitted_threads or any(p.truncated for p in posts) or len(text) > max_chars),
         omitted_posts=omitted,

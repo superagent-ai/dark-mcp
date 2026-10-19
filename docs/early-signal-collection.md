@@ -4,6 +4,8 @@ The MCP includes native section ingestion, operator-owned sessions and saved-thr
 
 Version 0.17 adds [source-local author context](author-context.md): explicit header account IDs/profile references and retrieval of other saved posts for one account or exact handle. Local recording-time cutoffs prevent later identity metadata from being assigned to earlier evidence. Handle-only results remain unverified text matches, separate from numeric source-local IDs and other forums.
 
+Version 0.18 adds optional [root/last-page sampling](last-page-collection.md) for section jobs. It reaches an explicitly advertised final page within a small page budget and reports the skipped middle pages. A live eight-page-thread check resumed page eight after a server restart and preserved 14 posts. Page position and later replies do not establish a newly created claim or detection before compromise.
+
 ## Direct original threads over Tor
 
 Spear (`onion:91e4e785a3af`) now supports the same structured forum tools as the HTTPS sources. Use `get_source` to inspect its actual transport, known section URLs and dated access checks. It remains an onion-kind catalog record; filter on `collection_method="forum_page"` in returned records rather than assuming every forum collector has kind `forum`.

@@ -504,6 +504,7 @@ class CollectionService:
         max_index_pages: int = 3,
         max_thread_pages: int = 3,
         exclude_pinned: bool = False,
+        thread_page_order: str = "oldest_first",
     ) -> dict:
         source = self.store.source(source_id)
         if source["metadata"].get("configuration_origin") == "local_operator":
@@ -521,6 +522,10 @@ class CollectionService:
             raise ValueError("Thread discovery bounds require section mode")
         if type(exclude_pinned) is not bool or (exclude_pinned and mode != "section"):
             raise ValueError("Pinned-thread exclusion requires section mode")
+        if thread_page_order not in {"oldest_first", "root_then_last"} or (
+            thread_page_order != "oldest_first" and mode != "section"
+        ):
+            raise ValueError("Choose oldest_first or root_then_last for section mode")
         parse_date(since)
         if query is not None and (not query.strip() or len(query) > 500):
             raise ValueError("Check query")
@@ -535,6 +540,10 @@ class CollectionService:
             from dark_mcp.forums import source_url
 
             target = source_url(source["metadata"], url or source["locator"])
+            if thread_page_order == "root_then_last" and (
+                max_thread_pages < 2 or source["metadata"].get("forum_engine") not in {"mybb", "xenforo"}
+            ):
+                raise ValueError("Root/last sampling requires MyBB/XenForo and a bound of at least two thread pages")
             if thread_identity(target) is not None or since is not None or thread_id is not None:
                 raise ValueError(
                     "Section mode needs an index URL; query is a local title filter and dates are not filtered"
@@ -544,6 +553,7 @@ class CollectionService:
                 max_index_pages=max_index_pages,
                 max_thread_pages=max_thread_pages,
                 exclude_pinned=exclude_pinned,
+                thread_page_order=thread_page_order,
                 max_total_pages=max_index_pages + max_threads * max_thread_pages,
             )
             checkpoint = {"queue": [target], "visited": [], "pages_collected": 0}

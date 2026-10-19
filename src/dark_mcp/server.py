@@ -121,12 +121,14 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         max_index_pages: int = 3,
         max_thread_pages: int = 3,
         exclude_pinned: bool = False,
+        thread_page_order: str = "oldest_first",
     ) -> dict[str, Any]:
         """Create a resumable job. History backfills; Telegram updates baseline then poll ascending new IDs.
 
         History jobs follow pagination. Section mode also enters discovered original threads within explicit bounds.
         Section query filters titles locally; failures and unvisited bounds remain in the checkpoint.
         exclude_pinned is optional in section mode; unknown status remains eligible.
+        thread_page_order=root_then_last samples the root and explicit last page; middle pages remain gaps.
         No scheduler is started.
         """
         return local(
@@ -141,6 +143,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             max_index_pages=max_index_pages,
             max_thread_pages=max_thread_pages,
             exclude_pinned=exclude_pinned,
+            thread_page_order=thread_page_order,
         )
 
     @server.tool(structured_output=True, annotations=INDEX_WRITE)

@@ -148,7 +148,7 @@ Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no a
 | Tool | Purpose |
 | --- | --- |
 | `get_status()` | Configuration and local index count; does not test connectivity |
-| `start_collection(source_id, mode="history", ..., max_threads=100, max_index_pages=3, max_thread_pages=3, exclude_pinned=false)` | Create a resumable history job, Telegram new-post cursor, or bounded forum `section` ingestion; no background process |
+| `start_collection(source_id, mode="history", ..., max_threads=100, max_index_pages=3, max_thread_pages=3, exclude_pinned=false, thread_page_order="oldest_first")` | Create a resumable history job, Telegram cursor, or bounded forum section job; optional root/last-page sampling; no background process |
 | `collect_next(collection_id, max_items=20, max_pages=1)` | Read up to five pages; retain transient/source-level failures for retry; section jobs record individual inaccessible threads as gaps |
 | `get_collection(collection_id)` / `list_collections(offset=0, limit=20)` | Inspect or resume jobs across restarts |
 | `search_evidence(query, ...)` | Literal search of saved revisions; label title/body matches and local revision recording times; filter source, kind and dates |

@@ -2,7 +2,7 @@
 
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
-from dark_mcp.forums import source_url, thread_identity
+from dark_mcp.forums import page_number, source_url, thread_identity
 from dark_mcp.models import now
 
 
@@ -45,7 +45,10 @@ class SectionPlan:
     def failure(self, url: str, error: dict):
         self.state["failed_pages"].append({"url": url, "error": error, "attempted_at": now()})
         self.checkpoint["queue"].pop(0)
-        self.state["thread_owners"].pop(url, None)
+        owner = self.state["thread_owners"].pop(url, None)
+        if self.options.get("thread_page_order") == "root_then_last" and owner:
+            sample = self.state.setdefault("thread_samples", {}).setdefault(owner, {})
+            sample.update(state="sample_page_failed", failed_url=url, last_page_collected=False)
         self.checkpoint["visited"].append(url)
 
     def advance(self, page):
@@ -83,6 +86,63 @@ class SectionPlan:
             root = owner or thread_root(self.source, page.url)
             number = self.state["thread_pages"].get(root, 0) + 1
             self.state["thread_pages"][root] = number
+            if self.options.get("thread_page_order") == "root_then_last":
+                from dark_mcp.thread_context import forum_thread_key
+
+                samples = self.state.setdefault("thread_samples", {})
+                sample = samples.setdefault(root, {"root_requested": False, "last_page_collected": False})
+                if forum_thread_key(page.url) != forum_thread_key(root):
+                    sample.update(state="thread_identity_changed", returned_url=page.url)
+                elif number == 1 and page_number(page.url) != 1:
+                    sample.update(state="root_page_changed", root_requested=True, returned_url=page.url)
+                elif number == 1:
+                    sample.update(
+                        root_requested=True,
+                        root_observed=any(post.is_thread_root is True for post in page.posts),
+                        last_page_url=page.last_page_url,
+                        last_page_number=page.last_page_number,
+                        last_page_basis=page.last_page_basis,
+                        last_page_conflict=page.last_page_conflict,
+                    )
+                    if page.last_page_url and page.last_page_number and page.last_page_number > page_number(page.url):
+                        future.append(page.last_page_url)
+                        self.state["thread_owners"][page.last_page_url] = root
+                        sample["state"] = "last_page_queued"
+                        if page.last_page_number > 2:
+                            sample["uncollected_middle_pages"] = {"from": 2, "through": page.last_page_number - 1}
+                            for pending in page.next_page_urls:
+                                if pending != page.last_page_url:
+                                    self.deferred(pending, "middle_pages_not_sampled")
+                    else:
+                        sample["state"] = (
+                            "last_page_conflict"
+                            if page.last_page_conflict
+                            else ("last_page_not_explicit" if page.next_page_urls else "no_forward_pagination_observed")
+                        )
+                        for pending in page.next_page_urls:
+                            self.deferred(pending, "last_page_not_explicit")
+                        if page.last_page_url and page.last_page_number == page_number(page.url):
+                            sample.update(state="single_sample_is_declared_last", last_page_collected=True)
+                else:
+                    matched = page_number(page.url) == sample.get("last_page_number")
+                    sample.update(
+                        last_page_collected=matched,
+                        state="root_and_last_sampled" if matched else "sample_page_changed",
+                        sampled_last_url=page.url,
+                        sampled_page_number=page_number(page.url),
+                        last_page_number_on_sampled_page=page.last_page_number,
+                        sampled_last_page_conflict=page.last_page_conflict,
+                    )
+                    # A thread can grow between requests. Preserve the observed boundary,
+                    # without extending this bounded sample into a continuous collector.
+                    sample["later_pagination_observed"] = bool(page.next_page_urls)
+                    for pending in page.next_page_urls:
+                        self.deferred(pending, "pagination_after_sample_boundary")
+                queue.extend(u for u in future if u not in visited and u not in queue)
+                self.state["thread_owners"] = {
+                    u: owner for u, owner in self.state["thread_owners"].items() if u in queue
+                }
+                return
             for url in page.next_page_urls:
                 if number < self.options["max_thread_pages"]:
                     future.append(url)

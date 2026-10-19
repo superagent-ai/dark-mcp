@@ -128,6 +128,8 @@ Evidence, source attempts and checkpoints survive restarts. `get_evidence` retri
 
 ## Ingest a bounded forum section
 
+For a small sample of the original context and a later page, use [root/last-page collection](last-page-collection.md). Version 0.18 adds optional `thread_page_order="root_then_last"`; the default remains `oldest_first`.
+
 ```text
 start_collection
 {"source_id":"forum:hard-tm","url":"https://hard-tm.com/forums/sell_all/","mode":"section","max_threads":10,"max_index_pages":2,"max_thread_pages":3}

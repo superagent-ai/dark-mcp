@@ -60,6 +60,10 @@ class ForumPage(BaseModel):
     sections: list[dict] = Field(default_factory=list)
     next_page_urls: list[str] = Field(default_factory=list)
     access_state: str
+    last_page_url: str | None = None
+    last_page_number: int | None = None
+    last_page_basis: str | None = None
+    last_page_conflict: bool = False
     truncated: bool = False
     omitted_posts: int = 0
     published_at: str | None = None
