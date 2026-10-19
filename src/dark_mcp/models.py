@@ -28,6 +28,7 @@ class ForumPost(BaseModel):
     author_url: str | None = None
     author_identity: dict = Field(default_factory=dict)
     text: str
+    body_scope: str = "unreported"
     published_at: str | None = None
     published_at_raw: str | None = None
     published_at_hint: str | None = None
@@ -41,6 +42,7 @@ class ForumPost(BaseModel):
     edited_at_raw: str | None = None
     hidden_content: bool = False
     quotes: list[dict] = Field(default_factory=list)
+    omitted_quotes: int | None = Field(default=None, ge=0)
     links: list[dict] = Field(default_factory=list)
     truncated: bool = False
     evidence: dict | None = None
@@ -51,6 +53,7 @@ class ForumPage(BaseModel):
     url: str
     title: str
     text: str
+    body_scope: str = "unreported"
     page_type: str
     thread_key: str | None = None
     posts: list[ForumPost] = Field(default_factory=list)

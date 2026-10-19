@@ -275,6 +275,22 @@ class EvidenceStore:
                 else None
             )
             change = "new" if item is None else "edited" if previous["snapshot_hash"] != fingerprint else "unchanged"
+            processing_change = None
+            if (
+                previous
+                and kind == "forum"
+                and snapshot.get("body_scope")
+                in {"post_body_without_blockquotes_v1", "post_bodies_without_blockquotes_v1"}
+            ):
+                old_scope = json.loads(previous["snapshot"]).get("body_scope", "unreported")
+                if old_scope != snapshot["body_scope"]:
+                    processing_change = {
+                        "kind": "body_scope_changed",
+                        "previous_scope": old_scope,
+                        "current_scope": snapshot["body_scope"],
+                        "source_edit_verified": False,
+                    }
+                    provenance = {**(provenance or {}), "processing_change": processing_change}
             if item and item["availability"] != "observed" and change == "unchanged":
                 change = "restored"
             if item is None:
@@ -334,6 +350,7 @@ class EvidenceStore:
             "observation_seq": cursor.lastrowid,
             "content_hash": content_hash,
             "snapshot_hash": fingerprint,
+            **({"processing_change": processing_change} if processing_change else {}),
         }
 
     def get(self, evidence_id: str, revision_id: int | None = None) -> dict:
@@ -353,6 +370,10 @@ class EvidenceStore:
                 "ORDER BY seq DESC LIMIT 1",
                 (evidence_id, revision_id or item["latest_revision_id"]),
             ).fetchone()
+            first_observation = db.execute(
+                "SELECT detail FROM observations WHERE evidence_id=? AND revision_id=? ORDER BY seq LIMIT 1",
+                (evidence_id, revision_id or item["latest_revision_id"]),
+            ).fetchone()
         if not revision:
             raise DataAccessError("revision_not_found", "Revision does not belong to this evidence")
         result = {
@@ -367,6 +388,11 @@ class EvidenceStore:
         result["provenance"] = json.loads(observation["detail"]) if observation else None
         result["provenance_recorded_at"] = observation["observed_at"] if observation else None
         result["provenance_collected_at"] = observation["collected_at"] if observation else None
+        result["processing_change"] = (
+            json.loads(first_observation["detail"]).get("processing_change")
+            if first_observation and first_observation["detail"]
+            else None
+        )
         return result
 
     def unavailable(self, evidence_id: str, reason: str, collection_id: str | None = None) -> dict:
@@ -527,6 +553,7 @@ class EvidenceStore:
             text = result.pop("text")
             snapshot = json.loads(result.pop("snapshot"))
             result["acquisition"] = snapshot.get("acquisition", {})
+            result["body_scope"] = snapshot.get("body_scope", "unreported")
             result.pop("n")
             position = text.casefold().find(term)
             fields = []

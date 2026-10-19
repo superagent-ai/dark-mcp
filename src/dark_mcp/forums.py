@@ -161,6 +161,18 @@ def expand_public_spoilers(body):
         title.decompose()
 
 
+def hidden_content(body):
+    return bool(body.select(".hidden-content, .bbCodeBlock--hide, .hideContent, [data-hide]")) or bool(
+        re.search(
+            r"(?:must (?:log ?in|register|reply).{0,80}to (?:view|see|reveal)|"
+            r"must be registered (?:for|to) (?:see|view) links|content is hidden|"
+            r"to (?:view|see) (?:the |this )?content.{0,80}(?:sign in|log ?in|register))",
+            body.get_text(" ", strip=True),
+            re.I,
+        )
+    )
+
+
 async def public_addresses(host: str) -> list[str]:
     records = await asyncio.get_running_loop().getaddrinfo(host, 443, type=socket.SOCK_STREAM)
     addresses = list(dict.fromkeys(row[4][0] for row in records))
@@ -483,26 +495,27 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
             if epoch:
                 published = datetime.fromtimestamp(int(epoch[1]), UTC).isoformat()
                 basis = "source_unix_timestamp"
-        hidden = bool(body.select(".hidden-content, .bbCodeBlock--hide, .hideContent, [data-hide]"))
-        hidden = hidden or bool(
-            re.search(
-                r"(?:must (?:log ?in|register|reply).{0,80}to (?:view|see|reveal)|"
-                r"must be registered (?:for|to) (?:see|view) links|content is hidden|"
-                r"to (?:view|see) (?:the |this )?content.{0,80}(?:sign in|log ?in|register))",
-                body.get_text(" ", strip=True),
-                re.I,
-            )
-        )
         expand_public_spoilers(body)
         quotes = []
-        for quote in body.select("blockquote")[:3]:
+        quote_nodes = [q for q in body.select("blockquote") if q.find_parent("blockquote") is None]
+        for ordinal, quote in enumerate(quote_nodes):
             value = quote.get("data-source", "")
-            quotes.append(
-                {
-                    "post_id": value.removeprefix("post:") if value.startswith("post:") else None,
-                    "text": quote.get_text(" ", strip=True)[:500],
-                }
-            )
+            if ordinal < 3:
+                for tag in quote.select("script,style,iframe,object,embed,form"):
+                    tag.decompose()
+                quoted = quote.get_text(" ", strip=True)
+                quotes.append(
+                    {
+                        "post_id": value.removeprefix("post:") if re.fullmatch(r"post:[0-9]{1,10}", value) else None,
+                        "text": quoted[:500],
+                        "truncated": len(quoted) > 500,
+                        "links": reference_links(quote, url),
+                        "hidden_content": hidden_content(quote),
+                        "attribution": "quoted_context_unverified",
+                    }
+                )
+            quote.decompose()
+        hidden = hidden_content(body)
         for tag in body.select(
             "script, style, noscript, iframe, svg, .signature, [hidden], "
             "[style*='display: none'], [style*='display:none']"
@@ -556,6 +569,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 author=author,
                 **author_fields(source, url, author, author_node),
                 text=text[:cap],
+                body_scope="post_body_without_blockquotes_v1",
                 published_at=published,
                 published_at_raw=raw_date,
                 published_at_hint=hint,
@@ -567,6 +581,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
                 edited_at_raw=raw_edit,
                 hidden_content=hidden,
                 quotes=quotes,
+                omitted_quotes=max(0, len(quote_nodes) - 3),
                 truncated=len(text) > cap,
             )
         )
@@ -583,6 +598,7 @@ def parse_forum(source: dict, url: str, document: str, max_chars: int, limit: in
         url=url,
         title=title,
         text=text[:max_chars],
+        body_scope="post_bodies_without_blockquotes_v1" if posts else "page_text_unseparated",
         page_type="thread" if is_thread else "index",
         thread_key=identity,
         posts=posts,

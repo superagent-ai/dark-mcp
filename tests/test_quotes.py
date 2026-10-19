@@ -152,3 +152,94 @@ async def test_mcp_quote_search_and_exact_revision_replay_survive_restart(settin
             ).structured_content
             assert exact["evidence"]["snapshot"]["text"] == "A brief reply"
             assert exact["evidence"]["snapshot"]["quotes"][0]["post_id"] == "44"
+
+
+async def test_real_forum_parser_quote_only_match_and_reprocessing_are_separate(settings, monkeypatch):
+    from unittest.mock import AsyncMock
+
+    from dark_mcp.forums import ForumConnector
+    from dark_mcp.sources import SourceCatalog
+
+    source_id = "onion:91e4e785a3af"
+    url = SourceCatalog().get(source_id)["locator"] + "Thread-Discussion"
+    html = """<title>Discussion</title><div id="post_1"><div class="post_head"><div class="float_right">
+    <strong><a href="?pid=1">#2</a></strong></div></div><div class="post_body">
+    <blockquote data-source="post:9">An unverified Acme.example claim</blockquote>Request for evidence
+    </div></div>"""
+    store = EvidenceStore(settings.prepare_data_dir())
+    store.register(source_id, "onion", url, "Synthetic source")
+    old = store.observe(
+        source_id,
+        "forum",
+        source_id + ":post:1",
+        url + "?pid=1",
+        {
+            "id": "1",
+            "title": "Discussion",
+            "text": "An unverified Acme.example claim\nRequest for evidence",
+            "quotes": [{"post_id": "9", "text": "An unverified Acme.example claim"}],
+        },
+    )
+    monkeypatch.setattr(ForumConnector, "fetch_document", AsyncMock(return_value=(url, html, {"state": "public"})))
+    async with Client(create_server(settings)) as client:
+        read = (await client.call_tool("read_forum_thread", {"source_id": source_id, "url": url})).structured_content
+        assert read["ok"]
+        post = read["page"]["posts"][0]
+        assert post["text"] == "Request for evidence" and post["body_scope"] == "post_body_without_blockquotes_v1"
+        assert post["evidence"]["processing_change"]["source_edit_verified"] is False
+        fresh = (
+            await client.call_tool(
+                "search_evidence", {"query": "Acme.example", "kind": "forum", "include_history": False}
+            )
+        ).structured_content
+        assert fresh["results"] == []
+        quoted = (
+            await client.call_tool(
+                "search_evidence",
+                {"query": "Acme.example", "kind": "forum", "include_quotes": True, "include_history": False},
+            )
+        ).structured_content
+        assert len(quoted["results"]) == 1 and quoted["results"][0]["matched_fields"] == ["quotes"]
+        legacy = (
+            await client.call_tool(
+                "get_evidence", {"evidence_id": old["evidence_id"], "revision_id": old["revision_id"]}
+            )
+        ).structured_content
+        assert "Acme.example" in legacy["evidence"]["snapshot"]["text"]
+        assert legacy["evidence"]["processing_change"] is None
+        # Re-observe without a scope transition: the original revision's processing note survives.
+        again = (await client.call_tool("read_forum_thread", {"source_id": source_id, "url": url})).structured_content
+        assert again["page"]["posts"][0]["evidence"]["change_type"] == "unchanged"
+    async with Client(create_server(settings)) as client:
+        saved = (await client.call_tool("get_evidence", {"evidence_id": old["evidence_id"]})).structured_content
+        assert saved["evidence"]["processing_change"]["kind"] == "body_scope_changed"
+        assert saved["evidence"]["processing_change"]["previous_scope"] == "unreported"
+        assert saved["evidence"]["snapshot"]["edited_at"] is None
+
+
+def test_nested_and_omitted_forum_quotes_do_not_leak_back_into_body_or_links():
+    from dark_mcp.forums import parse_forum
+    from dark_mcp.sources import SourceCatalog
+
+    source = SourceCatalog().get("forum:hard-tm")
+    quotes = (
+        '<blockquote data-source="post:9">'
+        + ("x" * 600)
+        + """<blockquote>NestedCompany</blockquote>
+    <a href="https://quote.example/">quoted link</a><div class="hideContent">Quoted hidden content</div></blockquote>"""
+    )
+    quotes += "".join("<blockquote>OmittedCorp" + str(i) + "</blockquote>" for i in range(4))
+    html = (
+        '<title>Discussion</title><article class="message--post" data-content="post-1">'
+        '<article class="message-body"><div class="bbWrapper">'
+        + quotes
+        + 'Own reply <a href="https://own.example/">own link</a></div></article></article>'
+    )
+    parsed = parse_forum(source, "https://hard-tm.com/threads/discussion.1/", html, 60000, 20)
+    post = parsed.posts[0]
+    assert post.text == "Own reply\nown link" and post.hidden_content is False
+    assert len(post.quotes) == 3 and post.omitted_quotes == 2
+    assert post.quotes[0]["truncated"] and post.quotes[0]["hidden_content"]
+    assert post.quotes[0]["post_id"] == "9" and post.quotes[0]["links"][0]["url"] == "https://quote.example/"
+    assert post.links == [{"url": "https://own.example/", "label": "own link"}]
+    assert "NestedCompany" not in parsed.text and "OmittedCorp" not in parsed.text
