@@ -75,6 +75,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             "Use get_collected_author_posts for source-local author context; same-name accounts are not merged. "
             "Use get_source_health and list_evidence_changes to distinguish evidence changes from collection gaps."
             " Use list_open_telegram_sources for locally imported research directories and archive sources. "
+            "Its public_web_observation distinguishes local attempts and saved text inventory from upstream status. "
+            "web_text_since filters saved text's reported publication dates, not current access or usefulness. "
             "Search kind=telegram_archive for historical imported messages. They are separate from native "
             "Telegram evidence: import time never proves earlier detection. Dataset content may be processed "
             "or obfuscated. Directory VALID/EXPIRED labels are upstream reports, not live checks; source labels "
@@ -142,16 +144,20 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         query: str | None = None,
         offset: int = 0,
         limit: int = 20,
+        web_text_since: str | None = None,
     ) -> dict[str, Any]:
         """List locally imported directory leads and historical archive sources, with provenance and limitations.
 
         kind is telegram_directory or telegram_archive. dataset is deepdarkcti, darkgram or tgdataset.
         These are separate from the live collection catalog and never extend Telegram permissions.
         Use search_evidence(kind='telegram_archive') and get_evidence for imported message bodies.
+        public_web_observation reports only saved attempts and latest-snapshot inventory for a matching public handle.
+        web_text_since filters directory leads by the newest saved text's reported publication date, before pagination.
+        These local facts do not verify current access, source identity, continuous coverage or source usefulness.
         """
 
         def inspect_sources():
-            result = list_open_sources(evidence, kind, dataset, query, offset, limit)
+            result = list_open_sources(evidence, kind, dataset, query, offset, limit, web_text_since)
             for source in result["results"]:
                 if source["kind"] != "telegram_directory":
                     continue

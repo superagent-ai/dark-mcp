@@ -27,6 +27,25 @@ COVERAGE = (
 )
 
 
+class PreviewIdentityMismatch(DataAccessError):
+    def __init__(self, handles: list[str]):
+        super().__init__(
+            "telegram_web_identity_mismatch",
+            "The public page returned different post handles; none were accepted under the requested identity",
+        )
+        self.handles = handles[:10]
+        self.omitted_handles = max(0, len(handles) - 10)
+
+    def as_dict(self) -> dict:
+        result = super().as_dict()
+        result["error"].update(
+            reported_page_handles=self.handles,
+            omitted_reported_handles=self.omitted_handles,
+            identity_relation_verified=False,
+        )
+        return result
+
+
 def post_identity(value: str, handle: str) -> int | None:
     try:
         parts = urlsplit(value)
@@ -189,6 +208,22 @@ def parse_preview(
             raise DataAccessError(
                 "telegram_web_pagination_ignored", "No public posts inside the requested history bound"
             )
+        other_handles = set()
+        for widget in candidates[:200]:
+            identity = widget.get("data-post", "")
+            match = re.fullmatch(r"([A-Za-z][A-Za-z0-9_]{3,31})/([1-9][0-9]{0,15})", identity)
+            if not match or match[1].lower() == handle:
+                continue
+            other = match[1].lower()
+            pid = int(match[2])
+            if any(
+                anchor.find_parent(class_="tgme_widget_message") is widget
+                and post_identity(anchor["href"], other) == pid
+                for anchor in widget.select("a.tgme_widget_message_date[href]")
+            ):
+                other_handles.add(other)
+        if other_handles:
+            raise PreviewIdentityMismatch(sorted(other_handles))
         raise DataAccessError("telegram_web_post_unavailable", "No matching public post identity and footer returned")
     return {
         "channel": {"handle": handle, "title": title, "numeric_id": None},

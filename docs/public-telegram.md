@@ -52,3 +52,29 @@ The bounded run retained 48 public post records from six source IDs, including 4
 Follow-up checks used the explicit directory web opt-in. Three additional threat-actor directory leads were readable but stale (2023–2025). Of sixteen selected credential-exposure directory leads, six returned public text and ten redirected; none returned a post within 30 days. Across all 26 tested handles, 15 were readable and six had a reported post within 30 days, including two with posts on 19 October. The combined retained inventory is 76 public post records, 74 with visible text, from 15 handle-based source IDs. Two unsupported posts were excluded from body evidence. These findings demonstrate why an upstream ONLINE label is not a freshness or intelligence-quality claim.
 
 `list_open_telegram_sources` reports `public_web_permission.permitted_by_configuration` separately from stored import metadata. It checks the current local opt-ins/allowlist without requesting the source. Permission to try a read is not successful access; native account permissions remain unchanged.
+
+## Local access observations and source selection
+
+Version 0.24 adds `public_web_observation` to imported directory listings. A matching public handle can expose its saved public-web source ID, latest attempt and latest-snapshot post inventory. The match is handle-based and unverified; directory assertions and native identities are never merged. Untested/unregistered public handles and private invitations have no public-web observation. Listing these facts makes no network request and never changes permissions.
+
+The inventory separates total posts, posts with text, newest reported post/text publication dates, local first/last positive recording times, and unavailable/deleted posts. Failed refreshes remain visible beside retained older text. A saved attempt marked running does not verify that its process is still live. `current_access_verified` stays false because this local lookup does not probe the source. Metadata-only posts and historical source dates cannot establish useful current coverage.
+
+```text
+list_open_telegram_sources(query="source_handle", kind="telegram_directory")
+list_open_telegram_sources(kind="telegram_directory", web_text_since="2026-09-19T00:00:00Z", limit=20)
+get_source_health(source_id=PUBLIC_WEB_OBSERVATION_SOURCE_ID)
+```
+
+`web_text_since` filters directory leads by the newest **saved text post's reported publication date**, before pagination. It excludes media-only and unknown-date records; an explicit archive-kind request cannot use this filter. Query text still searches imported metadata, not the derived observations. Counts can include unavailable/deleted posts and repeated directory entries for one handle. The filter does not check current availability, reject every possibly false/future source date, validate claims, or establish continuous collection. The agent assesses relevance and uncertainty.
+
+## Different handles in a public page
+
+If a page contains no acceptable requested-handle post but supplies other post identities with matching same-widget footer links, collection returns `telegram_web_identity_mismatch`. `reported_page_handles` supplies up to ten unverified leads, with an explicit omitted count. This does not rename, bind or merge sources, accept foreign posts, follow links or expand either allowlist. A body mention or mismatched footer alone cannot establish a reported handle.
+
+A live `exploitservice` request reported post identities under `exploitsmarket`; a `ransomwareteam` request reported `ransomteam`. Both remained failed reads under the requested identity. The separately requested `ransomteam` source retained its own older posts; it did not become independent corroboration of the other directory entry.
+
+## Additional source-quality check, 19 October 2026
+
+A bounded MCP run tested 29 additional upstream ONLINE leads selected for access/exploit markets, credential exposure and ransomware context. Seventeen returned 41 post records, 39 with visible text. Only `proxy_bar` and `comboworkon` had sampled posts reported within 30 days. The first sample was general security/news and course promotion; the second carried unverified account-access/credential advertisements. These do not establish platform compromise, a named company's exposure, or an impending attack. Twelve leads remained failed reads, including handle mismatches. Other sources were stale, sometimes with only short notices.
+
+Native client construction was forbidden; no native account calls, joins, actor messages, bot workflows, attachments, advertised datasets or credential tests were performed. Directory labels and raw source bodies remain distinct from verified intelligence.

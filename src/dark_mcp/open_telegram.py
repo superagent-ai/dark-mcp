@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 from dark_mcp.errors import DataAccessError
 from dark_mcp.evidence import EvidenceStore
 from dark_mcp.models import limit_value, now, parse_date
+from dark_mcp.source_observations import public_web_observations
 
 MAX_FILE_BYTES = 100_000_000
 MAX_EXPANDED_BYTES = 150_000_000
@@ -418,12 +419,15 @@ def import_directory(settings, file: Path, version: str, collection: str) -> dic
     }
 
 
-def list_open_sources(store, kind=None, dataset=None, query=None, offset=0, limit=20) -> dict:
+def list_open_sources(store, kind=None, dataset=None, query=None, offset=0, limit=20, web_text_since=None) -> dict:
     limit_value(limit)
     if kind not in {None, "telegram_archive", "telegram_directory"} or dataset not in {None, *PROVIDERS} or offset < 0:
         raise ValueError("Check kind, dataset and pagination")
     if query is not None and (not query.strip() or len(query) > 500):
         raise ValueError("Use a nonempty query up to 500 characters")
+    cutoff = parse_date(web_text_since)
+    if cutoff and kind == "telegram_archive":
+        raise ValueError("web_text_since filters directory leads with saved public web text")
     with store.connect() as db:
         rows = db.execute(
             "SELECT id,kind,locator,name,metadata FROM sources "
@@ -439,9 +443,34 @@ def list_open_sources(store, kind=None, dataset=None, query=None, offset=0, limi
             and (query is None or query.strip().casefold() in json.dumps(result, ensure_ascii=False).casefold())
         ):
             results.append(result)
+    observations = public_web_observations(
+        store,
+        [
+            result["metadata"]["locator"]
+            for result in results
+            if result["kind"] == "telegram_directory" and result["metadata"].get("locator_type") == "public_handle"
+        ],
+    )
+    for result in results:
+        if result["kind"] == "telegram_directory":
+            result["public_web_observation"] = observations.get("telegram-web:" + result["metadata"]["locator"].lower())
+    if cutoff:
+        results = [
+            result
+            for result in results
+            if (observation := result.get("public_web_observation"))
+            and (published := parse_date(observation["saved_inventory"]["newest_text_publication"]))
+            and published >= cutoff
+        ]
     return {
         "results": results[offset : offset + limit],
         "total": len(results),
         "next_offset": offset + limit if offset + limit < len(results) else None,
+        "web_text_since": cutoff.isoformat() if cutoff else None,
+        "public_web_observation_scope": (
+            "Local attempts and latest saved post snapshots matched by unverified public handle; no network read. "
+            "Stored text can survive failed refreshes or unavailable posts. Reported publication dates, including "
+            "web_text_since filtering, do not verify current access, continuous coverage or source usefulness."
+        ),
         "coverage": COVERAGE,
     }

@@ -159,6 +159,40 @@ def test_foreign_widget_footer_mismatches_and_unresolved_dates_are_not_authentic
         parse_preview(page(widget(3)), HANDLE, message_id=4)
 
 
+def test_different_handle_is_an_unverified_lead_without_renaming_or_accepting_posts():
+    foreign = widget(8, "Untrusted body").replace(f"{HANDLE}/8", "other_channel/8")
+    with pytest.raises(DataAccessError) as error:
+        parse_preview(page(foreign), HANDLE)
+    assert error.value.as_dict()["error"] == {
+        "code": "telegram_web_identity_mismatch",
+        "message": "The public page returned different post handles; none were accepted under the requested identity",
+        "reported_page_handles": ["other_channel"],
+        "omitted_reported_handles": 0,
+        "identity_relation_verified": False,
+    }
+    # A foreign body link or mismatched footer cannot establish a candidate handle.
+    with pytest.raises(DataAccessError) as mismatched:
+        parse_preview(page(foreign.replace("https://t.me/other_channel/8", "https://t.me/unrelated_channel/8")), HANDLE)
+    assert mismatched.value.code == "telegram_web_post_unavailable"
+
+
+@respx.mock
+async def test_identity_mismatch_persists_access_failure_without_following_or_changing_permissions(web):
+    respx.get(ROBOTS).mock(return_value=httpx.Response(404))
+    foreign = widget(8).replace(f"{HANDLE}/8", "other_channel/8")
+    respx.get(ROOT).mock(return_value=html_response(page(foreign)))
+    with pytest.raises(DataAccessError) as error:
+        await web.read(HANDLE)
+    assert error.value.code == "telegram_web_identity_mismatch"
+    assert web.store.counts()["items"] == 0
+    health = web.store.health("telegram-web:" + HANDLE)["results"][0]
+    assert health["last_access_state"] == "telegram_web_identity_mismatch"
+    assert health["last_attempt"]["error"]["reported_page_handles"] == ["other_channel"]
+    with pytest.raises(DataAccessError):
+        web.allowed("other_channel")
+    assert not web.store.connector_status("telegram_web")["lease_active"]
+
+
 @respx.mock
 async def test_public_collection_replay_references_and_native_isolation(web):
     respx.get(ROBOTS).mock(return_value=httpx.Response(404))

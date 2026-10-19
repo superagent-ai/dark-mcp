@@ -70,6 +70,7 @@ class EvidenceStore:
                     search_text TEXT NOT NULL, published_at TEXT, edited_at TEXT, collected_at TEXT NOT NULL,
                     access_state TEXT NOT NULL, truncated INTEGER NOT NULL, snapshot TEXT NOT NULL
                 );
+                CREATE INDEX IF NOT EXISTS item_source_kind ON items(source_id,kind);
                 CREATE INDEX IF NOT EXISTS revision_item ON revisions(evidence_id,id);
                 CREATE INDEX IF NOT EXISTS revision_hash ON revisions(content_hash);
                 CREATE VIRTUAL TABLE IF NOT EXISTS revision_search USING fts5(

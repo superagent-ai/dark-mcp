@@ -68,7 +68,7 @@ Local `telegram-open-fetch`, `telegram-archive-import` and `telegram-directory-i
 
 `read_telegram_public_preview` collects visible public channel text and individual post embeds without an account. Enable `DARK_MCP_TELEGRAM_WEB_ENABLED` and configure public handles in `DARK_MCP_TELEGRAM_WEB_CHANNELS` for web-only access; the existing native allowlist/catalog opt-in also permits public previews. Posts retain body/quote separation, dates, links, pagination and exact evidence, using kind `telegram_web`. Media and private content remain gaps. This collector respects web rate limits and does not reset or automatically replace native account reads. See the [public Telegram guide](docs/public-telegram.md).
 
-To let agents try public handles from imported directories, separately enable `DARK_MCP_TELEGRAM_WEB_DIRECTORY_SOURCES`. Source listings distinguish this configured web permission from unverified live access. This setting never grants native account permissions or private/invite access.
+To let agents try public handles from imported directories, separately enable `DARK_MCP_TELEGRAM_WEB_DIRECTORY_SOURCES`. Source listings distinguish this configured web permission from saved access attempts and post inventory. `web_text_since` filters directory leads by saved text posts’ reported publication dates. These local facts do not verify current access or authenticate a source. This setting never grants native account permissions or private/invite access.
 
 ### Source-owned forum feeds
 
