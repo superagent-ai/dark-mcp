@@ -15,6 +15,7 @@ wheels/
 !.env.example
 *.session*
 data/
+.runtime/
 *.sqlite3*
 .pytest_cache/
 .ruff_cache/

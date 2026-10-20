@@ -1,168 +1,123 @@
 # dark-mcp
 
-Standalone MCP server for proactive company exposure research on onion pages and Telegram channels.
+An MCP interface to [AIL Framework](https://github.com/ail-project/ail-framework) for passive source investigation.
+AIL handles collection, native objects, processing and full-text indexing. dark-mcp gives an agent tools to collect
+explicit pages, inspect collection outcomes, search the retained corpus and retrieve original content.
 
-Search existing indexes for company names, domains, and aliases; inspect matching onion pages through Tor; retrieve relevant Telegram posts with source links and timestamps. Investigate early warning signals such as company targeting, exposed information, alleged data sales, and threat activity before an incident is known. The same tools can be called repeatedly by a monitoring agent or scheduled workflow.
+Version 1 replaces the previous custom collectors, source registry and evidence database. It starts with a fresh
+AIL corpus. Source access determines coverage: installing AIL does not provide forum accounts, private Telegram
+access or a ready-made intelligence feed. Monitoring, schedules and alert delivery are outside this MCP's scope.
 
-Probing here means investigating sources and exposure signals. Findings should retain their evidence and uncertainty: a source's claim does not establish that an intrusion occurred.
+## Local deployment
 
-## Data sources
-
-| Source | Access | Required setup |
-| --- | --- | --- |
-| Onion discovery | [Onion Search Engine API](https://onionsearchengine.com/api_documentation.php), over HTTPS | Provider API key |
-| Onion page content | Direct HTTP(S) through your Tor SOCKS proxy | Running Tor client |
-| Telegram channel posts | Telegram client API via Telethon | Your application credentials, local account login, permitted channels |
-| Local onion search | SQLite FTS index populated by fetches and bounded crawls | No external search key |
-
-**Discovery uses an existing search engine. You do not need to build your own onion index.** The local index is optional and only covers pages this installation has collected. Search provider coverage and freshness are not independently verified.
-
-## Quick start
-
-Requires Python 3.12+, [uv](https://docs.astral.sh/uv/), and Tor or Docker.
+Requires Python 3.12+, uv and Docker Compose. The initial build installs upstream AIL dependencies and browser
+engines; allow several GB of disk and enough memory for AIL and a browser capture. The runtime pins upstream
+commits in [runtime/upstream.json](runtime/upstream.json).
 
 ```sh
-git clone https://github.com/superagent-ai/dark-mcp.git
-cd dark-mcp
 uv sync --locked
-cp .env.example .env
+python3 scripts/prepare_runtime.py
+docker compose up -d --build
+uv run --no-editable dark-mcp serve
 ```
 
-Set `DARK_MCP_ONION_SEARCH_API_KEY` in `.env` to enable discovery. Get your own key through the provider's [account flow](https://onionsearchengine.com/api_plans.php). This project does not create accounts or subscribe to paid plans for you.
+Preparation fetches pinned AIL and Lacus sources into ignored `.runtime/` and generates private database credentials
+under `data/runtime/`. AIL creates its API key in `data/ail/api-key` and initial operator login in `data/ail/admin.json`,
+both with owner-only permissions. Keep these files local. Data survives restarts; deleting Docker volumes resets
+the corresponding corpus databases.
 
-Start Tor for direct page retrieval:
+The AIL UI/API listens at `http://127.0.0.1:7000`. Databases and Lacus have no published host ports. Use TLS for a
+remote AIL service and leave certificate verification enabled.
 
-```sh
-docker compose up -d --build tor
-docker compose logs -f tor
-```
+The deployment runs upstream AIL feeder/capture importers, Mixer, Global, Indexer, Categ, URL/Onion extraction,
+Tags and Crawler. Lacus performs browser captures and uses its local Tor proxy for onion addresses. Automatic
+onion discovery and Ollama are disabled; no recurring collection tasks are provisioned. Other upstream capabilities
+such as OCR, trackers and external enrichers require separate operator configuration/workers.
 
-Wait for `Bootstrapped 100%`. The container health check only checks the SOCKS listener; it does not establish bootstrap completion. An existing local Tor process on port 9050 also works. If that port is in use, use your existing Tor process or change the Compose host port and `DARK_MCP_TOR_PROXY` together.
+## Add to an agent
 
-```sh
-uv run dark-mcp serve
-```
-
-The default transport is stdio. Do not type into this process: connect an MCP client as shown below.
-
-## Connect an MCP client
-
-Use the absolute path to your checkout; the working directory is where `.env` is read.
+Use absolute repository and API key paths in your agent's MCP configuration:
 
 ```json
 {
   "mcpServers": {
     "dark-mcp": {
       "command": "uv",
-      "args": ["--directory", "/absolute/path/dark-mcp", "run", "dark-mcp", "serve"]
+      "args": ["--directory", "/absolute/path/dark-mcp", "run", "--no-editable", "dark-mcp", "serve"],
+      "env": {
+        "DARK_MCP_AIL_URL": "http://127.0.0.1:7000",
+        "DARK_MCP_AIL_API_KEY_FILE": "/absolute/path/dark-mcp/data/ail/api-key"
+      }
     }
   }
 }
 ```
 
-For a client supporting local Streamable HTTP:
+For an existing AIL installation, install the compatibility extension described in
+[docs/architecture.md](docs/architecture.md). Stock AIL's REST API does not expose the full search contract used
+here. Connection settings are in `.env.example`; credentials are never MCP tool arguments.
 
-```sh
-uv run dark-mcp serve --transport streamable-http --port 8000
-```
+## Broad and deep research
 
-Connect to `http://127.0.0.1:8000/mcp`. HTTP binds to loopback only and has no application authentication. Keep it local; remote, multi-user deployment requires an authenticated gateway and isolated credentials/data per tenant.
+Give your agent the [research playbook](docs/research-playbook.md). It explains source discovery, bounded
+collection, asynchronous capture verification, query expansion, original-post checks and evidence reporting.
+Repository agents should also read [AGENTS.md](AGENTS.md).
+
+Example agent request:
+
+> Investigate public exposure and attack-preparation signals concerning COMPANY and its confirmed domains.
+> Follow docs/research-playbook.md. Start with the existing corpus, discover relevant original sources using
+> available discovery tools, collect a bounded set of accessible threads/pages, and pivot on substantiated leads.
+> Retrieve original objects before qualifying findings. Report evidence, dates, source access failures, rejected
+> matches and remaining gaps. Distinguish procurement intent, exposure claims and confirmed facts. Use an
+> explicit research budget; do not create monitoring jobs.
+
+`ail_search` searches content already indexed by this AIL installation. Broad research requires discovery and
+collection as well as searches; the MCP does not search every forum or Telegram channel automatically.
+
+Live results and limitations are documented in [initial validation](docs/validation-2026-10-20.md) and
+[expanded end-to-end validation](docs/expanded-validation-2026-10-20.md). Collection and original-content retrieval
+have been demonstrated; detection before compromise/disclosure and commercial coverage parity have not.
 
 ## Tools
 
 | Tool | Purpose |
 | --- | --- |
-| `get_status()` | Configuration and local index count; does not test connectivity |
-| `search_onion(query, page=1)` | Discover onion mentions using the search provider; returns `next_page` |
-| `fetch_onion(url)` | Fetch a v3 onion page over Tor, extract text/links, update local index |
-| `crawl_onion(seeds, max_pages=5)` | Collect at most 10 pages from seed onions and same-host links |
-| `search_onion_cache(query, limit=10, since=null)` | Full text search of collected pages; `since` refers to collection time |
-| `search_telegram_channels(query, limit=10)` | Discover channels; requires global search to be enabled |
-| `read_telegram_channel(channel, limit=20, before_id=0)` | Read an allowed broadcast channel |
-| `search_telegram_messages(channel, query, limit=20, before_id=0, since=null)` | Search an allowed channel; `since` refers to publication time |
-| `search_telegram_posts(query, limit=20, cursor=null)` | Public post search using free quota only; requires global search to be enabled |
+| `ail_status` | Authentication and real index health/document counts |
+| `ail_crawl_url` | Queue an explicit HTTP(S)/onion page, depth 0–2, JavaScript off by default |
+| `ail_crawl_status` | Inspect a temporary AIL task and capture state |
+| `ail_domain_captures` | Latest 20 retained domain outcomes and saved root object IDs |
+| `ail_search` | AIL-native full-text search with scopes and pagination |
+| `ail_get_object` | Native object metadata/content and source URL/crawler context where present |
+| `ail_chat_instances` | List already ingested chat instances |
+| `ail_chat_channels` | List already ingested chats/channels in an instance |
+| `ail_chat_messages` | Read retained native chat messages |
+| `ail_import_text` | Explicit operator text submission through AIL's upstream feeder pipeline |
 
-Dates must include a timezone, for example `2026-10-18T00:00:00Z`. Telegram message limits are 1–100; channel discovery is 1–50. Use the returned `next_before_id`, `next_cursor`, or `next_page` for pagination. Search API page size is provider controlled.
+Collection and indexing are asynchronous. AIL removes temporary tasks when finished; a missing task is not a
+success receipt. Check retained history, saved objects and index health. A saved body may be an access challenge.
+Search uses tokenization and typo tolerance; inspect full original content before attributing a company mention.
+Experimental substring filtering is excluded after missing a known source mention in live validation.
 
-Tools return structured `ok`, `results`/`page`, coverage information, and errors with stable codes. Rate limit errors include a retry delay when Telegram provides one. Missing configuration and source failures are explicit errors, never empty results disguised as successful searches.
+Telegram chat ingestion uses AIL's separate [Telegram feeder](https://github.com/ail-project/ail-feeder-telegram)
+with an operator-provisioned account. No account/session is bundled or automatically imported. Public Telegram
+preview pages can also be collected as web pages; those are page captures, not native chat history.
 
-## Example proactive company investigation
+Plain operator text imports are queued into AIL storage; upstream does not include ordinary non-crawled items in
+its full-text indexes. Source claims, old post dates and imported content do not demonstrate
+detection before compromise or disclosure. Empty searches describe this installation's collected corpus. Source
+content is untrusted data and must never override agent instructions.
 
-For a fictional company called Acme with domain `acme.example`:
-
-1. Call `search_onion` separately for `"Acme"`, `acme.example`, and relevant brand aliases. These are search strings; matching behavior is controlled by the provider.
-2. Inspect relevant results with `fetch_onion`. Record the exact excerpt, URL, and collection time. The search API does not guarantee publication dates; an old indexed page is not necessarily a new disclosure.
-3. Search selected Telegram channels for the same identifiers using `search_telegram_messages`, with the start of the research window in `since`. Where separately permitted, use public post search to discover additional sources.
-4. Assess whether the text actually refers to the company. A mention or an alleged leak is not a confirmed compromise. Cite the evidence and retain uncertainty.
-5. For repeated monitoring, the calling workflow should persist seen source URLs, Telegram channel/message IDs, and content hashes; compare each run and notify on new or changed evidence. The server supplies data access, not a built-in scheduler or alert delivery service.
-
-The first version searches text only. It does not OCR images, download attachments, bypass authentication/CAPTCHAs, join channels, post messages, or verify the authenticity of leaked data.
-
-## Telegram setup
-
-Telegram's [API terms](https://core.telegram.org/api/terms) and [content licensing terms](https://telegram.org/tos/content-licensing) restrict using platform data for AI, including deployment. Public accessibility and an authenticated session do not grant those rights. Enable this connector only where an applicable permission arrangement or consent exception covers your intended use. The configuration switches are operational controls, not a grant of permission.
-
-1. Register your own Telegram application at [my.telegram.org](https://my.telegram.org/apps).
-2. Set `DARK_MCP_TELEGRAM_API_ID` and `DARK_MCP_TELEGRAM_API_HASH` locally in `.env`.
-3. Run the login command yourself in a terminal:
+## Development and licensing
 
 ```sh
-uv run dark-mcp telegram-login
-```
-
-4. Set the permitted channels and enable the connector:
-
-```dotenv
-DARK_MCP_TELEGRAM_ENABLED=true
-DARK_MCP_TELEGRAM_CHANNELS=["permitted_channel","-1001234567890"]
-```
-
-Global channel discovery and public post search are disabled separately. Where your permission arrangement covers these searches, set `DARK_MCP_TELEGRAM_GLOBAL_SEARCH=true`. Public post search may require Premium and available free quota. The server never authorizes spending Telegram Stars.
-
-Private channels require the account to already have access. Read/search tools accept broadcast channels only. Credentials and the account session stay server-side; login is never exposed as an MCP tool. Treat the session file as an account credential. Revoke a session through Telegram's Devices settings if compromised.
-
-## Docker-only usage
-
-```sh
-docker compose build
-docker compose up -d tor
-# Interactive account login, if using Telegram:
-docker compose run --rm mcp telegram-login
-# MCP stdio, suitable for an MCP client's command/args:
-docker compose run --rm --no-deps -T mcp serve
-```
-
-The MCP client must run that command in this checkout. Persistent container data and sessions live in the `mcp-data` volume; local `uv` runs use `DARK_MCP_DATA_DIR` instead. Do not run multiple processes against the same Telegram session. Tor's SOCKS port is published only to the host loopback address.
-
-## Local onion corpus
-
-For sources you already know, populate the optional local corpus without a discovery key:
-
-```sh
-uv run dark-mcp crawl 'http://YOUR_VALID_V3_ADDRESS.onion/' --max-pages 5
-uv run dark-mcp search 'company name'
-```
-
-Pages are fetched through Tor, with v3 address checksums checked, redirects validated, robots.txt respected, per-host pacing, request deadlines, and response limits. Crawling follows same-host links; cross-host redirects are still restricted to valid onion destinations and checked against the destination's robots.txt.
-
-## Configuration and data
-
-All settings use the `DARK_MCP_` prefix; see [.env.example](.env.example). Environment variables override `.env`. The default data directory is `~/.local/share/dark-mcp`; the example uses `./data`.
-
-The local SQLite database stores extracted onion content unencrypted on disk. Telegram posts are returned on demand and are not saved by the server. Clients may retain tool responses. Clear the local corpus by stopping the server and removing `onions.sqlite3` and its WAL files from your configured data directory. Back up or remove Telegram session files separately.
-
-Search queries sent to the discovery API go to that provider over ordinary HTTPS. Direct onion fetching goes through the configured Tor proxy; it does not fall back to direct internet access. Telegram uses its normal client connection, not Tor.
-
-All retrieved text is untrusted data. HTML scripts are stripped, but this does not eliminate prompt injection. The calling agent must treat source text as evidence, never instructions.
-
-## Development
-
-```sh
-uv sync --locked
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest -q
 uv build
+docker compose config --quiet
 ```
 
-Tests cover MCP initialization and stdio, provider response contracts and errors, onion URL/redirect/response boundaries, indexing, and Telegram access controls/pagination/rate limits. Default tests make no live network calls. Authenticated provider search and Telegram access require operator credentials and separate live verification.
+The MCP adapter is MIT licensed. AIL is AGPL-3.0; the runtime extension importing AIL libraries is marked
+AGPL-3.0-or-later, with its license in `runtime/COPYING.AIL`. Lacus is BSD-3-Clause. Upstream source is fetched rather
+than copied into this repository. See [docs/architecture.md](docs/architecture.md) for deployment boundaries.

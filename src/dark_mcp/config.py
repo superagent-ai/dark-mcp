@@ -1,6 +1,7 @@
 from pathlib import Path
+from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,23 +10,30 @@ class Settings(BaseSettings):
         env_prefix="DARK_MCP_", env_file=".env", extra="ignore", hide_input_in_errors=True
     )
 
-    data_dir: Path = Path.home() / ".local/share/dark-mcp"
-    tor_proxy: str = "socks5h://127.0.0.1:9050"
-    request_timeout: float = Field(default=45, ge=1, le=120)
-    max_response_bytes: int = Field(default=2_000_000, ge=1024, le=10_000_000)
-    max_text_chars: int = Field(default=60_000, ge=100, le=200_000)
-    onion_search_api_key: SecretStr | None = None
-    telegram_api_id: int | None = Field(default=None, gt=0)
-    telegram_api_hash: SecretStr | None = None
-    telegram_enabled: bool = False
-    telegram_channels: list[str] = []
-    telegram_global_search: bool = False
+    ail_url: str = "http://127.0.0.1:7000"
+    ail_api_key: SecretStr | None = None
+    ail_api_key_file: Path | None = Path("data/ail/api-key")
+    ail_verify_tls: bool = True
+    request_timeout: float = Field(default=45, ge=1, le=180)
+    max_response_bytes: int = Field(default=4_000_000, ge=1024, le=20_000_000)
 
-    def prepare_data_dir(self) -> Path:
-        path = self.data_dir.expanduser()
-        path.mkdir(parents=True, exist_ok=True, mode=0o700)
-        return path
+    @field_validator("ail_url")
+    @classmethod
+    def valid_base_url(cls, value: str) -> str:
+        parts = urlsplit(value)
+        if parts.scheme not in {"https", "http"} or not parts.hostname or parts.username or parts.password:
+            raise ValueError("Use an HTTP(S) AIL URL without credentials")
+        if parts.query or parts.fragment:
+            raise ValueError("AIL base URL cannot contain a query or fragment")
+        return value.rstrip("/")
 
-    @property
-    def session_path(self) -> Path:
-        return self.data_dir.expanduser() / "telegram.session"
+    def api_key(self) -> str:
+        if self.ail_api_key:
+            value = self.ail_api_key.get_secret_value()
+        elif self.ail_api_key_file and self.ail_api_key_file.is_file():
+            value = self.ail_api_key_file.read_text().strip()
+        else:
+            raise ValueError("Configure DARK_MCP_AIL_API_KEY or DARK_MCP_AIL_API_KEY_FILE locally")
+        if not value or any(c.isspace() for c in value):
+            raise ValueError("Invalid locally configured AIL API key")
+        return value

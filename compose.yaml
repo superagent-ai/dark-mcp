@@ -1,32 +1,51 @@
+name: dark-mcp-ail
 services:
-  tor:
+  redis-cache:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [cache:/data]
+  redis-log:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [log:/data]
+  redis-queues:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [queues:/data]
+  kvrocks:
+    image: apache/kvrocks:2.12.1
+    user: '0:0'
+    entrypoint: [kvrocks, -c, /config/kvrocks.conf]
+    volumes:
+      - ./data/runtime/kvrocks.conf:/config/kvrocks.conf:ro
+      - kvrocks:/data
+  meilisearch:
+    image: getmeili/meilisearch:v1.55.0
+    env_file:
+      - path: ./data/runtime/meili.env
+        required: false
+    volumes: [search:/meili_data]
+  ail:
     build:
       context: .
-      dockerfile: Dockerfile.tor
+      dockerfile: runtime/Dockerfile.ail
+    ports: ['127.0.0.1:7000:7000']
     volumes:
-      - tor-data:/var/lib/tor
-    ports:
-      - "127.0.0.1:9050:9050"
-    healthcheck:
-      test: ["CMD", "nc", "-z", "127.0.0.1", "9050"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-    restart: unless-stopped
-  mcp:
-    build: .
-    stdin_open: true
-    env_file:
-      - path: .env
-        required: false
-    environment:
-      DARK_MCP_DATA_DIR: /data
-      DARK_MCP_TOR_PROXY: socks5h://tor:9050
-    volumes:
-      - mcp-data:/data
-    depends_on:
-      tor:
-        condition: service_healthy
+      - ./data/runtime/core.cfg:/opt/ail/configs/core.cfg:ro
+      - ./data/ail:/data
+    depends_on: [redis-cache, redis-log, redis-queues, kvrocks, meilisearch]
+    init: true
+  lacus:
+    build:
+      context: .
+      dockerfile: runtime/Dockerfile.lacus
+    init: true
+    shm_size: 1gb
+    volumes: [lacus:/data]
 volumes:
-  tor-data:
-  mcp-data:
+  cache:
+  log:
+  queues:
+  kvrocks:
+  search:
+  lacus:

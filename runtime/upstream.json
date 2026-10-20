@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/ail-project/ail-framework",
+  "commit": "241bea1048db67df916a1d50fb5981605c2f157b",
+  "lacus": {
+    "repository": "https://github.com/ail-project/lacus",
+    "commit": "44c1fd1870e34066e052434dbc584a80ceea5b66"
+  }
+}
