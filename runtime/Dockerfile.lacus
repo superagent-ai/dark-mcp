@@ -1,0 +1,8 @@
+FROM python:3.12-slim-bookworm
+ENV PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 LACUS_HOME=/opt/lacus
+RUN apt-get update && apt-get install -y --no-install-recommends redis-server tor ffmpeg build-essential && rm -rf /var/lib/apt/lists/*
+COPY .runtime/lacus /opt/lacus
+WORKDIR /opt/lacus
+RUN pip install --no-cache-dir . && playwright install --with-deps chromium firefox
+COPY runtime/start_lacus.py /opt/start_lacus.py
+ENTRYPOINT ["python", "/opt/start_lacus.py"]

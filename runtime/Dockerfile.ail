@@ -1,0 +1,20 @@
+FROM python:3.11-slim-bookworm AS dependencies
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential git curl cmake pkg-config automake autoconf libtool \
+    libmagic1 libfuzzy-dev libffi-dev libssl-dev libsnappy-dev \
+    protobuf-compiler libprotobuf-dev libzbar0 libgl1 libglib2.0-0 \
+    libadns1-dev graphviz p7zip-full supervisor \
+    && rm -rf /var/lib/apt/lists/*
+COPY .runtime/ail-framework/requirements.txt /tmp/ail-requirements.txt
+RUN pip install --no-cache-dir torch==2.13.0 torchvision==0.28.0 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir 'git+https://github.com/D4-project/BGP-Ranking.git@7e698f87366e6f99b4d0d11852737db28e3ddc62#subdirectory=client'
+RUN pip install --no-cache-dir -r /tmp/ail-requirements.txt py-tlsh ssdeep gunicorn
+
+FROM dependencies AS runtime
+COPY .runtime/ail-framework /opt/ail
+COPY runtime /opt/dark-mcp-runtime
+ENV AIL_HOME=/opt/ail AIL_BIN=/opt/ail/bin AIL_FLASK=/opt/ail/var/www \
+    PYTHONPATH=/opt/ail/bin:/opt/ail/var/www:/opt/dark-mcp-runtime
+WORKDIR /opt/ail
+ENTRYPOINT ["python", "/opt/dark-mcp-runtime/start_ail.py"]
