@@ -57,6 +57,28 @@ For an existing AIL installation, install the compatibility extension described 
 [docs/architecture.md](docs/architecture.md). Stock AIL's REST API does not expose the full search contract used
 here. Connection settings are in `.env.example`; credentials are never MCP tool arguments.
 
+## Broad and deep research
+
+Give your agent the [research playbook](docs/research-playbook.md). It explains source discovery, bounded
+collection, asynchronous capture verification, query expansion, original-post checks and evidence reporting.
+Repository agents should also read [AGENTS.md](AGENTS.md).
+
+Example agent request:
+
+> Investigate public exposure and attack-preparation signals concerning COMPANY and its confirmed domains.
+> Follow docs/research-playbook.md. Start with the existing corpus, discover relevant original sources using
+> available discovery tools, collect a bounded set of accessible threads/pages, and pivot on substantiated leads.
+> Retrieve original objects before qualifying findings. Report evidence, dates, source access failures, rejected
+> matches and remaining gaps. Distinguish procurement intent, exposure claims and confirmed facts. Use an
+> explicit research budget; do not create monitoring jobs.
+
+`ail_search` searches content already indexed by this AIL installation. Broad research requires discovery and
+collection as well as searches; the MCP does not search every forum or Telegram channel automatically.
+
+Live results and limitations are documented in [initial validation](docs/validation-2026-10-20.md) and
+[expanded end-to-end validation](docs/expanded-validation-2026-10-20.md). Collection and original-content retrieval
+have been demonstrated; detection before compromise/disclosure and commercial coverage parity have not.
+
 ## Tools
 
 | Tool | Purpose |
